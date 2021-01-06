@@ -1,7 +1,9 @@
+[![Actions Status](https://github.com/tbrowder/PDF-Document/workflows/test/badge.svg)](https://github.com/tbrowder/PDF-Document/actions)
+
 NAME
 ====
 
-PDF::Document - blah blah blah
+PDF::Document - Provides higher level classes and routines to create PDF documents
 
 SYNOPSIS
 ========
@@ -25,5 +27,5 @@ COPYRIGHT AND LICENSE
 
 Copyright 2021 Tom Browder
 
-This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0.
+This library is free software; you can redistribute it or modify it under the Artistic License 2.0.
 
