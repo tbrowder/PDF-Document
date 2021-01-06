@@ -1,0 +1,29 @@
+=begin pod
+
+=head1 NAME
+
+PDF::Document - Provides higher level classes and routines to create PDF documents
+
+=head1 SYNOPSIS
+
+=begin code :lang<raku>
+
+use PDF::Document;
+
+=end code
+
+=head1 DESCRIPTION
+
+PDF::Document is ...
+
+=head1 AUTHOR
+
+Tom Browder <tbrowder@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2021 Tom Browder
+
+This library is free software; you can redistribute it or modify it under the Artistic License 2.0.
+
+=end pod
