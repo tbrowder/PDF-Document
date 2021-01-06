@@ -19,7 +19,7 @@ my $afm;
 for @Fonts -> $f {
     given $f.lc {
         say "Getting PDF font: $_";
-        $afm = Font::AFM.new(:name($f)) if $_ !~~ /:i zapf /; # issue filed
+        $afm = Font::AFM.core-font($f) if $_ !~~ /:i zapf /; # issue filed
         when $_ eq 'courier' {
             $font = $page.core-font(:family<Courier>);
         }
