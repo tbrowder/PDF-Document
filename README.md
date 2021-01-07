@@ -51,17 +51,17 @@ It is designed around the document generation process used by those who use Post
 
   * End the document
 
-That sequence is followed in the PDF document creation process:
+That sequence is also followed in the PDF document creation process:
 
-  * Define the `PDF` class instance (a heavy-weight instanciation, only one per document)
+  * Define the `PDF` class instance (a heavy-weight instantiation, only one per document)
 
     * `my $pdf = PDF::Lite;`
 
-  * Find the fonts to be used (also a heavy-weight instanciation)
+  * Find the fonts to be used (also a heavy-weight instantiation)
 
     * `my $courier = find-font :fontfamily<Courier>, :$pdf;`
 
-  * Select the fonts to be used by adding size to a copy of an existing font face (a light-weight instanciation)
+  * Select the fonts to be used by adding size to a copy of an existing font family (a light-weight instantiation)
 
     * `my $c10 = select-font :fontfamily($courier), :size(10);`
 
@@ -86,7 +86,7 @@ As you can see the steps are equivalent, but the steps in PDF page creation are 
 CURRENT CAPABILITY
 ==================
 
-Currently the only thing the module provides are information to ease use of PDF core fonts (those shown in the listing above) in a using module.
+Currently the only thing the module provides are routines and data to ease acces to PDF core fonts (those shown in the listing above) in a using module.
 
 FUTURE CAPABILITY
 =================
@@ -103,7 +103,7 @@ This module is being used during the development of the author's other PDF modul
 
   * `PDF::Forms`
 
-And this module will be updated with more items as the user modules are updated and published
+This module will be updated with more items as the user modules are updated and published.
 
 NOTE: The asterisk (`*`) indicates the module has been published.
 
@@ -119,7 +119,7 @@ AUTHOR
 
 Tom Browder <tbrowder@cpan.org>
 
-COPYRIGHT AND LICENSE
+COPYRIGHT and LICENSE
 =====================
 
 Copyright © 2021 Tom Browder

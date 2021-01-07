@@ -50,14 +50,14 @@ REFERENCES) and is divided into the following logical sequences:
 =item Define and render each page
 =item End the document
 
-That sequence is followed in the PDF document creation process:
+That sequence is also followed in the PDF document creation process:
 
-=item Define the C<PDF> class instance (a heavy-weight instanciation, only one per document)
+=item Define the C<PDF> class instance (a heavy-weight instantiation, only one per document)
     =item2 C<my $pdf = PDF::Lite;>
-=item Find the fonts to be used (also a heavy-weight instanciation)
+=item Find the fonts to be used (also a heavy-weight instantiation)
     =item2 C<my $courier = find-font :fontfamily<Courier>, :$pdf;>
-=item Select the fonts to be used by adding size to a copy of an existing font face
-(a light-weight instanciation)
+=item Select the fonts to be used by adding size to a copy of an existing font family
+(a light-weight instantiation)
     =item2 C<my $c10 = select-font :fontfamily($courier), :size(10);>
 =item Define each page
     =item2 C<my $page = $pdf.add-page;>
@@ -75,8 +75,8 @@ easily by this module.
 
 =head1 CURRENT CAPABILITY
 
-Currently the only thing the module provides are information to ease
-use of PDF core fonts (those shown in the listing above) in a using module.
+Currently the only thing the module provides are routines and data to ease
+acces to PDF core fonts (those shown in the listing above) in a using module.
 
 =head1 FUTURE CAPABILITY
 
@@ -88,7 +88,7 @@ This module is being used during the development of the author's other PDF modul
 =item C<PDF::ReWriter>
 =item C<PDF::Forms>
 
-And this module will be updated with more items as the user modules are updated and published
+This module will be updated with more items as the user modules are updated and published.
 
 NOTE: The asterisk (C<*>) indicates the module has been published.
 
@@ -100,7 +100,7 @@ NOTE: The asterisk (C<*>) indicates the module has been published.
 
 Tom Browder <tbrowder@cpan.org>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT and LICENSE
 
 Copyright E<0x00a9> 2021 Tom Browder
 
