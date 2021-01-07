@@ -1,16 +1,14 @@
 use Test;
 use PDF::Document;
 
-plan 15; 
+plan 1; 
 
-for @CoreFonts -> $f {
-    lives-ok {
-        shell "./dev/check-fonts.raku";
-    }, "checking font loading and metrics: $f";
-}
+
+#for @CoreFonts -> $f {
+#}
 
 lives-ok {
-    shell "./dev/check-load-fonts.raku";
-}, "checking loading font hash";
+        shell "./dev/check-fonts.raku";
+}, "checking bulk font setting";
 
 done-testing;
