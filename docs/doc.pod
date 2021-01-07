@@ -2,19 +2,64 @@
 
 =head1 NAME
 
-PDF::Document - Provides higher level classes and routines to create PDF documents
+C<PDF::Document> - Provides high-level classes and routines to create 
+      original documents in Portable Document Format (PDF)
 
 =head1 SYNOPSIS
 
 =begin code :lang<raku>
-
 use PDF::Document;
-
+for %CoreFonts.kv -> $fontname, $fontalias {
+    say "Font family: '$fontname' (alias: '$fontalias')";
+}
+# output:
 =end code
 
 =head1 DESCRIPTION
 
-PDF::Document is ...
+Module C<PDF::Document> leverages the power of lower-level modules C<PDF::Lite> and C<Font::AFM> 
+and encapsulates some of its classes, routines, and variables into higher-level contructs to
+ease PDF document creation.
+
+It is designed around the document generation process used by those who use
+PostScript (PS) code to create PS documents which are then transformed into
+PDF by the GNU program C<ps2pdf>. That process is described in great detail
+in the classic PS books by Adobe (see REFERENCES) and is divided into
+the following logical sequences:
+
+=item Define the prologue which usually includes:
+    =item2 Finding the font faces to be used
+    =item2 Font selection (creating the actual font by scaling a face to the desired size)
+    =item2 Procedure definition
+=item Define and render each page
+=item End the document
+
+That sequence is followed in the PDF document creation process:
+
+=item Define the PDF class instance (a heavy-weight instanciation, only one per document)
+    =item2 C<my $pdf = PDF::Lite;>
+=item Find the fonts to be used (also a heavy-weight instanciation)
+    =item2 C<my $courier = find-font :fontfamily<Courier>, :$pdf;>
+=item Select the fonts to be used by adding size to a copy of an existing font face
+(a light-weight instanciation) 
+    =item2 C<my $c10 = select-font :$fontfamily, :size(10);>
+=item Define each page
+    =item2 C<my $page = $pdf.add-page;>
+    =item2 C<#...add text and graphics...>
+    =item2 C<my $page = $pdf.add-page;>
+    =item2 C<#...add text and graphics...>
+=item Create the document and exit
+    =item2 C<$pdf.save-as<MyDoc.pdf>;>
+
+As you can see the steps are equivalent, but the steps in PDF page creation are much easier because common low-level
+code required in PS creation is available behind the covers in PDF::Lite and accessed more easily
+by this module.
+
+=REFERENCES
+
+=item Adobe 3
+
+=item Adobe Cookbook
 
 =head1 AUTHOR
 
@@ -22,7 +67,7 @@ Tom Browder <tbrowder@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2021 Tom Browder
+Copyright E<0x00a9> 2021 Tom Browder
 
 This library is free software; you can redistribute it or modify it under the Artistic License 2.0.
 
