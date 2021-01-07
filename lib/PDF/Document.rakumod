@@ -24,22 +24,22 @@ constant %CoreFonts is export = [
 
 our %CoreFontAliases is export = %CoreFonts.reverse;
 
-class DocFont is export {
+class FontFamily is export {
     has PDF::Lite $.pdf is required;
     has $.name is required; # font name
     has $.font is required;
     has $.afm is required;
 }
 
-class TextFont is export {
-    has DocFont $.docfont is required;
+class DocFont is export {
+    has FontFamily $.fontfamily is required;
     has Real $.size is required;
     has $.name is required; # font name
 }
 
-sub define-docfont(PDF::Lite :$pdf!, 
-                   :$name!,  # full or alias
-                   --> DocFont) is export {
+sub find-font(PDF::Lite :$pdf!, 
+              :$name!,  # full or alias
+              --> FontFamily) is export {
     my $f;
     if %CoreFonts{$name}:exists {
         $f = $name;
@@ -53,12 +53,14 @@ sub define-docfont(PDF::Lite :$pdf!,
  
     my $font = $pdf.core-font(:family($f));
     my $afm  = Font::AFM.core-font($f);
-    my $DF   = DocFont.new: :$pdf, :name($f), :$font, :$afm;
-    return $DF;
+    my $FF   = FontFamily.new: :$pdf, :name($f), :$font, :$afm;
+    return $FF;
 }
 
-sub set-docfont(DocFont :$docfont!, Real :$size! --> TextFont) is export {
-    return TextFont.new: :$docfont, :name($docfont.name), :$size;
+sub select-font(FontFamily :$fontfamily!, 
+                Real :$size! 
+                --> DocFont) is export {
+    return DocFont.new: :$fontfamily, :name($fontfamily.name), :$size;
 }
 
 =finish
