@@ -24,6 +24,21 @@ constant %CoreFonts is export = [
 
 our %CoreFontAliases is export = %CoreFonts.reverse;
 
+sub show-corefonts is export {
+    my $max = 0;
+    for %CoreFonts.keys -> $k {
+        my $n = $k.chars;
+        $max = $n if $n > $max;
+    }
+
+    ++$max; # make room for closing '
+    for %CoreFonts.keys.sort -> $k {
+        my $v = %CoreFonts{$k};
+        my $f = $k ~ "'";
+        say sprintf("Font family: '%-*.*s (alias: '$v')", $max, $max, $f);
+    }
+}
+
 class FontFamily is export {
     has PDF::Lite $.pdf is required;
     has $.name is required; # font name

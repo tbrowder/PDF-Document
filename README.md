@@ -10,10 +10,26 @@ SYNOPSIS
 
 ```raku
 use PDF::Document;
-for %CoreFonts.kv -> $fontname, $fontalias {
-    say "Font family: '$fontname' (alias: '$fontalias')";
-}
-# output:
+show-corefonts;
+```
+
+Produces:
+
+```raku
+Font family: 'Courier'               (alias: 'c')
+Font family: 'Courier-Bold'          (alias: 'ch')
+Font family: 'Courier-BoldOblique'   (alias: 'cbo')
+Font family: 'Courier-Oblique'       (alias: 'co')
+Font family: 'Helvetica'             (alias: 'h')
+Font family: 'Helvetica-Bold'        (alias: 'hb')
+Font family: 'Helvetica-BoldOblique' (alias: 'hbo')
+Font family: 'Helvetica-Oblique'     (alias: 'ho')
+Font family: 'Symbol'                (alias: 's')
+Font family: 'Times-Bold'            (alias: 'tb')
+Font family: 'Times-BoldItalic'      (alias: 'tbi')
+Font family: 'Times-Italic'          (alias: 'ti')
+Font family: 'Times-Roman'           (alias: 't')
+Font family: 'Zapfdingbats'          (alias: 'z')
 ```
 
 DESCRIPTION
@@ -37,7 +53,7 @@ It is designed around the document generation process used by those who use Post
 
 That sequence is followed in the PDF document creation process:
 
-  * Define the PDF class instance (a heavy-weight instanciation, only one per document)
+  * Define the `PDF` class instance (a heavy-weight instanciation, only one per document)
 
     * `my $pdf = PDF::Lite;`
 
@@ -45,15 +61,17 @@ That sequence is followed in the PDF document creation process:
 
     * `my $courier = find-font :fontfamily<Courier>, :$pdf;`
 
-  * Select the fonts to be used by adding size to a copy of an existing font face (a light-weight instanciation) 
+  * Select the fonts to be used by adding size to a copy of an existing font face (a light-weight instanciation)
 
-    * `my $c10 = select-font :$fontfamily, :size(10);`
+    * `my $c10 = select-font :fontfamily($courier), :size(10);`
 
   * Define each page
 
     * `my $page = $pdf.add-page;`
 
     * `#...add text and graphics...`
+
+    * `#...add a new page...`
 
     * `my $page = $pdf.add-page;`
 
@@ -63,16 +81,38 @@ That sequence is followed in the PDF document creation process:
 
     * `$pdf.save-as<MyDoc.pdf>;`
 
-As you can see the steps are equivalent, but the steps in PDF page creation are much easier because common low-level code required in PS creation is available behind the covers in PDF::Lite and accessed more easily by this module.
+As you can see the steps are equivalent, but the steps in PDF page creation are much easier because common low-level code required in PS creation is available behind the covers in `PDF::Lite` and accessed more easily by this module.
+
+CURRENT CAPABILITY
+==================
+
+Currently the only thing the module provides are information to ease use of PDF core fonts (those shown in the listing above) in a using module.
+
+FUTURE CAPABILITY
+=================
+
+This module is being used during the development of the author's other PDF modules:
+
+  * `PDF::Writer`*
+
+  * `PDF::Labelmaker`
+
+  * `PDF::Calendar`
+
+  * `PDF::ReWriter`
+
+  * `PDF::Forms`
+
+And this module will be updated with more items as the user modules are updated and published
+
+NOTE: The asterisk (`*`) indicates the module has been published.
 
 REFERENCES
 ==========
 
 
 
-  * Adobe 3
-
-  * Adobe Cookbook
+  * *PostScript Language Reference Manual*, 2nd Edition, Adobe Systems Inc., 1990
 
 AUTHOR
 ======
