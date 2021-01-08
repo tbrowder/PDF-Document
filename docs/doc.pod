@@ -55,10 +55,12 @@ That sequence is also followed in the PDF document creation process:
 =item Define the C<PDF> class instance (a heavy-weight instantiation, only one per document)
     =item2 C<my $pdf = PDF::Lite;>
 =item Find the fonts to be used (also a heavy-weight instantiation)
-    =item2 C<my $courier = find-font :fontfamily<Courier>, :$pdf;>
+    =item2 C<my $courier = find-font :name<Courier>, :$pdf;>
+    =item2 C<my $helvetica> = find-font :name<h>, :$pdf; # use its alias>
 =item Select the fonts to be used by adding size to a copy of an existing font family
 (a light-weight instantiation)
-    =item2 C<my $c10 = select-font :fontfamily($courier), :size(10);>
+    =item2 C<my $c10p= select-font :fontfamily($courier), :size(10);>
+    =item2 C<my $h12'5p = select-font :fontfamily($helvetica>, :size(12.5);>
 =item Define each page
     =item2 C<my $page = $pdf.add-page;>
     =item2 C<#...add text and graphics...>
