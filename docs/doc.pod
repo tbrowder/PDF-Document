@@ -59,8 +59,8 @@ That sequence is also followed in the PDF document creation process:
     =item2 C<my $helvetica> = find-font :name<h>, :$pdf; # use its alias>
 =item Select the fonts to be used by adding size to a copy of an existing font family
 (a light-weight instantiation)
-    =item2 C<my $c10p= select-font :fontfamily($courier), :size(10);>
-    =item2 C<my $h12'5p = select-font :fontfamily($helvetica>, :size(12.5);>
+    =item2 C<my $c10 = select-font :fontfamily($courier), :size(10);>
+    =item2 C<my $h12h= select-font :fontfamily($helvetica>, :size(12.5);>
 =item Define each page
     =item2 C<my $page = $pdf.add-page;>
     =item2 C<#...add text and graphics...>
