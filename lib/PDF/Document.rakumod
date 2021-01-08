@@ -22,7 +22,7 @@ constant %CoreFonts is export = [
     Zapfdingbats          => "z",
 ];
 
-our %CoreFontAliases is export = %CoreFonts.reverse;
+our %CoreFontAliases is export = %CoreFonts.invert;
 
 sub show-corefonts is export {
     my $max = 0;

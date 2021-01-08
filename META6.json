@@ -5,13 +5,14 @@
     "Tom Browder"
   ],
   "build-depends": [
+  ],
+  "depends": [
+    "PDF::Document",
     "Config::TOML",
     "Text::Utils",
     "Font::AFM",
     "PDF:ver<0.4.5+>",
     "PDF::Lite"
-  ],
-  "depends": [
   ],
   "description": "Provides higher level classes and routines to create PDF documents",
   "license": "Artistic-2.0",
