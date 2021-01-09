@@ -90,9 +90,10 @@ defining them by another name for easy recall. For example:
 /h12 /Helvetica 10 selectfont def
 /hb12 /Hevetica-Bold 12 selectfont def
 
-Now we can use it like this:
-=code hb12 (Cowboy slang: ) show
-=code h10 (Howdy, podnuh!) show
+Now we can use them like this:
+=code 
+hb12 (Cowboy slang: ) show
+h10 (Howdy, podnuh!) show
 
 Which would generate something like this in the final document: "B<Cowboy slang:> Howdy, podnuh!"
 
@@ -120,11 +121,16 @@ That sequence is also followed in the PDF document creation process:
 
 =head3 PDF font selection
 
-As opposed to PS, the font selection process is a bit different since, with the given low-level routines, we keep the font
+As opposed to PS, the font selection process using C<PDF::Lite> is a bit different since, with the given low-level routines, we keep the font
 "prototype" separate from the desired font size when we use the font in a text block. For example, here is a text block
 being rendered on a PDF page instance:
 
 =begin code :lang<raku>
+$page.text: {
+    .text-position = $x, $y;
+    .font = $setfont.font, $setfont.size;
+    .say("Howdy, podnuh!");
+}
 =end code
 
 =head2 Summary
