@@ -81,10 +81,9 @@ In either case, we usually save desired combinations of font prototypes and scal
     /h12 /Helvetica 10 selectfont def
     /hb12 /Hevetica-Bold 12 selectfont def
 
-Now we can use it like this:
+Now we can use them like this:
 
     hb12 (Cowboy slang: ) show
-
     h10 (Howdy, podnuh!) show
 
 Which would generate something like this in the final document: "**Cowboy slang:** Howdy, podnuh!"
@@ -128,10 +127,14 @@ That sequence is also followed in the PDF document creation process:
 
 ### PDF font selection
 
-As opposed to PS, the font selection process is a bit different since, with the given low-level routines, we keep the font "prototype" separate from the desired font size when we use the font in a text block. For example, here is a text block being rendered on a PDF page instance:
+As opposed to PS, the font selection process using `PDF::Lite` is a bit different since, with the given low-level routines, we keep the font "prototype" separate from the desired font size when we use the font in a text block. For example, here is a text block being rendered on a PDF page instance:
 
 ```raku
-
+$page.text: {
+    .text-position = $x, $y;
+    .font = $setfont.font, $setfont.size;
+    .say("Howdy, podnuh!");
+}
 ```
 
 Summary
