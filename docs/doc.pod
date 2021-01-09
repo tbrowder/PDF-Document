@@ -61,14 +61,14 @@ some pertinent function names and definitions:
 =item B<findfont> 
     - I<key> B<findfont> I<font> 
     - "obtains a font dictionary defined by the I<key> and pushes it on the operand stack...", p. 418
-=item I<scalefont>
+=item B<scalefont>
     - I<font scale> B<scalefont> I<font'> 
     - "applies the scale factor I<scale> to I<font>, producing a new I<font'> whose characters are scaled by I<scale>
       (in both I<x> and I<y>) when they are shown.", p. 488
-=item I<setfont>
+=item B<setfont>
     - I<font> B<setfont> I<-> 
     - "establishes the font dictionary parameter in the graphics state.", p. 503
-=item I<selectfont B<[Level 2]>>
+=item B<selectfont B<[Level 2]>>
     - I<key scale> B<scalefont> 
     - "obtains a font whose name is I<key>, transforms is according to I<scale>, and establishes it as the current font dictionary
       in the graphics state.", p. 490
@@ -84,13 +84,17 @@ The PS Level 2 method for defining a usable font is shown in this example:
 
 (Note the the Level 2 method is "almost always more efficient.", Ref. 1, p. 490)
 
-In either case, we usually save desired combinations of font prototypes by
+In either case, we usually save desired combinations of font prototypes and scale by
 defining them by another name for easy recall. For example:
 =code
-/tr12 /Times-Roman 12 selectfont def
+/h12 /Helvetica 10 selectfont def
+/hb12 /Hevetica-Bold 12 selectfont def
 
 Now we can use it like this:
-=code tr12 (Howdy, podnuh) show
+=code hb12 (Cowboy slang: ) show
+=code h10 (Howdy, podnuh!) show
+
+Which would generate something like this in the final document: "B<Cowboy slang:> Howdy, podnuh!"
 
 =head2 PDF document generation process
 

@@ -60,11 +60,11 @@ The PS font selection process needs a little more detail to help explain how it 
 
   * **findfont** - *key* **findfont** *font* - "obtains a font dictionary defined by the *key* and pushes it on the operand stack...", p. 418
 
-  * *scalefont* - *font scale* **scalefont** *font'* - "applies the scale factor *scale* to *font*, producing a new *font'* whose characters are scaled by *scale* (in both *x* and *y*) when they are shown.", p. 488
+  * **scalefont** - *font scale* **scalefont** *font'* - "applies the scale factor *scale* to *font*, producing a new *font'* whose characters are scaled by *scale* (in both *x* and *y*) when they are shown.", p. 488
 
-  * *setfont* - *font* **setfont** *-* - "establishes the font dictionary parameter in the graphics state.", p. 503
+  * **setfont** - *font* **setfont** *-* - "establishes the font dictionary parameter in the graphics state.", p. 503
 
-  * *selectfont **[Level 2]*** - *key scale* **scalefont** - "obtains a font whose name is *key*, transforms is according to *scale*, and establishes it as the current font dictionary in the graphics state.", p. 490
+  * **selectfont **[Level 2]**** - *key scale* **scalefont** - "obtains a font whose name is *key*, transforms is according to *scale*, and establishes it as the current font dictionary in the graphics state.", p. 490
 
 The PS Level 1 method for defining a usable font is shown in this example:
 
@@ -76,13 +76,18 @@ The PS Level 2 method for defining a usable font is shown in this example:
 
 (Note the the Level 2 method is "almost always more efficient.", Ref. 1, p. 490)
 
-In either case, we usually save desired combinations of font prototypes by defining them by another name for easy recall. For example:
+In either case, we usually save desired combinations of font prototypes and scale by defining them by another name for easy recall. For example:
 
-    /tr12 /Times-Roman 12 selectfont def
+    /h12 /Helvetica 10 selectfont def
+    /hb12 /Hevetica-Bold 12 selectfont def
 
 Now we can use it like this:
 
-    tr12 (Howdy, podnuh) show
+    hb12 (Cowboy slang: ) show
+
+    h10 (Howdy, podnuh!) show
+
+Which would generate something like this in the final document: "**Cowboy slang:** Howdy, podnuh!"
 
 PDF document generation process
 -------------------------------
