@@ -34,11 +34,11 @@ for %CoreFonts.keys {
 
     # other classes
     lives-ok {
-       $basefont = find-font :name($_), :$pdf;
+       $basefont = find-basefont :name($_), :$pdf;
     }, "checking find-font , name: $_";
     lives-ok {
-        $docfont = select-font :$basefont, :size(10);
-    }, "checking select-font, name: $_, size: $size";
+        $docfont = select-docfont :$basefont, :size(10);
+    }, "checking select-docfont, name: $_, size: $size";
     lives-ok {
         $up = $docfont.UnderlinePosition;
     }, "checking font afm use for UnderlinePosition";
@@ -49,9 +49,9 @@ for %CoreFonts.keys {
 
 for %CoreFontAliases.keys {
     lives-ok {
-        $basefont = find-font :name($_), :$pdf;
+        $basefont = find-basefont :name($_), :$pdf;
     }, "checking find-font by alias, alias: $_";
     lives-ok {
-        $docfont = select-font :$basefont, :size(10);
+        $docfont = select-docfont :$basefont, :size(10);
     }, "checking select-font by alias, : $_, size: $size";
 }

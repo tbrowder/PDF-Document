@@ -9,7 +9,7 @@ use Font::AFM;
 my $pdf = PDF::Lite.new;
 my BaseFont @bf;
 for %CoreFonts.keys.sort -> $f {
-    my $BF = find-font :$pdf, :name($f);
+    my $BF = find-basefont :$pdf, :name($f);
     @bf.push: $BF;
 }
 
@@ -21,7 +21,7 @@ for (8,9,10,12.1) -> $size {
         my $key = "{$alias}{$size}";
         # replace decimal place with a 'd'
         $key ~~ s/'.'/d/;
-        my $df = select-font :basefont($bf), :$size;
+        my $df = select-docfont :basefont($bf), :$size;
         %df{$key} = $df;
         say "Setting document font '{$bf.name}' at standard key '$key'";
     }

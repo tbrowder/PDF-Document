@@ -12,8 +12,8 @@ use Font::AFM;
 
 # test with a pdf doc
 my $pdf = PDF::Lite.new;
-my $ff = find-font :$pdf, :name<ti>;
-my $df = select-font :fontfamily($ff), :size(10);
+my $bf = find-basefont :$pdf, :name<ti>;
+my $df = select-docfont :basefont($bf), :size(10);
 my $afm = Font::AFM.new: :name<Times-Italic>;
 
 

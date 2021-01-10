@@ -58,9 +58,9 @@ class BaseFont is export {
     has $.rawafm is required;  #= the afm object from Font::AFM
 }
 
-sub find-font(PDF::Lite :$pdf!,
-              :$name!,  # full or alias
-              --> BaseFont) is export {
+sub find-basefont(PDF::Lite :$pdf!,
+                  :$name!,  # full or alias
+                  --> BaseFont) is export {
     my $fnam; # to hold the recognized font name
     if %CoreFonts{$name}:exists {
         $fnam = $name;
@@ -153,19 +153,45 @@ class DocFont is export {
     =end comment
 }
 
-sub select-font(BaseFont :$basefont!,
-                Real :$size!
-                --> DocFont) is export {
+sub select-docfont(BaseFont :$basefont!,
+                   Real :$size!
+                   --> DocFont) is export {
     my $df = DocFont.new: :$basefont, :name($basefont.name), :font($basefont.rawfont),
                           :afm($basefont.rawafm), :$size;
     return $df;
 }
 
 class FontFactory {
-    # hash of DocFonts indexed by an alias name which includes the font's size
-    has %.fonts;
+    has $.pdf is required;
+    # hash of BaseFonts keyed by its alias name
+    has %.basefonts;
+    # hash of DocFonts keyed by an alias name which includes the font's size
+    has %.docfonts;
+
     method get-font($name) {
-        if $name !~~ /^ (<[A..Za..z-]>+) (\d+ ['d' \d+]?) $/ {
+        # "name" is a key in a specific format
+        my $key;
+
+        # pieces required to get the docfont
+        my $alias;
+        my $size;
+
+        # pieces of the size
+        my $sizint;
+        my $sizfrac;
+        if $name !~~ /^ (<[A..Za..z-]>+) (\d+)  ['d' (\d+)]? $/ {
+            $alias   = ~$0;
+            $sizint  = ~$1;
+
+            $key  = $alias ~ $sizint;
+            $size = $sizint;
+
+            # optional decimal fraction
+            $sizfrac = ~$2;
+            if $sizfrac.defined {
+                $key  ~= 'd' ~ $sizfrac; 
+                $size ~= '.' ~ $sizfrac;       
+            }
         }
         else {
             note "FATAL: You entered the desired font name '$name'.";
@@ -175,6 +201,25 @@ class FontFactory {
             is either an integral number or a decimal number in
             the form "\d+d\d+" (e.g., '12d5' which mean '12.5' PS points).
             HERE
+        }
+        # if we have the docfont return it
+        if %!docfonts{$key}:exists {
+            return %!docfonts{$key};
+        }
+        elsif %!basefonts{$alias}:exists {
+            # do we have the basefont?
+            my $basefont = %!basefonts{$alias};
+            my $docfont = select-docfont :$basefont, :$size;
+            %!docfonts{$key} = $docfont;
+            return %!docfonts{$key};
+        }
+        else {
+            # we need the whole banana
+            my $basefont = find-basefont :pdf($!pdf), :name($alias);
+            %!basefonts{$alias} = $basefont;
+            my $docfont = select-docfont :$basefont, :$size;
+            %!docfonts{$key} = $docfont;
+            return %!docfonts{$key};
         }
     }
 }

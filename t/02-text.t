@@ -10,12 +10,12 @@ my $title = 'text.pdf';
 my $pdf;
 my $basefont;
 my $rawfont;
-my $upos;
-my $uthick;
+my $up;
+my $ut;
 my $page;
 my $afm;
 my $rawafm;
-my $setfont;
+my $docfont;
 my $size = 10;
 my $x = 10;
 my $y = 10;
@@ -34,16 +34,16 @@ for %CoreFonts.keys {
     }, "checking raw Font afm access, name: $_";
 
     lives-ok {
-       $basefont = find-font :name($_), :$pdf;
-    }, "checking find-font , name: $_";
+       $basefont = find-basefont :name($_), :$pdf;
+    }, "checking find-docfont , name: $_";
     lives-ok {
-        $setfont = select-font :$basefont, :size(10);
-    }, "checking select-font, name: $_, size: $size";
+        $docfont = select-docfont :$basefont, :size(10);
+    }, "checking select-docfont, name: $_, size: $size";
     lives-ok {
-        $upos   = $setfont.afm.UnderlinePosition;
+        $up   = $docfont.UnderlinePosition;
     }, "checking font afm use for UnderlinePosition";
     lives-ok {
-       $uthick = $setfont.afm.UnderlineThickness;
+       $ut = $docfont.UnderlineThickness;
     }, "checking font afm use for UnderlineThickness";
     last;
 }
@@ -64,7 +64,7 @@ lives-ok {
     my $y = 500;
     $page.text: {
         .text-position = $x, $y;
-        .font = $setfont.font, $setfont.size;
+        .font = $docfont.font, $docfont.size;
         .say("Howdy, podnuh!");
     }
     $page.text: {
@@ -74,7 +74,7 @@ lives-ok {
     $page.text: {
         .say(" How are you?");
     }
-}, "checking text write with selected composite font: {$setfont.name}";
+}, "checking text write with selected composite font: {$docfont.name}";
 lives-ok {
     $pdf.save-as: $title;
 }, "saving pdf doc '$title'";
