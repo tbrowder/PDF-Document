@@ -173,6 +173,8 @@ REFERENCES
 
   * 1. *PostScript Language Reference Manual*, 2nd Edition, Adobe Systems Inc., 1990
 
+  * 2. *PostScript Language Tutorial and Cookbook*, Adobe Systems Inc., 1986
+
 AUTHOR
 ======
 

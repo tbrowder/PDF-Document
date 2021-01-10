@@ -3,6 +3,18 @@ unit module PDF::Document:ver<0.0.2>:auth<cpan:TBROWDER>;
 use PDF::Lite;
 use Font::AFM;
 
+# Below are some convenience constants for converting various
+# length units to PS points (72 per inch).
+# Use them like this:
+#
+#   my $left-margin = 1 * i2p; # converts 1 inch to 72 points
+# British units
+constant i2p  is export = 72;           # inches
+constant f2p  is export = 12 * i2p;     # feet
+# SI units
+constant cm2p is export = 1/2.54 * i2p; # centimeters
+constant mm2p is export = 0.1 * cm2p;   # millimeters
+
 # These are the "core" fonts from PostScript
 # and have short names as keys
 constant %CoreFonts is export = [
@@ -39,47 +51,137 @@ sub show-corefonts is export {
     }
 }
 
-class FontFamily is export {
+class BaseFont is export {
     has PDF::Lite $.pdf is required;
-    has $.name is required; # font name
-    has $.font is required;
-    has $.afm is required;
+    has $.name is required;    #= the recognized font name
+    has $.rawfont is required; #= the font object from PDF::Lite
+    has $.rawafm is required;  #= the afm object from Font::AFM
 }
 
-class DocFont is export {
-    has FontFamily $.fontfamily is required;
-    has Real $.size is required;
-    has $.name is required; # font name
-}
-
-sub find-font(PDF::Lite :$pdf!, 
+sub find-font(PDF::Lite :$pdf!,
               :$name!,  # full or alias
-              --> FontFamily) is export {
-    my $f;
+              --> BaseFont) is export {
+    my $fnam; # to hold the recognized font name
     if %CoreFonts{$name}:exists {
-        $f = $name;
+        $fnam = $name;
     }
     elsif %CoreFontAliases{$name}:exists {
-        $f = %CoreFontAliases{$name};
+        $fnam = %CoreFontAliases{$name};
     }
     else {
         die "FATAL: Font name or alias '$name' is not recognized'";
     }
- 
-    my $font = $pdf.core-font(:family($f));
-    my $afm  = Font::AFM.core-font($f);
-    my $FF   = FontFamily.new: :$pdf, :name($f), :$font, :$afm;
-    return $FF;
+
+    my $rawfont = $pdf.core-font(:family($fnam));
+    my $rawafm  = Font::AFM.core-font($fnam);
+    my $BF      = BaseFont.new: :$pdf, :name($fnam), :$rawfont, :$rawafm;
+    return $BF;
 }
 
-sub select-font(FontFamily :$fontfamily!, 
-                Real :$size! 
-                --> DocFont) is export {
-    return DocFont.new: :$fontfamily, :name($fontfamily.name), :$size;
+class DocFont is export {
+    has BaseFont $.basefont is required;
+    has $.name is required; # font name
+    has Real $.size is required;
+    # convenience attrs
+    has $.afm;  #= the the Font::AFM object
+    has $.font; #= the PDF::Lite font object
+    has $!sf;   #= scale factor for the afm attrs vs the font size
+
+    submethod TWEAK {
+        $!sf = $!size / 1000;
+    }
+
+    # Convenience methods (and aliases) from the afm object and size.
+    # See Font::AFM for details.
+
+    #| UnderlinePosition
+    method UnderlinePosition {
+        $!afm.UnderlinePosition * $!sf
+    }
+    method up { self.UnderlinePosition }
+
+    #| UnderlineThickness
+    method UnderlineThickness {
+        $!afm.UnderlineThickness * $!sf
+    }
+    method ut { self.UnderlineThickness() }
+
+    # ($kerned, $width) = $afm.kern($string, $fontsize?, :%glyphs?)
+    # Kern the string. Returns an array of string segments, separated
+    # by numeric kerning distances, and the overall width of the string.
+    method kern($string, $fontsize?, :%glyphs?) {
+    }
+
+    # A two dimensional hash containing from and to glyphs and kerning widths.
+    method KernData {
+        $!afm.KernData
+    }
+
+    # $afm.stringwidth($string, $fontsize?, :$kern, :%glyphs)
+    #| stringwidth
+    method stringwidth($string, :$kern, :%glyphs) {
+        $!afm.stringwidth: $string, $!size, :$kern, :%glyphs
+    }
+    method sw($string, :$kern, :%glyphs) { stringwidth: $string, :$kern, :%glyphs }
+
+
+    # other methods
+    method FontName {
+        $!afm.FontName
+    }
+    method FullName {}
+    method FamilyName {}
+    method Weight {}
+    method ItalicAngle {}
+    method IsFixedPitch {}
+    method FontBBox {}
+    method Version {}
+    method Notice {}
+    method Comment {}
+    method EncodingScheme {}
+    method CapHeight {}
+    method XHeight {}
+    method Ascender {}
+    method Descender {}
+    method Wx {}
+    method BBox {}
+    =begin comment
+    method ? {}
+    method ? {}
+    method ? {}
+    method ? {}
+    =end comment
 }
+
+sub select-font(BaseFont :$basefont!,
+                Real :$size!
+                --> DocFont) is export {
+    my $df = DocFont.new: :$basefont, :name($basefont.name), :font($basefont.rawfont),
+                          :afm($basefont.rawafm), :$size;
+    return $df;
+}
+
+class FontFactory {
+    # hash of DocFonts indexed by an alias name which includes the font's size
+    has %.fonts;
+    method get-font($name) {
+        if $name !~~ /^ (<[A..Za..z-]>+) (\d+ ['d' \d+]?) $/ {
+        }
+        else {
+            note "FATAL: You entered the desired font name '$name'.";
+            die q:to/HERE/;
+            The desired font name must be in the format "<name><size>"
+            where "<name>" is a valid font name or alias and "<size>"
+            is either an integral number or a decimal number in
+            the form "\d+d\d+" (e.g., '12d5' which mean '12.5' PS points).
+            HERE
+        }
+    }
+}
+
 
 =finish
-                   
+
 sub load-core-fonts(:$pdf,   # a PDF::Lite class instance
                     :%fonts, # an empty hash to contain PDF::Lite font instances
                     :$debug,

@@ -7,21 +7,23 @@ use Font::AFM;
 
 # test with a pdf doc
 my $pdf = PDF::Lite.new;
-my FontFamily @ff;
+my BaseFont @bf;
 for %CoreFonts.keys.sort -> $f {
-    my $F = find-font :$pdf, :name($f);
-    @ff.push: $F;
+    my $BF = find-font :$pdf, :name($f);
+    @bf.push: $BF;
 }
 
 my DocFont %df;
 for (8,9,10,12.1) -> $size {
-    for @ff -> $ff {
-        # create a unique for the font
-        my $alias = %CoreFonts{$ff.name};
-        my $nam = "{$alias}{$size}";
-        my $df = select-font :fontfamily($ff), :$size;
-        %df{$nam} = $df;
-        say "Setting document font '$nam'";
+    for @bf -> $bf {
+        # create a unique key for the font
+        my $alias = %CoreFonts{$bf.name};
+        my $key = "{$alias}{$size}";
+        # replace decimal place with a 'd'
+        $key ~~ s/'.'/d/;
+        my $df = select-font :basefont($bf), :$size;
+        %df{$key} = $df;
+        say "Setting document font '{$bf.name}' at standard key '$key'";
     }
 }
 

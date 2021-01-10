@@ -165,6 +165,7 @@ feature requests from interested parties.
 =REFERENCES
 
 =item 1. I<PostScript Language Reference Manual>, 2nd Edition, Adobe Systems Inc., 1990
+=item 2. I<PostScript Language Tutorial and Cookbook>, Adobe Systems Inc., 1986
 
 =head1 AUTHOR
 
