@@ -65,8 +65,8 @@ sub find-basefont(PDF::Lite :$pdf!,
     if %CoreFonts{$name}:exists {
         $fnam = $name;
     }
-    elsif %CoreFontAliases{$name}:exists {
-        $fnam = %CoreFontAliases{$name};
+    elsif %CoreFontAliases{$name.lc}:exists {
+        $fnam = %CoreFontAliases{$name.lc};
     }
     else {
         die "FATAL: Font name or alias '$name' is not recognized'";
@@ -179,6 +179,8 @@ class FontFactory is export {
         # pieces of the size
         my $sizint;
         my $sizfrac;
+        # examples of valid names:
+        #   t12, t2d3, cbo10, ho12d5
         if $name ~~ /^ (<[A..Za..z-]>+) (\d+)  ['d' (\d+)]? $/ {
             $alias   = ~$0;
             $sizint  = ~$1;
@@ -223,21 +225,4 @@ class FontFactory is export {
             return %!docfonts{$key};
         }
     }
-}
-
-
-=finish
-
-sub load-core-fonts(:$pdf,   # a PDF::Lite class instance
-                    :%fonts, # an empty hash to contain PDF::Lite font instances
-                    :$debug,
-                   ) is export {
-    for @CoreFonts -> $f {
-        my $F   = CoreFont.new: :name($f);
-        $F.font = $pdf.core-font(:family($f));
-        $F.afm  = Font::AFM.core-font($f) if $f !~~ /:i zapf /; # issue filed
-        %fonts{$f}  = $F;
-    }
-    my $ne = %fonts.elems;
-    die "FATAL: Font load hash does NOT contain 14 elements, it has $ne." if $ne != 14;
 }

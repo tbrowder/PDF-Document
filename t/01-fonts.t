@@ -48,10 +48,11 @@ for %CoreFonts.keys {
 }
 
 for %CoreFontAliases.keys {
+    my $A = $_.uc;
     lives-ok {
-        $basefont = find-basefont :name($_), :$pdf;
-    }, "checking find-font by alias, alias: $_";
+        $basefont = find-basefont :name($A), :$pdf;
+    }, "checking find-font by alias, alias: $A";
     lives-ok {
         $docfont = select-docfont :$basefont, :size(10);
-    }, "checking select-font by alias, : $_, size: $size";
+    }, "checking select-font by alias, : $A, size: $size";
 }
