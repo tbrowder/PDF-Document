@@ -14,6 +14,7 @@ my $up;
 my $ut;
 my $page;
 my $afm;
+my $ffact; # font factory
 my $rawafm;
 my $docfont;
 my $size = 10;
@@ -79,18 +80,19 @@ lives-ok {
     $pdf.save-as: $title;
 }, "saving pdf doc '$title'";
 
+# quickie font factory checks
+lives-ok {
+    $ffact = FontFactory.new: :$pdf;
+}, "getting a font factory";
+lives-ok {
+    my $f = $ffact.get-font: 't12d1';
+}, "getting a font from the -font factory";
+lives-ok {
+    my $f = $ffact.get-font: 't12d2';
+}, "getting a font from the -font factory";
+lives-ok {
+    my $f = $ffact.get-font: 't12';
+}, "getting a font from the -font factory";
+
 done-testing;
 
-=finish
-lives-ok {
-    $page.text: {
-        .font = $setfont, $size;
-        .say("howdy");
-    }
-}, "checking text write with selected font";
-
-lives-ok {
-        shell "./dev/check-fonts.raku";
-}, "checking bulk font setting";
-
-#done-testing;

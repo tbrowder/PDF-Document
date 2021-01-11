@@ -161,9 +161,9 @@ sub select-docfont(BaseFont :$basefont!,
     return $df;
 }
 
-class FontFactory {
+class FontFactory is export {
     has $.pdf is required;
-    # hash of BaseFonts keyed by its alias name
+    # hash of BaseFonts keyed by their alias name
     has %.basefonts;
     # hash of DocFonts keyed by an alias name which includes the font's size
     has %.docfonts;
@@ -179,7 +179,7 @@ class FontFactory {
         # pieces of the size
         my $sizint;
         my $sizfrac;
-        if $name !~~ /^ (<[A..Za..z-]>+) (\d+)  ['d' (\d+)]? $/ {
+        if $name ~~ /^ (<[A..Za..z-]>+) (\d+)  ['d' (\d+)]? $/ {
             $alias   = ~$0;
             $sizint  = ~$1;
 
@@ -187,11 +187,12 @@ class FontFactory {
             $size = $sizint;
 
             # optional decimal fraction
-            $sizfrac = ~$2;
+            $sizfrac = ~$2 if $2.defined;
             if $sizfrac.defined {
                 $key  ~= 'd' ~ $sizfrac; 
                 $size ~= '.' ~ $sizfrac;       
             }
+            $size .= Real;
         }
         else {
             note "FATAL: You entered the desired font name '$name'.";
