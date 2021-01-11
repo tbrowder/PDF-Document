@@ -163,6 +163,7 @@ sub select-docfont(BaseFont :$basefont!,
 
 class FontFactory is export {
     has $.pdf is required;
+
     # hash of BaseFonts keyed by their alias name
     has %.basefonts;
     # hash of DocFonts keyed by an alias name which includes the font's size
@@ -226,3 +227,73 @@ class FontFactory is export {
         }
     }
 }
+
+# the big kahuna
+class Doc is export {
+    has $.media-box is required;
+
+    has $.x = 0;
+    has $.y = 0;
+
+    # set by TWEAK
+    has $.pdf;
+    has FontFactory $.ff;
+    has $.page;
+    has DocFont $.font; 
+
+    submethod TWEAK {
+        $!pdf = PDF::Lite.new;
+        $!page = $!pdf.add-page;
+        $!ff  = FontFactory.new: :pdf($!pdf);
+        $!font = $!ff.get-font: 't12'; # Times-Roman 12
+    }
+
+    method set-font($alias) {
+        $!font = $!ff.get-font($alias)
+    } 
+    method add-page() {
+        $!page = $!pdf.add-page;
+    } 
+
+    # text methods
+    method !choose-font($fontalias) {
+        my $font; # rawfont
+        my Real $size;
+        if $fontalias.defined {
+            my $df = $!ff.get-font: $fontalias;
+            $font = $df.font;
+            $size = $df.size;
+        }
+        else {
+            $font = $!font.font;
+            $size = $!font.size;
+        }
+        return ($font, $size);
+    }
+
+    multi method put(Real $x, Real $y, $string, :$fontalias, :%extra) {
+        self.put($string, :$x, :$y, :$fontalias, :%extra)
+    } 
+    multi method put($string, :$x, :$y, :$fontalias, 
+                     # room for more tuning and embellishment here:
+                     :%extra,
+                    ) {
+        my ($font, $size) = self!choose-font($fontalias);
+        if $x.defined and $y.defined {
+            $!page.text: {
+                .text-position = $x, $y;
+                .font = $font, $size;
+                .say($string);
+            }
+        }
+        else {
+            $!page.text: {
+                .font = $font, $size;
+                .say($string);
+            }
+        }
+    }
+
+
+}
+
