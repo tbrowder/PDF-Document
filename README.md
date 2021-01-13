@@ -37,10 +37,9 @@ given d {
 .rmvto: :y(-2 * d.leading); 
 .text: "Page 1", :rj; # right justified
 
-.np: start # new page
+.np # start a new page
 
 .mvto: :tl; # top-left corner
-.nl: 1; # set currentpoint x=0,y one line down from top-left corner
 
 .text: q:to/PARA/;
 A VERY long para

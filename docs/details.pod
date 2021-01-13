@@ -6,11 +6,11 @@
 
 In this module we have three classes representing a font:
 
-=head3 1. C<$rawfont> 
+=head3 1. C<$rawfont>
 
 An instance of a PDF::Lite "prototype" font. It is what the text blocks require for rendering text.
 
-=head3 2. C<BaseFont> 
+=head3 2. C<BaseFont>
 
 A class that holds the C<$rawfont> object as well
 as an instance of its Font::AFM object with the rawfont's metrics.
@@ -28,7 +28,7 @@ There are two planned modes of document generation:
 =head3 1. Text to PDF
 
 This is the first method to be implemented, and it is in very rudimentary
-form. It takes a plain text document and, line by line, renders it int
+form. It takes a plain text document and, line by line, renders it into
 PDF. It is suitable for turning code into printed output with features
 such as:
 
@@ -36,7 +36,7 @@ such as:
 =item1 line wrapping
 =item1 page numbering
 =item1 bottom or top margin file naming
- 
+
 =head3 2. Pod to PDF
 
 Using Pod markup as input the rendered PDF will look more
@@ -49,7 +49,7 @@ As an aid to the user of this module, there is a FontFactory class
 that can be used to keep track of the fonts used and avoid duplicate
 font generation instances.
 
-The first requirement is to enforce strict naming rules. We 
+The first requirement is to enforce strict naming rules. We
 recognize two lists of names for the base fonts available.
 The first list contains the names as keys in the %CoreFonts hash. The
 second is the names of the aliases of those fonts which are at
@@ -75,13 +75,61 @@ my $ff = FontFactory.new: :$pdf;
 # use a 12 point Times-Roman font
 my $t12 = $ff.set-font<t12>;
 # get another of the same
-my $T12 = $ff.set-font<T12>; 
+my $T12 = $ff.set-font<T12>;
 # case is not significant, so the same font
 # is requested, so the factory quietly
 # returns a copy of the same instance.
 =end code
 
+=head1 PDF methods and their aliases ("codes")
 
+Adobe has short names for many of their methods. The
+following tables show many of those exposed by the Doc class.
 
+=begin table :caption<Color Operators>
+Method | Alias | Description | Default | Example Setter
+=====+======
+Color operators
+SetStrokeGray + G
+SetFillGray + g
+SetStrokeRGB + RG
+SetFillRGB + rg
+=end table
+
+=begin table :caption<Graphics State>
+Method | Alias | Description | Default | Example Setter
+=====+======
+TextLeading + Tl + text line height
+SetLineWidth + w
+SetLineCap + J
+SetLineJoin + j
+Save + q
+Restore + Q
+=end table
+
+=begin table :caption<Text Operators>
+Method | Alias | Description | Default | Example Setter
+=====+======
+BeginText + BT
+EndText + ET
+TextMove + Td
+TextMoveSet + TD
+TextNextLine + T*
+ShowText + Tj
+MoveShowText + '
+MoveSetShowText + "
+=end table
+
+=begin table :caption<Path Construction>
+Method | Alias | Description | Default | Example Setter
+MoveTo + m
+LineTo + l
+CurveTo + c
+ClosePath + h
+Rectangle + re
+Fill + f
+Stroke + S
+Clip + W
+=end table
 
 =end pod

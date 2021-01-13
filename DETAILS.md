@@ -6,11 +6,11 @@ Fonts
 
 In this module we have three classes representing a font:
 
-### 1. `$rawfont` 
+### 1. `$rawfont`
 
 An instance of a PDF::Lite "prototype" font. It is what the text blocks require for rendering text.
 
-### 2. `BaseFont` 
+### 2. `BaseFont`
 
 A class that holds the `$rawfont` object as well as an instance of its Font::AFM object with the rawfont's metrics.
 
@@ -25,7 +25,7 @@ There are two planned modes of document generation:
 
 ### 1. Text to PDF
 
-This is the first method to be implemented, and it is in very rudimentary form. It takes a plain text document and, line by line, renders it int PDF. It is suitable for turning code into printed output with features such as:
+This is the first method to be implemented, and it is in very rudimentary form. It takes a plain text document and, line by line, renders it into PDF. It is suitable for turning code into printed output with features such as:
 
   * line numbering
 
@@ -60,9 +60,51 @@ my $ff = FontFactory.new: :$pdf;
 # use a 12 point Times-Roman font
 my $t12 = $ff.set-font<t12>;
 # get another of the same
-my $T12 = $ff.set-font<T12>; 
+my $T12 = $ff.set-font<T12>;
 # case is not significant, so the same font
 # is requested, so the factory quietly
 # returns a copy of the same instance.
 ```
+
+PDF methods and their aliases ("codes")
+=======================================
+
+Adobe has short names for many of their methods. The following tables show many of those exposed by the Doc class.
+
+<table class="pod-table">
+<caption>Color Operators</caption>
+<thead><tr>
+<th>Method</th> <th>Alias</th> <th>Description</th> <th>Default</th> <th>Example Setter</th>
+</tr></thead>
+<tbody>
+<tr> <td>Color operators</td> <td></td> <td></td> <td></td> <td></td> </tr> <tr> <td>SetStrokeGray</td> <td>G</td> <td></td> <td></td> <td></td> </tr> <tr> <td>SetFillGray</td> <td>g</td> <td></td> <td></td> <td></td> </tr> <tr> <td>SetStrokeRGB</td> <td>RG</td> <td></td> <td></td> <td></td> </tr> <tr> <td>SetFillRGB</td> <td>rg</td> <td></td> <td></td> <td></td> </tr>
+</tbody>
+</table>
+
+<table class="pod-table">
+<caption>Graphics State</caption>
+<thead><tr>
+<th>Method</th> <th>Alias</th> <th>Description</th> <th>Default</th> <th>Example Setter</th>
+</tr></thead>
+<tbody>
+<tr> <td>TextLeading</td> <td>Tl</td> <td>text line height</td> <td></td> <td></td> </tr> <tr> <td>SetLineWidth</td> <td>w</td> <td></td> <td></td> <td></td> </tr> <tr> <td>SetLineCap</td> <td>J</td> <td></td> <td></td> <td></td> </tr> <tr> <td>SetLineJoin</td> <td>j</td> <td></td> <td></td> <td></td> </tr> <tr> <td>Save</td> <td>q</td> <td></td> <td></td> <td></td> </tr> <tr> <td>Restore</td> <td>Q</td> <td></td> <td></td> <td></td> </tr>
+</tbody>
+</table>
+
+<table class="pod-table">
+<caption>Text Operators</caption>
+<thead><tr>
+<th>Method</th> <th>Alias</th> <th>Description</th> <th>Default</th> <th>Example Setter</th>
+</tr></thead>
+<tbody>
+<tr> <td>BeginText</td> <td>BT</td> <td></td> <td></td> <td></td> </tr> <tr> <td>EndText</td> <td>ET</td> <td></td> <td></td> <td></td> </tr> <tr> <td>TextMove</td> <td>Td</td> <td></td> <td></td> <td></td> </tr> <tr> <td>TextMoveSet</td> <td>TD</td> <td></td> <td></td> <td></td> </tr> <tr> <td>TextNextLine</td> <td>T*</td> <td></td> <td></td> <td></td> </tr> <tr> <td>ShowText</td> <td>Tj</td> <td></td> <td></td> <td></td> </tr> <tr> <td>MoveShowText</td> <td>&#39;</td> <td></td> <td></td> <td></td> </tr> <tr> <td>MoveSetShowText</td> <td>&quot;</td> <td></td> <td></td> <td></td> </tr>
+</tbody>
+</table>
+
+<table class="pod-table">
+<caption>Path Construction</caption>
+<tbody>
+<tr> <td>Method</td> <td>Alias</td> <td>Description</td> <td>Default</td> <td>Example Setter</td> </tr> <tr> <td>MoveTo</td> <td>m</td> <td></td> <td></td> <td></td> </tr> <tr> <td>LineTo</td> <td>l</td> <td></td> <td></td> <td></td> </tr> <tr> <td>CurveTo</td> <td>c</td> <td></td> <td></td> <td></td> </tr> <tr> <td>ClosePath</td> <td>h</td> <td></td> <td></td> <td></td> </tr> <tr> <td>Rectangle</td> <td>re</td> <td></td> <td></td> <td></td> </tr> <tr> <td>Fill</td> <td>f</td> <td></td> <td></td> <td></td> </tr> <tr> <td>Stroke</td> <td>S</td> <td></td> <td></td> <td></td> </tr> <tr> <td>Clip</td> <td>W</td> <td></td> <td></td> <td></td> </tr>
+</tbody>
+</table>
 
