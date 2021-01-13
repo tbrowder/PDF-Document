@@ -24,36 +24,40 @@ my \d = Doc.new;
 #   text is kerned
 # begin writing...
 
-d.text "2021-03-04";
-d.nl 1; # set currentpoint x=0,y one line down from top-left corner
-d.text "Dear Mom,";
-d.nl 2; # resets x=0
-d.text "I am fine.";
+given d {
+
+.text: "2021-03-04";
+.nl: 1; # set currentpoint x=0,y one line down from top-left corner
+.text: "Dear Mom,";
+.nl: 2; # resets x=0
+.text: "I am fine.";
 
 # end the page
-d.mvto :br; # bottom-right corner
-d.rmvto :y(-2 * d.leading); 
-d.text "Page 1", :rj; # right justified
+.mvto: :br; # bottom-right corner
+.rmvto: :y(-2 * d.leading); 
+.text: "Page 1", :rj; # right justified
 
-d.np; start # new page
+.np: start # new page
 
-d.mvto :tl; # top-left corner
-d.nl 1; # set currentpoint x=0,y one line down from top-left corner
+.mvto: :tl; # top-left corner
+.nl: 1; # set currentpoint x=0,y one line down from top-left corner
 
-d.text q:to/PARA/;
+.text: q:to/PARA/;
 A VERY long para
 PARA
 
-d.nl 2;
-d.text "Love,";
-d.nl 2; 
-d.text "Isaiah";
+.nl: 2;
+.text: "Love,";
+.nl: 2; 
+.text: "Isaiah";
 
 # end the page
-d.mvto :br; # bottom-right corner
-d.rmvto :y(-2 * $leading); 
-d.text "Page 2 of 2", :rj; # right justified
-d.save "letter.pdf";
+.mvto: :br; # bottom-right corner
+.rmvto: :y(-2 * $leading); 
+.text: "Page 2 of 2", :rj; # right justified
+.save: "letter.pdf";
+
+}
 ```
 
 DESCRIPTION
