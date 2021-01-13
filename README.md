@@ -10,26 +10,50 @@ SYNOPSIS
 
 ```raku
 use PDF::Document;
-show-corefonts;
-```
+my \d = Doc.new; 
 
-Produces:
+# this sets the following defaults:
+#   :paper<Letter>, :font<t11d5> (Times-Roman 11.5)
+#   line spacing (:leading) 1.3 * font size
+#   margins lm<1n>, rm<1in>, tm<1in>, bm<1in>
+#   origin now at botton-left corner
+#   x=0 at the left margin, increases to the right
+#   y=0 at the bottom margin, increases upward
+#   current position top left corner, one line down
+#   long lines are wrapped with left justification (ragged right)
+#   text is kerned
+# begin writing...
 
-```raku
-Font family: 'Courier'               (alias: 'c')
-Font family: 'Courier-Bold'          (alias: 'ch')
-Font family: 'Courier-BoldOblique'   (alias: 'cbo')
-Font family: 'Courier-Oblique'       (alias: 'co')
-Font family: 'Helvetica'             (alias: 'h')
-Font family: 'Helvetica-Bold'        (alias: 'hb')
-Font family: 'Helvetica-BoldOblique' (alias: 'hbo')
-Font family: 'Helvetica-Oblique'     (alias: 'ho')
-Font family: 'Symbol'                (alias: 's')
-Font family: 'Times-Bold'            (alias: 'tb')
-Font family: 'Times-BoldItalic'      (alias: 'tbi')
-Font family: 'Times-Italic'          (alias: 'ti')
-Font family: 'Times-Roman'           (alias: 't')
-Font family: 'Zapfdingbats'          (alias: 'z')
+d.text "2021-03-04";
+d.nl 1; # set currentpoint x=0,y one line down from top-left corner
+d.text "Dear Mom,";
+d.nl 2; # resets x=0
+d.text "I am fine.";
+
+# end the page
+d.mvto :br; # bottom-right corner
+d.rmvto :y(-2 * d.leading); 
+d.text "Page 1", :rj; # right justified
+
+d.np; start # new page
+
+d.mvto :tl; # top-left corner
+d.nl 1; # set currentpoint x=0,y one line down from top-left corner
+
+d.text q:to/PARA/;
+A VERY long para
+PARA
+
+d.nl 2;
+d.text "Love,";
+d.nl 2; 
+d.text "Isaiah";
+
+# end the page
+d.mvto :br; # bottom-right corner
+d.rmvto :y(-2 * $leading); 
+d.text "Page 2 of 2", :rj; # right justified
+d.save "letter.pdf";
 ```
 
 DESCRIPTION

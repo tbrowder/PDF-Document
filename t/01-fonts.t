@@ -1,8 +1,8 @@
 use Test;
 use PDF::Content;
-use PDF::Document;
 use PDF::Lite;
 use Font::AFM;
+use PDF::Document;
 
 plan 113;
 

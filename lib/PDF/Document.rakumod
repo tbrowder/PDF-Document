@@ -124,6 +124,9 @@ class DocFont is export {
     }
     method sw($string, :$kern, :%glyphs) { stringwidth: $string, :$kern, :%glyphs }
 
+    method IsFixedPitch {
+        $!afm.IsFixedPitch
+    }
 
     # other methods
     method FontName {
@@ -133,7 +136,6 @@ class DocFont is export {
     method FamilyName {}
     method Weight {}
     method ItalicAngle {}
-    method IsFixedPitch {}
     method FontBBox {}
     method Version {}
     method Notice {}
@@ -230,10 +232,24 @@ class FontFactory is export {
 
 # the big kahuna
 class Doc is export {
-    has $.media-box is required;
+    has $.paper;
+    has $.media-box = 'Letter'; # = is required;
 
+    has $.leading; #= linespacing
+    has $.linespacing;
+    has $.leading-ratio = 1.3; #= leading/fontsize
+
+    # the current page params
     has $.x = 0;
     has $.y = 0;
+    # currentpoint
+    has $.cpx = 0;
+    has $.cpy = 0;
+    # margins
+    has $.lm = 0;
+    has $.rm = 0;
+    has $.tm = 0;
+    has $.bm = 0;
 
     # set by TWEAK
     has $.pdf;
@@ -242,10 +258,13 @@ class Doc is export {
     has DocFont $.font; 
 
     submethod TWEAK {
+        $!media-box = $!paper;
         $!pdf = PDF::Lite.new;
         $!page = $!pdf.add-page;
         $!ff  = FontFactory.new: :pdf($!pdf);
         $!font = $!ff.get-font: 't12'; # Times-Roman 12
+        $!leading = $!font.size * $!leading-ratio;
+        $!linespacing = $!leading;
     }
 
     method set-font($alias) {
@@ -255,7 +274,9 @@ class Doc is export {
         $!page = $!pdf.add-page;
     } 
 
-    # text methods
+    # text subs
+
+    # private
     method !choose-font($fontalias) {
         my $font; # rawfont
         my Real $size;
@@ -271,29 +292,78 @@ class Doc is export {
         return ($font, $size);
     }
 
-    multi method put(Real $x, Real $y, $string, :$fontalias, :%extra) {
-        self.put($string, :$x, :$y, :$fontalias, :%extra)
+    # text 
+    =begin comment
+    multi text(Real $x, Real $y, $string, :$fontalias, :%extra) {
+        self.text($string, :$x, :$y, :$fontalias, :%extra)
     } 
-    multi method put($string, :$x, :$y, :$fontalias, 
-                     # room for more tuning and embellishment here:
-                     :%extra,
-                    ) {
+    =end comment
+
+    method text($string, :$x, :$y, :$fontalias, 
+        :$j, # justify: l (default), c, r
+        :$kern = True, # False for Courier
+        :$box,
+        # room for more tuning and embellishment here:
+        :%extra,
+        ) {
+
         my ($font, $size) = self!choose-font($fontalias);
-        if $x.defined and $y.defined {
-            $!page.text: {
-                .text-position = $x, $y;
-                .font = $font, $size;
-                .say($string);
+        # At this point we may need some fancy handling
+        # which we determine by whether there are any
+        # %extra elements.        
+        my $use-xy = ($x.defined and $y.defined) ?? True !! False;
+
+        
+        if %extra.elems {
+            # assuming a line of text, no para, no filling or line wrapping
+
+            # unless we are using fixed-width fonts (e.g., Courier), we WILL
+            # use kerning
+
+            # for underlining, we need to know the width of the text, and
+            # the thickness and position of the underlining and then 
+            # add the underline
+          
+            my $sw;
+            if $font.afm.IsFixedPitch {
+                # get the width of the string without kerning 
+                $sw = $font.afm.stringwidth: $string, $size;
             }
+            else {
+                # get the width of the string with kerning
+                $sw = $font.afm.stringwidth: $string, $size, :kern;
+            } 
+
+            
+        }
+        if $x.defined and $y.defined {
+            $!page.text: { .text-position = $x, $y; .font = $font, $size; .say($string); }
         }
         else {
-            $!page.text: {
-                .font = $font, $size;
-                .say($string);
-            }
+            $!page.text: { .font = $font, $size; .say($string); }
         }
+
+        
     }
 
+    # convenience methods
+    # use the current page and x/y 
+    method mvto() is export {
+    }
+    method rmvto() is export {
+    }
+    method nl($n = 1) is export {
+        # moves y down by n lines, resets x=0
+    }
+    method np() is export {
+        $!page = $!pdf.add-page
+    }
+    method save($file-name) is export {
+        $!pdf.save-as: $file-name
+    }
+
+
+    
 
 }
 
