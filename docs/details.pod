@@ -54,7 +54,7 @@ finished product.
 
 =head2 Font factory
 
-As an aid to the user of this module, there is a FontFactory class
+As an aid to the user of this module, there is a C<FontFactory> class
 that can be used to keep track of the fonts used and avoid duplicate
 font generation instances.
 
@@ -64,11 +64,11 @@ contains the names as keys in the C<%CoreFonts> hash. The second is
 the names of the aliases of those fonts which are at most three
 characters long and are the keys of the C<%CoreFontAliases> hash.
 
-Final DocFont keys are formed from the alias of the desired font followed
-by the integer of the font size. So a Times-Roman font set at 14 points
+Final C<DocFont> keys are formed from the alias of the desired font followed
+by the integer of the font size. So a Times-Roman font face set at 14 points
 would have a key of C<t14>. If the user needs a fractional font size,
-the size would have the letter 'd' separating the integral and fractional
-parts. For example, a Helvetica font set at 12.4 pts would have a
+the size would have the letter C<d> separating the integral and fractional
+parts. For example, a Helvetica font face set at 12.4 pts would have a
 key of C<h12d4>. The following code shows initialization of a PDF document:
 
 =begin code :lang<raku>
