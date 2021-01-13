@@ -8,18 +8,18 @@ In this module we have three classes representing a font:
 
 =head3 1. C<$rawfont>
 
-An instance of a PDF::Lite "prototype" font. It is what the text blocks require for rendering text.
+An instance of a C<PDF::Lite> I<prototype> font. It is what the text blocks require for rendering text.
 
 =head3 2. C<BaseFont>
 
 A class that holds the C<$rawfont> object as well
-as an instance of its Font::AFM object with the rawfont's metrics.
+as an instance of its C<Font::AFM> object with the C<$rawfont>'s metrics.
 
 =head3 3. C<DocFont>
 
-A class representing the user-level font which marries the rawfont and the desired size.
-It also has methods from the Font::AFM object. Those methods that return metrics of
-the rawfont are scaled to produce the exact values for the font at its size.
+A class representing the user-level font which marries the C<$rawfont> and the desired size.
+It also has methods from the C<Font::AFM> object. Those methods that return metrics of
+the C<$rawfont> are scaled to produce the exact values for the font at its size.
 
 =head2 Document generation methods
 
@@ -69,7 +69,7 @@ by the integer of the font size. So a Times-Roman font set at 14 points
 would have a key of C<t14>. If the user needs a fractional font size,
 the size would have the letter 'd' separating the integral and fractional
 parts. For example, a Helvetica font set at 12.4 pts would have a
-key of 'h12d4'. The following code shows initialization of a PDF document:
+key of C<h12d4>. The following code shows initialization of a PDF document:
 
 =begin code :lang<raku>
 use PDF::Lite;
@@ -92,7 +92,7 @@ my $T12 = $ff.set-font<T12>;
 =head1 PDF methods and their aliases ("codes")
 
 Adobe has short names for many of their methods. The
-following tables show many of those exposed by the Doc class.
+following tables show many of those exposed by the C<Doc> class.
 
 =begin table :caption<Color Operators>
 Method | Alias | Description | Default | Example Setter
