@@ -125,7 +125,7 @@
     }
 
     #| Move to the start of the next line, offset from the start of the
-    #| current line by (tx, ty ); where tx and ty are expressed in unscaled
+    #| current line by (tx, ty); where tx and ty are expressed in unscaled
     #| text space units.
     method TextMove($tx, $ty) {
         $!pdf.TextMove($tx, $ty);
@@ -135,7 +135,7 @@
     }
 
     #| Move to the start of the next line, offset from the start of the
-    #| current line by (tx, ty ). Set $.TextLeading to ty.
+    #| current line by (tx, ty). Set $.TextLeading to ty.
     method TextMoveSet($tx, $ty) {
         $!pdf.TextMoveSet($tx, $ty);
     }
@@ -163,19 +163,13 @@
     method MoveShowText($string) {
         $!pdf.MoveShowText($string);
     }
-    method '($string) {
-        $!pdf.MoveShowText($string);
-    }
-
+    # alias method ''($string)' cannot be used due its invalid identifier in Raku
     #| Move to the next line and show a text string, after setting
     #| $.WordSpacing to aw and $.CharSpacing to ac
     method MoveSetShowText($aw, $ac, $string) {
         $!pdf.MoveSetShowText($aw, $ac, $string);
     }
-    method "($aw, $ac, $string) {
-        $!pdf.MoveSetShowText($aw, $ac, $string);
-    }
-
+    # alias method '"($aw, $ac, $string)' cannot be used due its invalid identifier in Raku
     #| Begin a new sub-path by moving the current point to coordinates (x, y),
     #| omitting any connecting line segment. If the previous path construction
     #| operator in the current path was also m, the new m overrides it.
