@@ -1,0 +1,55 @@
+# for now we just want the first three columns
+
+#Accessor | Code | Description | Default | Example Setters
+#-------- | ------ | ----------- | ------- | -------
+TextLeading | Tl | Text line height | 0.0 | `.TextLeading = 12;`
+#Font | [Tf, Tfs] | Text font and size | | `.font = [ .core-font( :family<Helvetica> ), 12 ]`
+
+#Method | Code | Description
+#--- | --- | ---
+SetStrokeGray(level) | G | Set the stroking colour space to DeviceGray and set the gray level to use for stroking operations, between 0.0 (black) and 1.0 (white).
+SetFillGray(level) | g | Same as G but used for non-stroking operations.
+SetStrokeRGB(r, g, b) | RG | Set the stroking colour space to DeviceRGB and set the colour to use for stroking operations. Each operand is a number between 0.0 (minimum intensity) and 1.0 (maximum intensity).
+SetFillRGB(r, g, b) | rg | Same as RG but used for non-stroking operations.
+
+#Method | Code | Description
+#--- | --- | ---
+Save() | q | Save the current graphics state on the graphics state stack
+Restore() | Q | Restore the graphics state by removing the most recently saved state from the stack and making it the current state.
+SetLineWidth(width) | w | Set the line width in the graphics state
+SetLineCap(cap-style) | J | Set the line cap style in the graphics state (see LineCap enum)
+SetLineJoin(join-style) | j | Set the line join style in the graphics state (see LineJoin enum)
+SetMiterLimit(ratio) | M | Set the miter limit in the graphics state
+SetDashPattern(dashArray, dashPhase) | d | Set the line dash pattern in the graphics state
+SetRenderingIntent(intent) | ri | Set the colour rendering intent in the graphics state: AbsoluteColorimetric, RelativeColormetric, Saturation, or Perceptual
+
+#Method | Code | Description
+#--- | --- | ---
+BeginText() | BT | Begin a text object, initializing $.TextMatrix, to the identity matrix. Text objects cannot be nested.
+EndText() | ET | End a text object, discarding the text matrix.
+TextMove(tx, ty) | Td | Move to the start of the next line, offset from the start of the current line by (tx, ty); where tx and ty are expressed in unscaled text space units.
+TextMoveSet(tx, ty) | TD | Move to the start of the next line, offset from the start of the current line by (tx, ty). Set $.TextLeading to ty.
+TextNextLine| T* | Move to the start of the next line
+ShowText(string) | Tj | Show a text string
+MoveShowText(string) | ' | Move to the next line and show a text string.
+MoveSetShowText(aw, ac, string) | " | Move to the next line and show a text string, after setting $.WordSpacing to aw and $.CharSpacing to ac
+
+#Method | Code | Description
+#--- | --- | ---
+MoveTo(x, y) | m | Begin a new sub-path by moving the current point to coordinates (x, y), omitting any connecting line segment. If the previous path construction operator in the current path was also m, the new m overrides it.
+LineTo(x, y) | l | Append a straight line segment from the current point to the point (x, y). The new current point is (x, y).
+CurveTo(x1, y1, x2, y2, x3, y3) | c | Append a cubic Bézier curve to the current path. The curve extends from the current point to the poin (x3, y3), using (x1 , y1) and (x2, y2) as the Bézier control points. The new current point is (x3, y3).
+ClosePath | h | Close the current sub-path by appending a straight line segment from the current point to the starting point of the sub-path.
+Rectangle(x, y, width, Height) | re | Append a rectangle to the current path as a complete sub-path, with lower-left corner (x, y) and dimensions `width` and `height`.
+
+#Method | Code | Description
+#--- | --- | ---
+Stroke() | S | Stroke the path.
+CloseStroke() | s | Close and stroke the path. Same as: $.Close; $.Stroke
+Fill() | f | Fill the path, using the nonzero winding number rule to determine the region. Any open sub-paths are implicitly closed before being filled.
+FillStroke() | B | Fill and then stroke the path, using the nonzero winding number rule to determine the region to fill.
+CloseFillStroke() | b | Close, fill, and then stroke the path, using the nonzero winding number rule to determine the region to fill.
+
+#Method | Code | Description
+#--- | --- | ---
+Clip() | W | Modify the current clipping path by intersecting it with the current path, using the nonzero winding number rule to determine which regions lie inside the clipping path.
