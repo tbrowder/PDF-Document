@@ -230,7 +230,7 @@ class FontFactory is export {
     }
 }
 
-# the big kahuna
+# the big kahuna: it should have all major methods and attrs from lower levels at this level
 class Doc is export {
     has $.paper;
     has $.media-box = 'Letter'; # = is required;
@@ -240,8 +240,9 @@ class Doc is export {
     has $.leading-ratio = 1.3; #= leading/fontsize
 
     # the current page params
-    has $.x = 0;
-    has $.y = 0;
+    # origin
+    has $.x0 = 0;
+    has $.y0 = 0;
     # currentpoint
     has $.cpx = 0;
     has $.cpy = 0;
@@ -250,6 +251,12 @@ class Doc is export {
     has $.rm = 0;
     has $.tm = 0;
     has $.bm = 0;
+    # page metrics
+    has $.pwidth  = 0;
+    has $.pheight = 0;
+    # print area metrics
+    has $.width  = 0;
+    has $.height = 0;
 
     # set by TWEAK
     has $.pdf;
@@ -265,6 +272,18 @@ class Doc is export {
         $!font = $!ff.get-font: 't12'; # Times-Roman 12
         $!leading = $!font.size * $!leading-ratio;
         $!linespacing = $!leading;
+        # set default margins
+        $!lm = 72;
+        $!rm = 72;
+        $!tm = 72;
+        $!bm = 72;
+        # other page metrics
+        $!pwidth  = 8.5 * i2p;
+        $!pheight = 11 * i2p;
+        $!width   = $!pwidth  - $!lm - $!rm;
+        $!height  = $!pheight - $!tm - $!bm;
+        $!x0 = $!lm;
+        $!y0 = $!bm;
     }
 
     method set-font($alias) {
@@ -272,6 +291,12 @@ class Doc is export {
     }
     method add-page() {
         $!page = $!pdf.add-page;
+    }
+    method set-margins(:$left, :$right, :$top, :$bottom) {
+        $!lm = $left if $left;
+        $!rm = $right if $right;
+        $!tm = $top if $top;
+        $!bm = $bottom if $bottom;
     }
 
     # text subs
@@ -369,13 +394,43 @@ class Doc is export {
     }
 
     # convenience methods
-    # use the current page and x/y
-    method mvto() is export {
+    # use the current page and cpx/cpy
+    multi method mvto($x, $y) {
+        self.MoveTo($x, $y);
+        # reset cpx/cpy
+        $!cpx = $x;
+        $!cpy = $y;
     }
-    method rmvto() is export {
+    multi method mvto(:$tl, :$tr, :$bl, :$br, :$abs = False) {
+        my ($x, $y);
+        if    $tl { $x = $!x0;           $y = $!y0 + $!height }
+        elsif $tr { $x = $!x0 + $!width; $y = $!y0 + $!height }
+        elsif $bl { $x = $!x0;           $y = $!y0 }
+        elsif $br { $x = $!x0 + $!width; $y = $!y0 }
+        else      { return }
+
+        self.MoveTo($x, $y);
+        # reset cpx/cpy
+        $!cpx = $x;
+        $!cpy = $y;
+    }
+    method rmvto($delta-x, $delta-y) is export {
+        my $x = $!cpx + $delta-x;
+        my $y = $!cpy + $delta-y;
+        self.MoveTo($x, $y);
+        # reset cpx/cpy
+        $!cpx = $x;
+        $!cpy = $y;
     }
     method nl($n = 1) is export {
-        # moves y down by n lines, resets x=0
+        # moves cpy down by n lines, resets cx=0
+        my $delta-y = $n * $!leading;
+        my $x = $!x0;
+        my $y = $!cpy - $delta-y;
+        self.MoveTo($x, $y);
+        # reset cpx/cpy
+        $!cpx = $x;
+        $!cpy = $y;
     }
     method np() is export {
         $!page = $!pdf.add-page
@@ -388,7 +443,7 @@ class Doc is export {
     #===================================
     # Auto-generated methods for testing
     #===================================
-        #| Text line height
+    #| Text line height
     method TextLeading {
         $!pdf.TextLeading;
     }
@@ -576,10 +631,11 @@ class Doc is export {
     #| omitting any connecting line segment. If the previous path construction
     #| operator in the current path was also m, the new m overrides it.
     method MoveTo($x, $y) {
-        $!pdf.MoveTo($x, $y);
+        $!page.gfx.text.MoveTo($x, $y);
     }
     method m($x, $y) {
-        $!pdf.MoveTo($x, $y);
+        $!page.MoveTo($x, $y);
+
     }
 
     #| Append a straight line segment from the current point to the point (x,

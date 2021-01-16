@@ -7,28 +7,29 @@ use PDF::Document;
 
 my \d = Doc.new;
 given d {
-.text: "2021-03-04";
+.mvto: :tr; # bottom-right corner
+.say: "2021-03-04", :align<right>;
 
 .nl: 1; # set currentpoint x=0,y one line down from top-left corner
-.text: "Dear Mom,";
+.say: "Dear Mom,";
 .nl: 2; # resets x=0
-.text: "I am fine.";
+.say: "I am fine.";
 .mvto: :br; # bottom-right corner
 .rmvto: :y(-2 * .leading); 
-.text: "Page 1", :rj; # right justified
+.say: "Page 1", :align<right>; # right justified
 .np; # new page
 .mvto: :tl; # top-left corner
 .nl: 1; # set currentpoint x=0,y one line down from top-left corner
-.text: q:to/PARA/;
+.say: q:to/PARA/;
 A VERY long para
 PARA
 .nl: 2;
-.text: "Love,";
+.say: "Love,";
 .nl: 2; 
-.text: "Isaiah";
+.say: "Isaiah";
 .mvto: :br; # bottom-right corner
 .rmvto: :y(-2 * .leading); 
-.text: "Page 2 of 2", :rj; # right justified
+.say: "Page 2 of 2", :rj; # right justified
 .save: "letter.pdf";
 
 }
