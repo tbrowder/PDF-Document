@@ -333,8 +333,6 @@ class Doc is export {
                 # get the width of the string with kerning
                 $sw = $font.afm.stringwidth: $string, $size, :kern;
             }
-
-
         }
         if $x.defined and $y.defined {
             $!page.text: { .text-position = $x, $y; .font = $font, $size; .say($string); }
@@ -342,8 +340,32 @@ class Doc is export {
         else {
             $!page.text: { .font = $font, $size; .say($string); }
         }
+    }
 
-
+    #| Starts at the current position
+    method print($string, 
+                 :$align,
+                 :$valign,
+                 :$Font, # docfont
+                 :$kern,
+                 :$leading,
+                 :$width,
+                 :$height,
+                 :$nl,
+                ) {
+        my $font = $Font.font;
+        my $font-size = $Font.size;
+        $!page.gfx.print(
+                         :$align,
+                         :$valign,
+                         :$font, # rawfont
+                         :$font-size, 
+                         :$kern,
+                         :$leading,
+                         :$width,
+                         :$height,
+                         :$nl,
+                        );
     }
 
     # convenience methods
@@ -649,8 +671,4 @@ class Doc is export {
     method W() {
         $!pdf.Clip();
     }
-
-
-
-
 }
