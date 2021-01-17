@@ -51,6 +51,7 @@ my $nm  = 0; # num methods written
 my $na  = 0; # num alias methods written
 my $nmt = 0; # num method tests written
 my $nat = 0; # num method alias tests written
+my $test-num = 0; # for the test file
 
 for $ifil.IO.lines -> $line is copy {
     $line = strip-comment $line;
@@ -97,18 +98,12 @@ for $ifil.IO.lines -> $line is copy {
     #        $doc.bar()             # <-- meth + empty parens 
     #    }, "testing method 'bar'"; # <-- meth only
 
-    my @args;
-    my $use-alias = True;
-    $alias = $w2;
-    my $full-meth = $w1;
     if $w1 ~~ /(\S+) \h*         # $0
                [('(' \h* ')')    # $1
                  || 
                 ('(') (.*) (')') # $1 $2 $3
                ]? / {
         $meth = ~$0;
-        $W1 = $meth;
-
         if $1.defined {
             if $2.defined and $3.defined {
                 # $2 it's the sig inside the parens
@@ -120,6 +115,10 @@ for $ifil.IO.lines -> $line is copy {
         }
     }
 
+    my $full-meth;
+    my $full-alias;
+    my @args;
+    my $use-alias = True;
     if $sig.defined {
         $sig ~~ s:g/','//;
         my @w = $sig.words;
@@ -128,8 +127,16 @@ for $ifil.IO.lines -> $line is copy {
             @args.push: $a;
         }
         $sig = '(' ~ join(', ', @args) ~ ')';
-        $w1 = $meth ~ $sig;
-        $w2 ~= $sig;
+        $full-meth  = $meth  ~ $sig;
+        $full-alias = $alias ~ $sig;
+    }
+    elsif $empty-parens.defined {
+        $full-meth  = $meth  ~ $empty-parens;
+        $full-alias = $alias ~ $empty-parens;
+    }
+    else {
+        $full-meth  = $meth;
+        $full-alias = $alias;
     }
 
     if $meth.defined and %no-alias{$meth}:exists {
@@ -164,6 +171,7 @@ for $ifil.IO.lines -> $line is copy {
     # write lives-ok tests 
     ++$nmt;
     $fh2.print: qq:to/HERE/;
+    # test {++$test-num}
     lives-ok \{
     HERE
     $fh2.say($arg-vals) if $arg-vals;
@@ -176,6 +184,7 @@ for $ifil.IO.lines -> $line is copy {
     
     ++$nat;
     $fh2.print: qq:to/HERE/;
+    # test {++$test-num}
     lives-ok \{
     HERE
     $fh2.say("$arg-vals") if $arg-vals;
@@ -183,7 +192,6 @@ for $ifil.IO.lines -> $line is copy {
         $full-alias
     }, "testing method '$meth', alias '$alias'";
     HERE
-
 }
 $fh.close;
 $fh2.close;
