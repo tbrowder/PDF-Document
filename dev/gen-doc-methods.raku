@@ -13,8 +13,8 @@ if !@*ARGS {
     print qq:to/HERE/;
     Usage: {$*PROGRAM.IO.basename} meth | test | all [debug]
 
-    Parses file '$ifil' to 
-    extract methods and their aliases and builds 
+    Parses file '$ifil' to
+    extract methods and their aliases and builds
     that portion of the Doc class.
 
     It also generates a test file to check each
@@ -39,12 +39,15 @@ my $of2 = "00-pdf-methods.t";
 my $fh  = open $of, :w;
 my $fh2 = open $of2, :w;
 
-# Some alias methods will not work due to syntax 
+# Some alias methods will not work due to syntax
 # conflicts with Raku identifiers
 my %no-alias = set <
     MoveShowText
     MoveSetShowText
     TextNextLine
+>;
+# Some methods need special handling (context) in tests
+my %special = set <
 >;
 
 # Set up the test file
@@ -115,15 +118,15 @@ for $ifil.IO.lines -> $line is copy {
     #        my $a = 0:
     #        $doc.foo($a)           # <-- meth + sig inside parens
     #    }, "testing method 'foo'"; # <-- meth only --> $meth
-    # 
+    #
     #    # test N+1
     #    lives-ok {
-    #        $doc.bar()             # <-- meth + empty parens 
+    #        $doc.bar()             # <-- meth + empty parens
     #    }, "testing method 'bar'"; # <-- meth only
 
     if $w1 ~~ /(<[A..Za..z_0..9]>+) \h*         # $0
                [('(' \h* ')')    # $1
-                 || 
+                 ||
                 ('(') (.*) (')') # $1 $2 $3
                ]? / {
         $meth = ~$0;
@@ -177,7 +180,13 @@ for $ifil.IO.lines -> $line is copy {
         $use-alias = False;
     }
 
-    # write the description also
+    # may need other special handling
+    my $std-handling = True;
+    if $meth.defined and %special{$meth}:exists {
+        $std-handling = False;
+    }
+
+    # write the description for the method
     my @p = wrap-paragraph $desc.words, :para-pre-text('#| '), :para-indent(4);
 
 
@@ -205,30 +214,41 @@ for $ifil.IO.lines -> $line is copy {
     my $arg-vals = expand-args @args;
 
 
-    # write lives-ok tests 
+    # write lives-ok tests
     ++$nmt;
-    $fh2.print: qq:to/HERE/;
-    # test {++$test-num}
-    lives-ok \{
-    HERE
-    $fh2.say($arg-vals) if $arg-vals;
-    $fh2.say: qq:to/HERE/;
-        \$doc.$full-meth
-    }, "testing method '$meth'";
-    HERE
+
+    # may need special handling
+    if $std-handling {
+        $fh2.print: qq:to/HERE/;
+        # test {++$test-num}
+        lives-ok \{
+        HERE
+        $fh2.say($arg-vals) if $arg-vals;
+        $fh2.say: qq:to/HERE/;
+            \$doc.$full-meth
+        }, "testing method '$meth'";
+        HERE
+    }
+    else {
+    }
 
     next if not $use-alias;
-    
+
     ++$nat;
-    $fh2.print: qq:to/HERE/;
-    # test {++$test-num}
-    lives-ok \{
-    HERE
-    $fh2.say("$arg-vals") if $arg-vals;
-    $fh2.say: qq:to/HERE/;
-        \$doc.$full-alias
-    }, "testing method '$meth', alias '$alias'";
-    HERE
+
+    if $std-handling {
+        $fh2.print: qq:to/HERE/;
+        # test {++$test-num}
+        lives-ok \{
+        HERE
+        $fh2.say("$arg-vals") if $arg-vals;
+        $fh2.say: qq:to/HERE/;
+            \$doc.$full-alias
+        }, "testing method '$meth', alias '$alias'";
+        HERE
+    }
+    else {
+    }
 }
 $fh.close;
 $fh2.close;
@@ -245,33 +265,33 @@ HERE
 
 sub get-val($a, $m?) {
     given $a {
-        when /:i ^ '$' [r|g|b]$/ { 
-            0.5 
+        when /:i ^ '$' [r|g|b]$/ {
+            0.5
         }
-        when /:i level/ { 
-            0.5 
+        when /:i level/ {
+            0.5
         }
         when /:i style / {
-            1 
+            1
         }
-        when /:i ratio / { 
-            0.5 
+        when /:i ratio / {
+            0.5
         }
         when /:i array / {
-            0.5 
+            0.5
         }
         when /:i phase / {
-            0.5 
+            0.5
         }
         when /:i string / {
-            '"some text"' 
+            '"some text"'
         }
         when /:i width / {
-             5 
+             5
         }
 
         default {
-             100 
+             100
         } # postion
     }
 }
@@ -290,5 +310,3 @@ sub expand-args(@args) {
     $s .= trim-trailing;
     return $s;
 }
-
-
