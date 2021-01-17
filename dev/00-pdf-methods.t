@@ -1,9 +1,15 @@
+
+#================================================================
+#
+# THIS FILE IS AUTO-GENERATED - EDITS MAY BE LOST WITHOUT WARNING
+#
+#================================================================
+
 use Test;
 use File::Temp;
 
 use PDF::Document;
 
-# plan N; # enter correct N after all desired tests pass
 plan 61;
 
 # global vars
