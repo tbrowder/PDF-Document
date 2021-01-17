@@ -63,16 +63,44 @@ for $ifil.IO.lines -> $line is copy {
     my $desc = @w.shift.trim;
     say "$w1 => $w2";
 
+
     # gen two methods
-    # the first method may have args or may have empty or no sig parens
+    # the method may have args or may have empty or no sig parens
+    # the alias will have none on input
     my $meth;         # meth name
     my $empty-parens; # just the ()
     my $sig;          # text inside parens
 
+    # input
+    my $tmp-full-meth = $w1; # meth + sig WITHOUT $sigils
+    my $alias         = $w2; # alias name
+
+    # we need several strings to represent the various parts in
+    # the methods file and the test file:
+    #
+    # method:
+    #    method foo($a) {  # <-- meth + sig inside parens --> $full-meth
+    #        self.foo($a)  # <-- same as above
+    #    }
+    #    method bar() {    # <-- meth + empty parens --> $full-meth
+    #        self.bar()    # <-- same as above
+    #    }
+    # test:
+    #    # test N
+    #    lives-ok {
+    #        my $a = 0:
+    #        $doc.foo($a)           # <-- meth + sig inside parens
+    #    }, "testing method 'foo'"; # <-- meth only --> $meth
+    # 
+    #    # test N+1
+    #    lives-ok {
+    #        $doc.bar()             # <-- meth + empty parens 
+    #    }, "testing method 'bar'"; # <-- meth only
+
     my @args;
     my $use-alias = True;
-    my $W1;
-    my $W2 = $w2;
+    $alias = $w2;
+    my $full-meth = $w1;
     if $w1 ~~ /(\S+) \h*         # $0
                [('(' \h* ')')    # $1
                  || 
@@ -112,8 +140,8 @@ for $ifil.IO.lines -> $line is copy {
     my @p = wrap-paragraph $desc.words, :para-pre-text('#| '), :para-indent(4);
     $fh.say: $_ for @p;
     $fh.print: qq:to/HERE/;
-        method $w1 \{
-            \$!pdf.$w1;
+        method $full-meth \{
+            \$!pdf.$full-meth;
         }
     HERE
 
@@ -121,13 +149,13 @@ for $ifil.IO.lines -> $line is copy {
         ++$na;
         # in all cases we will make the alias call the real method
         $fh.say: qq:to/HERE/;
-            method $w2 \{
-                \$!pdf.$w1;
+            method $full-alias \{
+                \$!pdf.$full-meth;
             }
         HERE
     }
     else {
-        $fh.say: "    # alias method '$w2' cannot be used due its invalid identifier in Raku";
+        $fh.say: "    # alias method '$full-alias' cannot be used due its invalid identifier in Raku";
     }
 
     # expand args to add values
@@ -140,8 +168,8 @@ for $ifil.IO.lines -> $line is copy {
     HERE
     $fh2.say($arg-vals) if $arg-vals;
     $fh2.say: qq:to/HERE/;
-        $w1
-    }, "testing method '$W1'";
+        $full-meth
+    }, "testing method '$meth'";
     HERE
 
     next if not $use-alias;
@@ -152,8 +180,8 @@ for $ifil.IO.lines -> $line is copy {
     HERE
     $fh2.say("$arg-vals") if $arg-vals;
     $fh2.say: qq:to/HERE/;
-        $w2
-    }, "testing method '$W1', alias '$W2'";
+        $full-alias
+    }, "testing method '$meth', alias '$alias'";
     HERE
 
 }
