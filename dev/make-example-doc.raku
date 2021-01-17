@@ -1,9 +1,17 @@
 #!/usr/bin/env raku
 
 use lib <./lib ../lib>;
-use PDF::Lite;
-use Font::AFM;
+#use PDF::Lite;
+#use Font::AFM;
 use PDF::Document;
+
+if not @*ARGS {
+    say qq:to/HERE/;
+    Usage:  {$*PROGRAM.IO.basename} go
+    
+    Executes the example program in the docs.
+    exit;
+}
 
 my \d = Doc.new;
 given d {

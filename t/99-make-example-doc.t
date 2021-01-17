@@ -14,7 +14,7 @@ lives-ok {
 =finish
 
 lives-ok {
-    shell "./dev/make-doc.raku";
+    shell "./dev/make-example-doc.raku";
 }, "testing the example doc";
 
 
