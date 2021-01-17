@@ -445,10 +445,10 @@ class Doc is export {
     #===================================
     #| Text line height
     method TextLeading {
-        $!pdf.TextLeading;
+        $!page.gfx.TextLeading;
     }
     method Tl {
-        $!pdf.TextLeading;
+        $!page.gfx.TextLeading;
     }
 
     #| Set the stroking colour space to DeviceGray and set the gray level to

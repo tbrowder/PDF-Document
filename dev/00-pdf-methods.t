@@ -4,6 +4,7 @@ use File::Temp;
 use PDF::Document;
 
 # plan N; # enter correct N after all desired tests pass
+plan 61;
 
 # global vars
 my ($of, $fh) = tempfile;

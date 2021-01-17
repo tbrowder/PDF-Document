@@ -5,9 +5,13 @@ use Text::Utils :strip-comment, :wrap-paragraph;
 my $ifil = 'pdf-methods-of-interest.from-pod';
 
 my $debug = 0;
+my $meth  = 1;
+my $test  = 0;
+my $all   = 0;
+
 if !@*ARGS {
     print qq:to/HERE/;
-    Usage: {$*PROGRAM.IO.basename} go
+    Usage: {$*PROGRAM.IO.basename} meth | test | all [debug]
 
     Parses file '$ifil' to 
     extract methods and their aliases and builds 
@@ -20,8 +24,18 @@ if !@*ARGS {
     exit;
 }
 
-my $of  = "pdf-methods.rakumod";
-my $of2 = "pdf-methods.t";
+sub z{$meth=$all=$test=0}
+for @*ARGS {
+    when /^m/ { z; $meth = 1 }
+    when /^t/ { z; $test = 1 }
+    when /^a/ { z; $all  = 1 }
+    when /^d/ { $debug  = 1 }
+    default   { z; $meth = 1 }
+
+}
+
+my $of  = "pdf-methods.auto-generated";
+my $of2 = "00-pdf-methods.t";
 my $fh  = open $of, :w;
 my $fh2 = open $of2, :w;
 
@@ -35,12 +49,19 @@ my %no-alias = set <
 
 # Set up the test file
 $fh2.say: q:to/HERE/;
+
+#================================================================
+#
+# THIS FILE IS AUTO-GENERATED - EDITS MAY BE LOST WITHOUT WARNING
+#
+#================================================================
+
 use Test;
 use File::Temp;
 
 use PDF::Document;
 
-# plan N; # enter correct N after all desired tests pass
+plan 61;
 
 # global vars
 my ($of, $fh) = tempfile;
@@ -158,10 +179,12 @@ for $ifil.IO.lines -> $line is copy {
 
     # write the description also
     my @p = wrap-paragraph $desc.words, :para-pre-text('#| '), :para-indent(4);
+
+
     $fh.say: $_ for @p;
     $fh.print: qq:to/HERE/;
         method $full-meth \{
-            \$!pdf.$full-meth;
+            \$!page.gfx.$full-meth;
         }
     HERE
 
@@ -170,7 +193,7 @@ for $ifil.IO.lines -> $line is copy {
         # in all cases we will make the alias call the real method
         $fh.say: qq:to/HERE/;
             method $full-alias \{
-                \$!pdf.$full-meth;
+                \$!page.gfx.$full-meth;
             }
         HERE
     }
@@ -180,6 +203,7 @@ for $ifil.IO.lines -> $line is copy {
 
     # expand args to add values
     my $arg-vals = expand-args @args;
+
 
     # write lives-ok tests 
     ++$nmt;
