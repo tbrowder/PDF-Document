@@ -147,10 +147,7 @@
     method TextNextLine {
         $!pdf.TextNextLine;
     }
-    method T* {
-        $!pdf.TextNextLine;
-    }
-
+    # alias method 'T*' cannot be used due its invalid identifier in Raku
     #| Show a text string
     method ShowText($string) {
         $!pdf.ShowText($string);

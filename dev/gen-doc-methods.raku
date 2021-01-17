@@ -4,6 +4,7 @@ use Text::Utils :strip-comment, :wrap-paragraph;
 
 my $ifil = 'pdf-methods-of-interest.from-pod';
 
+my $debug = 0;
 if !@*ARGS {
     print qq:to/HERE/;
     Usage: {$*PROGRAM.IO.basename} go
@@ -44,6 +45,7 @@ use PDF::Document;
 # global vars
 my ($of, $fh) = tempfile;
 my ($doc, $x, $y);
+$doc = Doc.new;
 HERE
 
 
@@ -62,7 +64,7 @@ for $ifil.IO.lines -> $line is copy {
     my $w1 = @w.shift.trim;
     my $w2 = @w.shift.trim;
     my $desc = @w.shift.trim;
-    say "$w1 => $w2";
+    say "$w1 => $w2" if $debug;
 
 
     # gen two methods
@@ -98,21 +100,32 @@ for $ifil.IO.lines -> $line is copy {
     #        $doc.bar()             # <-- meth + empty parens 
     #    }, "testing method 'bar'"; # <-- meth only
 
-    if $w1 ~~ /(\S+) \h*         # $0
+    if $w1 ~~ /(<[A..Za..z_0..9]>+) \h*         # $0
                [('(' \h* ')')    # $1
                  || 
                 ('(') (.*) (')') # $1 $2 $3
                ]? / {
         $meth = ~$0;
+        note "DEBUG: parse found \$0: '$meth'" if $debug;
         if $1.defined {
+            my $c = ~$1;
+            note "DEBUG: parse found \$1: '$c'" if $debug;
             if $2.defined and $3.defined {
                 # $2 it's the sig inside the parens
                 $sig = ~$2;
+                note "DEBUG: parse found \$2: '$sig'" if $debug;
+                my $c2 = ~$3;
+                note "DEBUG: parse found \$3: '$c2'" if $debug;
             }
             else {
+                note "DEBUG: parse found empty parens" if $debug;
                 $empty-parens = '()';
             }
         }
+    }
+    else {
+        note "DEBUG: parse failed on meth '$w1'...skipping" if $debug;
+        next;
     }
 
     my $full-meth;
@@ -176,7 +189,7 @@ for $ifil.IO.lines -> $line is copy {
     HERE
     $fh2.say($arg-vals) if $arg-vals;
     $fh2.say: qq:to/HERE/;
-        $full-meth
+        \$doc.$full-meth
     }, "testing method '$meth'";
     HERE
 
@@ -189,7 +202,7 @@ for $ifil.IO.lines -> $line is copy {
     HERE
     $fh2.say("$arg-vals") if $arg-vals;
     $fh2.say: qq:to/HERE/;
-        $full-alias
+        \$doc.$full-alias
     }, "testing method '$meth', alias '$alias'";
     HERE
 }
