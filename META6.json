@@ -19,7 +19,8 @@
   "name": "PDF::Document",
   "perl": "6.d",
   "provides": {
-    "PDF::Document": "lib/PDF/Document.rakumod"
+    "PDF::Document": "lib/PDF/Document.rakumod",
+    "PDF::Roles": "lib/PDF/Document.roles"
   },
   "resources": [
   ],
