@@ -90,23 +90,6 @@
         $!page.gfx.SetMiterLimit($ratio);
     }
 
-    #| Set the line dash pattern in the graphics state
-    method SetDashPattern($dashArray, $dashPhase) {
-        $!page.gfx.SetDashPattern($dashArray, $dashPhase);
-    }
-    method d($dashArray, $dashPhase) {
-        $!page.gfx.SetDashPattern($dashArray, $dashPhase);
-    }
-
-    #| Set the colour rendering intent in the graphics state:
-    #| AbsoluteColorimetric, RelativeColormetric, Saturation, or Perceptual
-    method SetRenderingIntent($intent) {
-        $!page.gfx.SetRenderingIntent($intent);
-    }
-    method ri($intent) {
-        $!page.gfx.SetRenderingIntent($intent);
-    }
-
     #| Begin a text object, initializing $.TextMatrix, to the identity matrix.
     #| Text objects cannot be nested.
     method BeginText() {
@@ -212,58 +195,5 @@
     }
     method re($x, $y, $width, $Height) {
         $!page.gfx.Rectangle($x, $y, $width, $Height);
-    }
-
-    #| Stroke the path.
-    method Stroke() {
-        $!page.gfx.Stroke();
-    }
-    method S() {
-        $!page.gfx.Stroke();
-    }
-
-    #| Close and stroke the path. Same as: $.Close; $.Stroke
-    method CloseStroke() {
-        $!page.gfx.CloseStroke();
-    }
-    method s() {
-        $!page.gfx.CloseStroke();
-    }
-
-    #| Fill the path, using the nonzero winding number rule to determine the
-    #| region. Any open sub-paths are implicitly closed before being filled.
-    method Fill() {
-        $!page.gfx.Fill();
-    }
-    method f() {
-        $!page.gfx.Fill();
-    }
-
-    #| Fill and then stroke the path, using the nonzero winding number rule to
-    #| determine the region to fill.
-    method FillStroke() {
-        $!page.gfx.FillStroke();
-    }
-    method B() {
-        $!page.gfx.FillStroke();
-    }
-
-    #| Close, fill, and then stroke the path, using the nonzero winding number
-    #| rule to determine the region to fill.
-    method CloseFillStroke() {
-        $!page.gfx.CloseFillStroke();
-    }
-    method b() {
-        $!page.gfx.CloseFillStroke();
-    }
-
-    #| Modify the current clipping path by intersecting it with the current
-    #| path, using the nonzero winding number rule to determine which regions
-    #| lie inside the clipping path.
-    method Clip() {
-        $!page.gfx.Clip();
-    }
-    method W() {
-        $!page.gfx.Clip();
     }
 
