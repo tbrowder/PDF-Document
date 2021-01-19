@@ -7,7 +7,7 @@
   "build-depends": [
   ],
   "depends": [
-    "PDF::Document",
+    "File::Temp",
     "Config::TOML",
     "Text::Utils",
     "Font::AFM",
@@ -20,6 +20,7 @@
   "perl": "6.d",
   "provides": {
     "PDF::Document": "lib/PDF/Document.rakumod"
+    "PDF::Roles": "lib/PDF/Roles.rakumod"
   },
   "resources": [
   ],
