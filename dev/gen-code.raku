@@ -120,7 +120,10 @@ my $test-num = 0; # for the test file
 
 class PMeth {
     # methods in the PDF::API6 list
-    has $.alias is rw;
+    has $.meth       is rw;
+    has $.alias      is rw;
+    has $.full-meth  is rw;
+    has $.full-alias is rw;
 }
 
 class FMeth {
@@ -237,14 +240,20 @@ sub write-document-module() {
             $sig = '(' ~ join(', ', @args) ~ ')';
             $full-meth  = $meth  ~ $sig;
             $full-alias = $alias ~ $sig;
+            $m.full-meth  = $meth  ~ $sig;
+            $m.full-alias = $alias ~ $sig;
         }
         elsif $empty-parens.defined {
             $full-meth  = $meth  ~ $empty-parens;
             $full-alias = $alias ~ $empty-parens;
+            $m.full-meth  = $meth  ~ $empty-parens;
+            $m.full-alias = $alias ~ $empty-parens;
         }
         else {
             $full-meth  = $meth;
             $full-alias = $alias;
+            $m.full-meth  = $meth;
+            $m.full-alias = $alias;
         }
 
         if $meth.defined and %no-alias{$meth}:exists {
