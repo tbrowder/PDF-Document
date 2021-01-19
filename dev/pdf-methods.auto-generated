@@ -130,7 +130,7 @@
     method TextNextLine {
         $!page.gfx.TextNextLine;
     }
-    # alias method 'T*' cannot be used due its invalid identifier in Raku
+    # alias method 'T*' cannot be used due to its invalid identifier in Raku
     #| Show a text string
     method ShowText($string) {
         $!page.gfx.ShowText($string);
@@ -143,13 +143,13 @@
     method MoveShowText($string) {
         $!page.gfx.MoveShowText($string);
     }
-    # alias method ''($string)' cannot be used due its invalid identifier in Raku
+    # alias method ''' cannot be used due to its invalid identifier in Raku
     #| Move to the next line and show a text string, after setting
     #| $.WordSpacing to aw and $.CharSpacing to ac
     method MoveSetShowText($aw, $ac, $string) {
         $!page.gfx.MoveSetShowText($aw, $ac, $string);
     }
-    # alias method '"($aw, $ac, $string)' cannot be used due its invalid identifier in Raku
+    # alias method '"' cannot be used due to its invalid identifier in Raku
     #| Begin a new sub-path by moving the current point to coordinates (x, y),
     #| omitting any connecting line segment. If the previous path construction
     #| operator in the current path was also m, the new m overrides it.

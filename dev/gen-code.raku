@@ -2,7 +2,7 @@
 
 use Text::Utils :strip-comment, :wrap-paragraph;
 
-my $ifil  = 'pdf-methods-of-interest.from-pod';
+my $ifil1 = 'pdf-methods-of-interest.from-pod';
 my $ifil2 = 'afm-methods-of-interest.from-pod';
 
 my $debug = 0;
@@ -17,7 +17,7 @@ if !@*ARGS {
     print qq:to/HERE/;
     Usage: {$*PROGRAM.IO.basename} meth | test | role | doc | all [debug]
 
-    Parses files '$ifil'
+    Parses files '$ifil1
     and '$ifil2' to
     extract methods and their aliases and builds
     various Raku code products that use them.
@@ -48,9 +48,6 @@ my $of2 = "00-pdf-methods.t";
 my $of3 = "PDF-role.rakumod";
 my $of4 = "AFM-role.rakumod";
 
-my $fh  = open $of, :w;
-my $fh2 = open $of2, :w;
-
 # Some alias methods will not work due to syntax
 # conflicts with Raku identifiers
 my %no-alias = set < MoveShowText MoveSetShowText TextNextLine >;
@@ -63,28 +60,7 @@ my %need-BT-ET = set < TextMove TextMoveSet TextNextLine ShowText MoveShowText M
 # These need to be between Save/Restore pairs
 my %need-q-Q = set < SetStrokeGray SetFillGray SetStrokeRGB SetFillRGB SetLineWidth SetLineCap SetLineJoin SetMiterLimit >;
 
-# Set up the test file
-$fh2.say: q:to/HERE/;
-#================================================================
-#
-# THIS FILE IS AUTO-GENERATED - EDITS MAY BE LOST WITHOUT WARNING
-#
-#================================================================
-use Test;
-use File::Temp;
-use PDF::Document;
-plan 37;
-# global vars
-my ($of, $fh) = tempfile;
-my ($doc, $x, $y);
-$doc = Doc.new;
-HERE
 
-my $nm  = 0; # num methods written
-my $na  = 0; # num alias methods written
-my $nmt = 0; # num method tests written
-my $nat = 0; # num method alias tests written
-my $test-num = 0; # for the test file
 
 class PMeth {
     # methods in the PDF::API6 list
@@ -95,21 +71,20 @@ class PMeth {
     has $.desc       is rw;
     has @.args       is rw;
     has $.spec       is rw;
+    has $.use-alias  is rw;
 }
 
 class FMeth {
     # methods in the Font::AFM list
 }
 
-my @pmethods = get-pdf-methods $ifil, :$debug;
+my @pmethods = get-pdf-methods $ifil1, :$debug;
 write-pdf-methods $of1, @pmethods, :$debug;
 write-pdf-method-tests $of2, @pmethods, :$debug;
 
 say qq:to/HERE/;
 
 Normal end.
-Generated $nm methods and $na alias methods.
-Generated $nmt method tests and $nat alias method tests.
 See output files:
   $of1
   $of2
@@ -140,7 +115,6 @@ sub get-pdf-methods($ifil, :$debug --> List) {
 
         my $m = PMeth.new;
 
-        ++$nm;
         my @w  = split '|', $line;
         my $w1 = @w.shift.trim;
         my $w2 = @w.shift.trim;
@@ -254,6 +228,7 @@ sub get-pdf-methods($ifil, :$debug --> List) {
         $m.args       = @args;
         $m.desc       = $desc;
         $m.spec       = $spec;
+        $m.use-alias  = $use-alias;
 
         @pmeths.push: $m;
 
@@ -270,13 +245,15 @@ sub get-pdf-methods($ifil, :$debug --> List) {
     return @pmeths;
 } # end reader
 
-sub write-pdf-method-tests($ofil, @pmethods) {
-}
 
 sub write-pdf-methods($ofil, @pmethods, :$debug) {
+      my $nm  = 0; # num methods written
+      my $na  = 0; # num alias methods written
+
+      my $fh  = open $ofil, :w;
       for @pmethods -> $m {
 
-        # write the description for the method
+          # write the description for the method
         my @p = wrap-paragraph $m.desc.words, :para-pre-text('#| '), :para-indent(4);
 
         $fh.say: $_ for @p;
@@ -286,23 +263,48 @@ sub write-pdf-methods($ofil, @pmethods, :$debug) {
             }
         HERE
 
-        if $use-alias {
+        if $m.use-alias {
             ++$na;
             # in all cases we will make the alias call the real method
             $fh.say: qq:to/HERE/;
-                method $full-alias \{
-                    \$!page.gfx.{$full-meth};
+                method {$m.full-alias} \{
+                    \$!page.gfx.{$m.full-meth};
                 }
             HERE
         }
         else {
-            $fh.say: "    # alias method '$full-alias' cannot be used due its invalid identifier in Raku";
+            $fh.say: "    # alias method '{$m.alias}' cannot be used due to its invalid identifier in Raku";
         }
     }
     $fh.close;
+    say "Generated $nm methods and $na alias methods.";
 }
 
-sub write-pdf-method-tests($ofil, @pmethods) {
+sub write-pdf-method-tests($ofil, @pmethods, :$debug) {
+    my $nmt = 0; # num method tests written
+    my $nat = 0; # num method alias tests written
+    my $test-num = 0; # for the test file
+
+    my $fh  = open $ofil, :w;
+
+    # Set up the test file
+    $fh.say: q:to/HERE/;
+    #================================================================
+    #
+    # THIS FILE IS AUTO-GENERATED - EDITS MAY BE LOST WITHOUT WARNING
+    #
+    #================================================================
+    use Test;
+    use File::Temp;
+    use PDF::Document;
+    plan 37;
+    # global vars
+    my ($of, $fh) = tempfile;
+    my ($doc, $x, $y);
+    $doc = Doc.new;
+    HERE
+
+    for @pmethods -> $m {
         # THIS BEGINS A NEW SUB FOR WRITING PDF METHOD TESTS
         # expand args to add values
         #my $arg-vals = expand-args @args, $meth;
@@ -316,35 +318,36 @@ sub write-pdf-method-tests($ofil, @pmethods) {
         # write lives-ok tests
         ++$nmt;
         # may need special handling
-        $fh2.print: qq:to/HERE/;
+        $fh.print: qq:to/HERE/;
         # test {++$test-num}
         lives-ok \{
         HERE
-        $fh2.say("    \$doc.BT;") if $spec eq 'BT';
-        $fh2.say("    \$doc.q;") if $spec eq 'q';
-        $fh2.say($arg-vals) if $arg-vals;
-        $fh2.say("    \$doc.{$m.full-meth};");
-        $fh2.say("    \$doc.ET;") if $spec eq 'BT';
-        $fh2.say("    \$doc.Q;") if $spec eq 'q';
-        $fh2.say("}, \"testing method '{$m.meth}'\";");
+        $fh.say("    \$doc.BT;") if $m.spec eq 'BT';
+        $fh.say("    \$doc.q;") if $m.spec eq 'q';
+        $fh.say($arg-vals) if $arg-vals;
+        $fh.say("    \$doc.{$m.full-meth};");
+        $fh.say("    \$doc.ET;") if $m.spec eq 'BT';
+        $fh.say("    \$doc.Q;") if $m.spec eq 'q';
+        $fh.say("}, \"testing method '{$m.meth}'\";");
 
-        next if not $use-alias;
+        next if not $m.use-alias;
 
         ++$nat;
 
-        $fh2.print: qq:to/HERE/;
+        $fh.print: qq:to/HERE/;
         # test {++$test-num}
         lives-ok \{
         HERE
-        $fh2.say("    \$doc.BT;") if $spec eq 'BT';
-        $fh2.say("    \$doc.q;") if $spec eq 'q';
-        $fh2.say("$arg-vals") if $arg-vals;
-        $fh2.say("    \$doc.{$m.full-alias};");
-        $fh2.say("    \$doc.ET;") if $spec eq 'BT';
-        $fh2.say("    \$doc.Q;") if $spec eq 'q';
-        $fh2.say("}, \"testing method '{$m.meth}', alias '{$m.alias}'\";");
+        $fh.say("    \$doc.BT;") if $m.spec eq 'BT';
+        $fh.say("    \$doc.q;") if $m.spec eq 'q';
+        $fh.say("$arg-vals") if $arg-vals;
+        $fh.say("    \$doc.{$m.full-alias};");
+        $fh.say("    \$doc.ET;") if $m.spec eq 'BT';
+        $fh.say("    \$doc.Q;") if $m.spec eq 'q';
+        $fh.say("}, \"testing method '{$m.meth}', alias '{$m.alias}'\";");
     }
     $fh.close;
+    say "Generated $nmt method tests and $nat alias method tests.";
 }
 
 
