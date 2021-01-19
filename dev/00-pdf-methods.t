@@ -1,17 +1,12 @@
-
 #================================================================
 #
 # THIS FILE IS AUTO-GENERATED - EDITS MAY BE LOST WITHOUT WARNING
 #
 #================================================================
-
 use Test;
 use File::Temp;
-
 use PDF::Document;
-
 plan 37;
-
 # global vars
 my ($of, $fh) = tempfile;
 my ($doc, $x, $y);

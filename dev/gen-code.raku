@@ -91,26 +91,20 @@ my %need-q-Q = set <
 
 # Set up the test file
 $fh2.say: q:to/HERE/;
-
 #================================================================
 #
 # THIS FILE IS AUTO-GENERATED - EDITS MAY BE LOST WITHOUT WARNING
 #
 #================================================================
-
 use Test;
 use File::Temp;
-
 use PDF::Document;
-
 plan 37;
-
 # global vars
 my ($of, $fh) = tempfile;
 my ($doc, $x, $y);
 $doc = Doc.new;
 HERE
-
 
 my $nm  = 0; # num methods written
 my $na  = 0; # num alias methods written
@@ -152,7 +146,10 @@ sub write-afm-role() {
 sub write-document-module() {
 }
 
-#sub get-pdf-methods($ifil) {
+my @pmeths;
+
+#sub get-pdf-methods($ifil, :$debug --> List) {
+    # my @pmeths;
     for $ifil.IO.lines -> $line is copy {
         $line = strip-comment $line;
         next if $line !~~ /\S/;
@@ -273,6 +270,26 @@ sub write-document-module() {
         $m.args       = @args;
         $m.desc       = $desc;
         $m.spec       = $spec;
+
+        @pmeths.push: $m;
+
+        #===================================================
+        # AT THIS POINT WE HAVE CAPTURED ALL METHOD INFO AND
+        # CAN SEPARATE THIS INTO AT LEAST TWO SUBS: 
+        #   READER of pmethods
+        #   WRITER of tests
+        #   WRITER of copy/paste class Doc methods
+        #   WRITER of PDF roles
+        #===================================================
+
+=begin comment
+    }
+    return @pmeths;
+} # end reader
+
+sub writer(@pmethods) {
+      for @pmethods -> $m {
+=end comment
 
         # write the description for the method
         my @p = wrap-paragraph $m.desc.words, :para-pre-text('#| '), :para-indent(4);
