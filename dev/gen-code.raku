@@ -60,33 +60,33 @@ my %no-alias = set <
 # These tests are used with other tests so we don't 
 # test them individually:
 my %no-test = set <
-Save
-Restore
-BeginText
-EndText
+    Save
+    Restore
+    BeginText
+    EndText
 >;
 
 # Some methods need special handling (context) in tests
 # Outside of a text block, these need to between BeginText/EndText pairs 
 my %need-BT-ET = set <
-TextMove
-TextMoveSet
-TextNextLine
-ShowText
-MoveShowText
-MoveSetShowText
+    TextMove
+    TextMoveSet
+    TextNextLine
+    ShowText
+    MoveShowText
+    MoveSetShowText
 >;
 
-# These need to between Save/Restore pairs
+# These need to be between Save/Restore pairs
 my %need-q-Q = set <
-SetStrokeGray
-SetFillGray
-SetStrokeRGB
-SetFillRGB
-SetLineWidth
-SetLineCap
-SetLineJoin
-SetMiterLimit
+    SetStrokeGray
+    SetFillGray
+    SetStrokeRGB
+    SetFillRGB
+    SetLineWidth
+    SetLineCap
+    SetLineJoin
+    SetMiterLimit
 >;
 
 # Set up the test file
@@ -204,6 +204,7 @@ sub write-document-module() {
                     ('(') (.*) (')') # $1 $2 $3
                    ]? / {
             $meth = ~$0;
+            $m.meth = ~$0;
             note "DEBUG: parse found \$0: '$meth'" if $debug;
             if $1.defined {
                 my $c = ~$1;
@@ -349,43 +350,46 @@ See output files:
 HERE
 
 sub get-val($a, $meth?) {
+    my $val;
     given $a {
         when /:i ^ '$' [r|g|b] $/ {
-            0.5
+            $val = 0.5
         }
         when /:i level/ {
-            0.5
+            $val = 0.5
         }
         when /:i style / {
-            1
+            $val = 1
         }
         when /:i ratio / {
-            0.5
+            $val = 0.5
         }
         when /:i array / {
-            0.5
+            $val = 0.5
         }
         when /:i phase / {
-            0.5
+            $val = 0.5
         }
         when /:i string / {
-            '"some text"'
+            $val = '"some text"'
         }
         when /:i width / {
-             5
+             $val = 5
         }
 
         default {
-             100
-        } # postion
+             $val = 100
+        } # position
     }
 
-    =begin comment
     if $meth eq 'SetDashPattern' {
+        $val = '"some text"'
     }
     elsif $meth eq 'SetRenderingIntent' {
+        $val = '"some text"'
     }
-    =end comment
+
+    return $val;
 }
 
 sub expand-args(@args, $meth?) {
