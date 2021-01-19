@@ -31,18 +31,20 @@ if !@*ARGS {
 
 sub z{$meth=$all=$test=$doc=$role=0}
 for @*ARGS {
+    # options
     when /^de/ { $debug  = 1 }
+    # modes
     when /^d/  { z; $doc  = 1 }
     when /^m/  { z; $meth = 1 }
     when /^t/  { z; $test = 1 }
-
     when /^a/  { z; $all  = 1 }
-
+    # end modes
     default    { z; $meth = 1 }
 }
 
-my $of  = "pdf-methods.auto-generated";
+my $of1 = "pdf-methods.auto-generated";
 my $of2 = "00-pdf-methods.t";
+
 my $of3 = "PDF-role.rakumod";
 my $of4 = "AFM-role.rakumod";
 
@@ -51,43 +53,15 @@ my $fh2 = open $of2, :w;
 
 # Some alias methods will not work due to syntax
 # conflicts with Raku identifiers
-my %no-alias = set <
-    MoveShowText
-    MoveSetShowText
-    TextNextLine
->;
-
+my %no-alias = set < MoveShowText MoveSetShowText TextNextLine >;
 # These tests are used with other tests so we don't 
 # test them individually:
-my %no-test = set <
-    Save
-    Restore
-    BeginText
-    EndText
->;
-
+my %no-test = set < Save Restore BeginText EndText >;
 # Some methods need special handling (context) in tests
 # Outside of a text block, these need to between BeginText/EndText pairs 
-my %need-BT-ET = set <
-    TextMove
-    TextMoveSet
-    TextNextLine
-    ShowText
-    MoveShowText
-    MoveSetShowText
->;
-
+my %need-BT-ET = set < TextMove TextMoveSet TextNextLine ShowText MoveShowText MoveSetShowText >;
 # These need to be between Save/Restore pairs
-my %need-q-Q = set <
-    SetStrokeGray
-    SetFillGray
-    SetStrokeRGB
-    SetFillRGB
-    SetLineWidth
-    SetLineCap
-    SetLineJoin
-    SetMiterLimit
->;
+my %need-q-Q = set < SetStrokeGray SetFillGray SetStrokeRGB SetFillRGB SetLineWidth SetLineCap SetLineJoin SetMiterLimit >;
 
 # Set up the test file
 $fh2.say: q:to/HERE/;
@@ -127,14 +101,26 @@ class FMeth {
     # methods in the Font::AFM list
 }
 
+my @pmethods = get-pdf-methods $ifil, :$debug;
+write-pdf-methods $of1, @pmethods, :$debug;
+write-pdf-method-tests $of2, @pmethods, :$debug;
+
+say qq:to/HERE/;
+
+Normal end.
+Generated $nm methods and $na alias methods.
+Generated $nmt method tests and $nat alias method tests.
+See output files:
+  $of1
+  $of2
+HERE
+
+exit;
+
 # getters
 sub get-afm-methods() {
 }
 # writers
-sub write-pdf-methods() {
-}
-sub write-pdf-method-tests() {
-}
 sub write-font-methods() {
 }
 sub write-afm-method-tests() {
@@ -146,10 +132,8 @@ sub write-afm-role() {
 sub write-document-module() {
 }
 
-my @pmeths;
-
-#sub get-pdf-methods($ifil, :$debug --> List) {
-    # my @pmeths;
+sub get-pdf-methods($ifil, :$debug --> List) {
+    my @pmeths;
     for $ifil.IO.lines -> $line is copy {
         $line = strip-comment $line;
         next if $line !~~ /\S/;
@@ -282,14 +266,15 @@ my @pmeths;
         #   WRITER of PDF roles
         #===================================================
 
-=begin comment
     }
     return @pmeths;
 } # end reader
 
-sub writer(@pmethods) {
+sub write-pdf-method-tests($ofil, @pmethods) {
+}
+
+sub write-pdf-methods($ofil, @pmethods, :$debug) {
       for @pmethods -> $m {
-=end comment
 
         # write the description for the method
         my @p = wrap-paragraph $m.desc.words, :para-pre-text('#| '), :para-indent(4);
@@ -313,64 +298,55 @@ sub writer(@pmethods) {
         else {
             $fh.say: "    # alias method '$full-alias' cannot be used due its invalid identifier in Raku";
         }
+    }
+    $fh.close;
+}
 
+sub write-pdf-method-tests($ofil, @pmethods) {
+        # THIS BEGINS A NEW SUB FOR WRITING PDF METHOD TESTS
         # expand args to add values
         #my $arg-vals = expand-args @args, $meth;
         my $arg-vals = expand-args $m.args, $m.meth;
 
+        
         # some tests aren't needed as a standalone test
         #next if %no-test{$meth}:exists;
         next if %no-test{$m.meth}:exists;
 
         # write lives-ok tests
         ++$nmt;
-
         # may need special handling
-        #if not $spec {
-            $fh2.print: qq:to/HERE/;
-            # test {++$test-num}
-            lives-ok \{
-            HERE
-            $fh2.say("    \$doc.BT;") if $spec eq 'BT';
-            $fh2.say("    \$doc.q;") if $spec eq 'q';
-            $fh2.say($arg-vals) if $arg-vals;
-            $fh2.say("    \$doc.{$m.full-meth};");
-            $fh2.say("    \$doc.ET;") if $spec eq 'BT';
-            $fh2.say("    \$doc.Q;") if $spec eq 'q';
-            $fh2.say("}, \"testing method '{$m.meth}'\";");
-        #}
+        $fh2.print: qq:to/HERE/;
+        # test {++$test-num}
+        lives-ok \{
+        HERE
+        $fh2.say("    \$doc.BT;") if $spec eq 'BT';
+        $fh2.say("    \$doc.q;") if $spec eq 'q';
+        $fh2.say($arg-vals) if $arg-vals;
+        $fh2.say("    \$doc.{$m.full-meth};");
+        $fh2.say("    \$doc.ET;") if $spec eq 'BT';
+        $fh2.say("    \$doc.Q;") if $spec eq 'q';
+        $fh2.say("}, \"testing method '{$m.meth}'\";");
 
         next if not $use-alias;
 
         ++$nat;
 
-        #if $std-handling {
-            $fh2.print: qq:to/HERE/;
-            # test {++$test-num}
-            lives-ok \{
-            HERE
-            $fh2.say("    \$doc.BT;") if $spec eq 'BT';
-            $fh2.say("    \$doc.q;") if $spec eq 'q';
-            $fh2.say("$arg-vals") if $arg-vals;
-            $fh2.say("    \$doc.{$m.full-alias};");
-            $fh2.say("    \$doc.ET;") if $spec eq 'BT';
-            $fh2.say("    \$doc.Q;") if $spec eq 'q';
-            $fh2.say("}, \"testing method '{$m.meth}', alias '{$m.alias}'\";");
-        #}
+        $fh2.print: qq:to/HERE/;
+        # test {++$test-num}
+        lives-ok \{
+        HERE
+        $fh2.say("    \$doc.BT;") if $spec eq 'BT';
+        $fh2.say("    \$doc.q;") if $spec eq 'q';
+        $fh2.say("$arg-vals") if $arg-vals;
+        $fh2.say("    \$doc.{$m.full-alias};");
+        $fh2.say("    \$doc.ET;") if $spec eq 'BT';
+        $fh2.say("    \$doc.Q;") if $spec eq 'q';
+        $fh2.say("}, \"testing method '{$m.meth}', alias '{$m.alias}'\";");
     }
     $fh.close;
-    $fh2.close;
-#}
+}
 
-say qq:to/HERE/;
-
-Normal end.
-Generated $nm methods and $na alias methods.
-Generated $nmt method tests and $nat alias method tests.
-See output files:
-  $of
-  $of2
-HERE
 
 sub get-val($a, $meth?) {
     my $val;
@@ -411,7 +387,6 @@ sub get-val($a, $meth?) {
     elsif $meth eq 'SetRenderingIntent' {
         $val = '"some text"'
     }
-
     return $val;
 }
 
