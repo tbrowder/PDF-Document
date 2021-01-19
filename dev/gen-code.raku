@@ -44,8 +44,8 @@ for @*ARGS {
 
 my $of1 = "pdf-methods.auto-generated";
 my $of2 = "00-pdf-methods.t";
-
 my $of3 = "PDF-role.rakumod";
+
 my $of4 = "AFM-role.rakumod";
 
 # Some alias methods will not work due to syntax
@@ -79,8 +79,9 @@ class FMeth {
 }
 
 my @pmethods = get-pdf-methods $ifil1, :$debug;
-write-pdf-methods $of1, @pmethods, :$debug;
+write-pdf-methods $of1, @pmethods, :type<copy>, :$debug;
 write-pdf-method-tests $of2, @pmethods, :$debug;
+write-pdf-methods $of3, @pmethods, :type<role>, :$debug;
 
 say qq:to/HERE/;
 
@@ -88,6 +89,7 @@ Normal end.
 See output files:
   $of1
   $of2
+  $of3
 HERE
 
 exit;
@@ -96,11 +98,9 @@ exit;
 sub get-afm-methods() {
 }
 # writers
-sub write-font-methods() {
+sub write-afm-methods() {
 }
 sub write-afm-method-tests() {
-}
-sub write-pdf-role() {
 }
 sub write-afm-role() {
 }
@@ -243,17 +243,38 @@ sub get-pdf-methods($ifil, :$debug --> List) {
 
     }
     return @pmeths;
-} # end reader
+} # sub get-pdf-methods($ifil, :$debug --> List) 
 
+sub write-pdf-methods($ofil, @pmethods, 
+                      :$type!, # role, copy
+                      :$debug,
+                     ) {
 
-sub write-pdf-methods($ofil, @pmethods, :$debug) {
-      my $nm  = 0; # num methods written
-      my $na  = 0; # num alias methods written
+    my $fh  = open $ofil, :w;
 
-      my $fh  = open $ofil, :w;
-      for @pmethods -> $m {
+    if $type eq 'role' {
+        # begin the 
+        $fh.say: qq:to/HERE/;
+        unit role PDF::PDF-role;
+        use PDF::Lite;
 
-          # write the description for the method
+        has \$.pdf;
+        has \$.page;
+        HERE
+    }
+    elsif $type eq 'copy' {
+        ; # ok
+    }
+    else {
+        die "FATAL: PDF methods file type '$type' not recognized'";
+    }
+
+    my $nm  = 0; # num methods written
+    my $na  = 0; # num alias methods written
+
+    for @pmethods -> $m {
+
+        # write the description for the method
         my @p = wrap-paragraph $m.desc.words, :para-pre-text('#| '), :para-indent(4);
 
         $fh.say: $_ for @p;
@@ -278,7 +299,8 @@ sub write-pdf-methods($ofil, @pmethods, :$debug) {
     }
     $fh.close;
     say "Generated $nm methods and $na alias methods.";
-}
+
+} # sub write-pdf-methods($ofil, @pmethods, :$debug) 
 
 sub write-pdf-method-tests($ofil, @pmethods, :$debug) {
     my $nmt = 0; # num method tests written
@@ -348,7 +370,7 @@ sub write-pdf-method-tests($ofil, @pmethods, :$debug) {
     }
     $fh.close;
     say "Generated $nmt method tests and $nat alias method tests.";
-}
+} # sub write-pdf-method-tests($ofil, @pmethods, :$debug) 
 
 
 sub get-val($a, $meth?) {
@@ -391,7 +413,7 @@ sub get-val($a, $meth?) {
         $val = '"some text"'
     }
     return $val;
-}
+} # sub get-val($a, $meth?)
 
 sub expand-args(@args, $meth?) {
     # expand args to add values
@@ -406,4 +428,4 @@ sub expand-args(@args, $meth?) {
     }
     $s .= trim-trailing;
     return $s;
-}
+} # sub expand-args(@args, $meth?) 
