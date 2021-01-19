@@ -124,6 +124,8 @@ class PMeth {
     has $.alias      is rw;
     has $.full-meth  is rw;
     has $.full-alias is rw;
+    has $.desc       is rw;
+    has @.args       is rw;
 }
 
 class FMeth {
@@ -162,7 +164,7 @@ sub write-document-module() {
         my $w2 = @w.shift.trim;
         my $desc = @w.shift.trim;
         say "$w1 => $w2" if $debug;
-
+        $m.desc = $desc;
 
         # gen two methods
         # the method may have args or may have empty or no sig parens
@@ -260,6 +262,7 @@ sub write-document-module() {
         if $meth.defined and %no-alias{$meth}:exists {
             $use-alias = False;
         }
+        $m.args = @args;
 
         # may need other special handling
         my $spec = '';
@@ -271,12 +274,13 @@ sub write-document-module() {
         }
 
         # write the description for the method
-        my @p = wrap-paragraph $desc.words, :para-pre-text('#| '), :para-indent(4);
+        #my @p = wrap-paragraph $desc.words, :para-pre-text('#| '), :para-indent(4);
+        my @p = wrap-paragraph $m.desc.words, :para-pre-text('#| '), :para-indent(4);
 
         $fh.say: $_ for @p;
         $fh.print: qq:to/HERE/;
-            method $full-meth \{
-                \$!page.gfx.$full-meth;
+            method {$m.full-meth} \{
+                \$!page.gfx.{$m.full-meth};
             }
         HERE
 
@@ -285,7 +289,7 @@ sub write-document-module() {
             # in all cases we will make the alias call the real method
             $fh.say: qq:to/HERE/;
                 method $full-alias \{
-                    \$!page.gfx.$full-meth;
+                    \$!page.gfx.{$full-meth};
                 }
             HERE
         }
@@ -311,10 +315,10 @@ sub write-document-module() {
             $fh2.say("    \$doc.BT;") if $spec eq 'BT';
             $fh2.say("    \$doc.q;") if $spec eq 'q';
             $fh2.say($arg-vals) if $arg-vals;
-            $fh2.say("    \$doc.$full-meth;");
+            $fh2.say("    \$doc.{$m.full-meth};");
             $fh2.say("    \$doc.ET;") if $spec eq 'BT';
             $fh2.say("    \$doc.Q;") if $spec eq 'q';
-            $fh2.say("}, \"testing method '$meth'\";");
+            $fh2.say("}, \"testing method '{$m.meth}'\";");
         #}
 
         next if not $use-alias;
@@ -329,10 +333,10 @@ sub write-document-module() {
             $fh2.say("    \$doc.BT;") if $spec eq 'BT';
             $fh2.say("    \$doc.q;") if $spec eq 'q';
             $fh2.say("$arg-vals") if $arg-vals;
-            $fh2.say("    \$doc.$full-alias;");
+            $fh2.say("    \$doc.{$m.full-alias};");
             $fh2.say("    \$doc.ET;") if $spec eq 'BT';
             $fh2.say("    \$doc.Q;") if $spec eq 'q';
-            $fh2.say("}, \"testing method '$meth', alias '$alias'\";");
+            $fh2.say("}, \"testing method '{$m.meth}', alias '{$m.alias}'\";");
         #}
     }
     $fh.close;
