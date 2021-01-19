@@ -126,6 +126,7 @@ class PMeth {
     has $.full-alias is rw;
     has $.desc       is rw;
     has @.args       is rw;
+    has $.spec       is rw;
 }
 
 class FMeth {
@@ -164,7 +165,6 @@ sub write-document-module() {
         my $w2 = @w.shift.trim;
         my $desc = @w.shift.trim;
         say "$w1 => $w2" if $debug;
-        $m.desc = $desc;
 
         # gen two methods
         # the method may have args or may have empty or no sig parens
@@ -176,7 +176,7 @@ sub write-document-module() {
         # input
         my $tmp-full-meth = $w1; # meth + sig WITHOUT $sigils
         my $alias         = $w2; # alias name
-        $m.alias = $w2;
+        $m.alias = $alias;
 
         # we need several strings to represent the various parts in
         # the methods file and the test file:
@@ -206,7 +206,7 @@ sub write-document-module() {
                     ('(') (.*) (')') # $1 $2 $3
                    ]? / {
             $meth = ~$0;
-            $m.meth = ~$0;
+            $m.meth = $meth; # no parens or sig
             note "DEBUG: parse found \$0: '$meth'" if $debug;
             if $1.defined {
                 my $c = ~$1;
@@ -241,28 +241,22 @@ sub write-document-module() {
                 @args.push: $a;
             }
             $sig = '(' ~ join(', ', @args) ~ ')';
+
             $full-meth  = $meth  ~ $sig;
             $full-alias = $alias ~ $sig;
-            $m.full-meth  = $meth  ~ $sig;
-            $m.full-alias = $alias ~ $sig;
         }
         elsif $empty-parens.defined {
             $full-meth  = $meth  ~ $empty-parens;
             $full-alias = $alias ~ $empty-parens;
-            $m.full-meth  = $meth  ~ $empty-parens;
-            $m.full-alias = $alias ~ $empty-parens;
         }
         else {
             $full-meth  = $meth;
             $full-alias = $alias;
-            $m.full-meth  = $meth;
-            $m.full-alias = $alias;
         }
 
         if $meth.defined and %no-alias{$meth}:exists {
             $use-alias = False;
         }
-        $m.args = @args;
 
         # may need other special handling
         my $spec = '';
@@ -273,8 +267,14 @@ sub write-document-module() {
             $spec = 'q';
         }
 
+        # complete the PMeth object
+        $m.full-meth  = $full-meth;
+        $m.full-alias = $full-alias;
+        $m.args       = @args;
+        $m.desc       = $desc;
+        $m.spec       = $spec;
+
         # write the description for the method
-        #my @p = wrap-paragraph $desc.words, :para-pre-text('#| '), :para-indent(4);
         my @p = wrap-paragraph $m.desc.words, :para-pre-text('#| '), :para-indent(4);
 
         $fh.say: $_ for @p;
@@ -298,10 +298,12 @@ sub write-document-module() {
         }
 
         # expand args to add values
-        my $arg-vals = expand-args @args, $meth;
+        #my $arg-vals = expand-args @args, $meth;
+        my $arg-vals = expand-args $m.args, $m.meth;
 
         # some tests aren't needed as a standalone test
-        next if %no-test{$meth}:exists;
+        #next if %no-test{$meth}:exists;
+        next if %no-test{$m.meth}:exists;
 
         # write lives-ok tests
         ++$nmt;
