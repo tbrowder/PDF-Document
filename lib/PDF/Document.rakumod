@@ -3,7 +3,7 @@ unit module PDF::Document:ver<0.0.2>:auth<cpan:TBROWDER>;
 use PDF::Lite;
 use Font::AFM;
 # local roles
-use PDF::Roles;
+use PDF::PDF-role;
 
 # Below are some convenience constants for converting various
 # length units to PS points (72 per inch).
@@ -80,7 +80,7 @@ sub find-basefont(PDF::Lite :$pdf!,
     return $BF;
 }
 
-class DocFont does AFM-role is export {
+class DocFont is export {
     has BaseFont $.basefont is required;
     has $.name is required; # font name
     has Real $.size is required;
@@ -233,7 +233,7 @@ class FontFactory is export {
 }
 
 # the big kahuna: it should have all major methods and attrs from lower levels at this level
-class Doc does PDF-role does AFM-role is export {
+class Doc does PDF-role is export {
     has $.paper;
     has $.media-box = 'Letter'; # = is required;
 
@@ -261,9 +261,9 @@ class Doc does PDF-role does AFM-role is export {
     has $.height = 0;
 
     # set by TWEAK
-    has $.pdf;
+    # has $.pdf;  # in PDF-role
+    # has $.page; # in PDF-role
     has FontFactory $.ff;
-    has $.page;
     has DocFont $.font;
 
     submethod TWEAK {
@@ -441,6 +441,8 @@ class Doc does PDF-role does AFM-role is export {
         $!pdf.save-as: $file-name
     }
 
+}
+=finish
 
     #===================================
     # AUTO-GENERATED METHODS FOR TESTING

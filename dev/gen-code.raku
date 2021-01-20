@@ -269,7 +269,7 @@ sub write-pdf-methods($ofil, @pmethods,
         $nspaces = 0;
         # begin the 
         $fh.say: qq:to/HERE/;
-        unit role PDF::PDF-role;
+        unit role PDF::PDF-role is export;
         use PDF::Lite;
 
         has \$.pdf;

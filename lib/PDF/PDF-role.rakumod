@@ -1,4 +1,4 @@
-unit role PDF::PDF-role;
+unit role PDF::PDF-role is export;
 use PDF::Lite;
 
 has $.pdf;
