@@ -15,10 +15,10 @@ my \d = Doc.new;
 # this sets the following defaults:
 #   :paper<Letter>, :font<t11d5> (Times-Roman 11.5)
 #   line spacing (:leading) 1.3 * font size
-#   margins lm<1n>, rm<1in>, tm<1in>, bm<1in>
-#   origin now at botton-left corner
-#   x=0 at the left margin, increases to the right
-#   y=0 at the bottom margin, increases upward
+#   margins :lm<1in>, :rm<1in>, :tm<1in>, :bm<1in>
+#   origin now at the botton-left corner of the desired print area:
+#     x=0 at the left margin, increases to the right
+#     y=0 at the bottom margin, increases upward
 #   current position top left corner, one line down
 #   long lines are wrapped with left justification (ragged right)
 #   text is kerned
