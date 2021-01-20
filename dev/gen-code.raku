@@ -5,6 +5,11 @@ use Text::Utils :strip-comment, :wrap-paragraph;
 my $ifil1 = 'pdf-methods-of-interest.from-pod';
 my $ifil2 = 'afm-methods-of-interest.from-pod';
 
+constant EMPTY = '';
+constant SPACE = ' ';
+constant SPACES4 = SPACE x 4;
+constant SPACES8 = SPACE x 8;
+
 my $debug = 0;
 
 my $meth  = 1;
@@ -230,6 +235,11 @@ sub get-pdf-methods($ifil, :$debug --> List) {
         $m.spec       = $spec;
         $m.use-alias  = $use-alias;
 
+        if $debug and @args {
+            note "DEBUG: dumping \@args";
+            note "{SPACES4}$_" for @args; 
+        }
+
         @pmeths.push: $m;
 
         #===================================================
@@ -252,7 +262,11 @@ sub write-pdf-methods($ofil, @pmethods,
 
     my $fh  = open $ofil, :w;
 
+    my $spaces  = SPACES4;
+    my $nspaces = 4;
     if $type eq 'role' {
+        $spaces  = EMPTY;
+        $nspaces = 0;
         # begin the 
         $fh.say: qq:to/HERE/;
         unit role PDF::PDF-role;
@@ -275,22 +289,22 @@ sub write-pdf-methods($ofil, @pmethods,
     for @pmethods -> $m {
 
         # write the description for the method
-        my @p = wrap-paragraph $m.desc.words, :para-pre-text('#| '), :para-indent(4);
+        my @p = wrap-paragraph $m.desc.words, :para-pre-text('#| '), :para-indent($nspaces);
 
         $fh.say: $_ for @p;
         $fh.print: qq:to/HERE/;
-            method {$m.full-meth} \{
-                \$!page.gfx.{$m.full-meth};
-            }
+        {$spaces}method {$m.full-meth} \{
+        {$spaces}    \$!page.gfx.{$m.full-meth};
+        {$spaces}}
         HERE
 
         if $m.use-alias {
             ++$na;
             # in all cases we will make the alias call the real method
             $fh.say: qq:to/HERE/;
-                method {$m.full-alias} \{
-                    \$!page.gfx.{$m.full-meth};
-                }
+            {$spaces}method {$m.full-alias} \{
+            {$spaces}    \$!page.gfx.{$m.full-meth};
+            {$spaces}}
             HERE
         }
         else {
@@ -329,12 +343,10 @@ sub write-pdf-method-tests($ofil, @pmethods, :$debug) {
     for @pmethods -> $m {
         # THIS BEGINS A NEW SUB FOR WRITING PDF METHOD TESTS
         # expand args to add values
-        #my $arg-vals = expand-args @args, $meth;
         my $arg-vals = expand-args $m.args, $m.meth;
 
         
         # some tests aren't needed as a standalone test
-        #next if %no-test{$meth}:exists;
         next if %no-test{$m.meth}:exists;
 
         # write lives-ok tests
@@ -415,7 +427,7 @@ sub get-val($a, $meth?) {
     return $val;
 } # sub get-val($a, $meth?)
 
-sub expand-args(@args, $meth?) {
+sub expand-args(@args, $meth?, :$spaces = SPACES4) {
     # expand args to add values
     # my $arg-vals = expand-args @args)
     my $s = '';
@@ -423,7 +435,7 @@ sub expand-args(@args, $meth?) {
 
     for @args -> $a is copy {
         my $val = get-val $a, $meth;
-        $s ~= '    my ' ~ $a;
+        $s ~= "{$spaces}my " ~ $a;
         $s ~= " = $val;\n";
     }
     $s .= trim-trailing;
