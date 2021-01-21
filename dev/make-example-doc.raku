@@ -10,35 +10,37 @@ if not @*ARGS {
     Usage:  {$*PROGRAM.IO.basename} go
     
     Executes the example program in the docs.
+    HERE
     exit;
 }
 
 my \d = Doc.new;
+
 given d {
-.mvto: :tr; # bottom-right corner
-.say: "2021-03-04", :align<right>;
+# top-right corner
+.print: "2021-03-04", :tr, :align<right>, :valign<top>, :nl;
 
 .nl: 1; # set currentpoint x=0,y one line down from top-left corner
-.say: "Dear Mom,";
+.print: "Dear Mom,";
 .nl: 2; # resets x=0
-.say: "I am fine.";
+.print: "I am fine.";
 .mvto: :br; # bottom-right corner
-.rmvto: :y(-2 * .leading); 
-.say: "Page 1", :align<right>; # right justified
+.rmvto: 0, -2 * .leading; 
+.print: "Page 1", :align<right>; # right justified
 .np; # new page
 .mvto: :tl; # top-left corner
 .nl: 1; # set currentpoint x=0,y one line down from top-left corner
-.say: q:to/PARA/;
+.print: q:to/PARA/;
 A VERY long para
 PARA
 .nl: 2;
-.say: "Love,";
+.print: "Love,";
 .nl: 2; 
-.say: "Isaiah";
+.print: "Isaiah";
 .mvto: :br; # bottom-right corner
-.rmvto: :y(-2 * .leading); 
-.say: "Page 2 of 2", :rj; # right justified
-.save: "letter.pdf";
+.rmvto: 0, -2 * .leading; 
+.print: "Page 2 of 2", :rj; # right justified
+.save: "example-letter.pdf";
 
 }
 
