@@ -1,0 +1,61 @@
+    method text-block($font = self!current-font[0], *%opt) {
+        # detect and use the current text-state font
+        my Numeric $font-size = $.font-size // self!current-font[1];
+        PDF::Content::Text::Block.new(
+            :gfx(self), :$font, :$font-size, |%opt,
+            );
+    }
+
+    #| output text leave the text position at the end of the current line
+    multi method print(
+        Str $text,
+        *%opt,  # :$align, :$valign, :$kern, :$leading, :$width, :$height, :$baseline-shift, :$font, :$font-size
+    ) {
+        my $text-block = self.text-block( :$text, |%opt);
+        @.print( $text-block, |%opt);
+    }
+
+    multi method print(PDF::Content::Text::Block $text-block,
+                       Position :$position,
+                       Bool :$nl = False,
+                       Bool :$preserve = True,
+        ) {
+        my Bool $left = False;
+        my Bool $top = False;
+        my Bool \in-text = $.context == GraphicsContext::Text;
+
+        self.BeginText unless in-text;
+
+        self!set-position($text-block, $_, :$left, :$top)
+            with $position;
+        my ($x, $y) = $.text-position;
+        my ($dx, $dy) = $text-block.render(self, :$nl, :$top, :$left, :$preserve);
+
+        self.EndText() unless in-text;
+
+        with $*ActualText {
+            # Pass agregated text back to callee e.g. PDF::Tags::Elem.mark()
+            $_ ~= $text-block.text;
+            $_ ~= "\n" if $nl;
+        }
+
+        my \x0 = $x + $dx;
+        my \y0 = $y + $dy;
+        my \x1 = x0 + $text-block.width;
+        my \y1 = y0 + $text-block.height;
+
+        (x0, y0, x1, y1);
+    }
+
+    method say($text = '', *%opt) {
+        @.print($text, :nl, |%opt);
+    }
+
+    multi method print(Str $text, :$font = self!current-font[0], |c) {
+        nextwith( $text, :$font, |c);
+    }
+
+    method user-default-coords(|c) is DEPRECATED('base-coords') {
+        $.base-coords(|c);
+    }
+}
