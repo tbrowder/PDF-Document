@@ -11,8 +11,6 @@ lives-ok {
     $doc = Doc.new: :media-box('Letter');
 }, "checking new Doc object";
 
-=finish
-
 lives-ok {
     shell "./dev/make-example-doc.raku";
 }, "testing the example doc";

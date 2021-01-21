@@ -267,8 +267,8 @@ class Doc does PDF-role is export {
     has DocFont $.font;
 
     submethod TWEAK {
-        $!media-box = $!paper;
         $!pdf = PDF::Lite.new;
+        $!pdf.media-box = 'Letter'; #$!paper;
         $!page = $!pdf.add-page;
         $!ff  = FontFactory.new: :pdf($!pdf);
         $!font = $!ff.get-font: 't12'; # Times-Roman 12
@@ -286,6 +286,8 @@ class Doc does PDF-role is export {
         $!height  = $!pheight - $!tm - $!bm;
         $!x0 = $!lm;
         $!y0 = $!bm;
+        $!cpx = $!x0;
+        $!cpy = $!y0;
     }
 
     method set-font($alias) {
@@ -340,7 +342,6 @@ class Doc does PDF-role is export {
         # %extra elements.
         my $use-xy = ($x.defined and $y.defined) ?? True !! False;
 
-
         if %extra.elems {
             # assuming a line of text, no para, no filling or line wrapping
 
@@ -371,18 +372,55 @@ class Doc does PDF-role is export {
 
     #| Starts at the current position
     method print($string,
-                 :$align,
-                 :$valign,
-                 :$Font, # docfont
-                 :$kern,
-                 :$leading,
-                 :$width,
-                 :$height,
-                 :$nl,
+                 # these args must resolve to cpx/cpy => :position or undefined
+                 :$x, :$y, :$tr, :$tl, :$br, :$bl,
+                 # this arg must resolve to :font/:font-size or undefined
+                 DocFont :$Font, # docfont
+
+                 # expected args: add to %opt only if defined
+                 :$align, :$valign, :$kern, :$leading, :$width, :$height, :$nl,
                 ) {
-        my $font = $Font.font;
-        my $font-size = $Font.size;
-        $!page.gfx.print(
+        my ($cpx, $cpy);
+        if    $tl { $cpx = $!x0;           $cpy = $!y0 + $!height }
+        elsif $tr { $cpx = $!x0 + $!width; $cpy = $!y0 + $!height }
+        elsif $bl { $cpx = $!x0;           $cpy = $!y0 }
+        elsif $br { $cpx = $!x0 + $!width; $cpy = $!y0 }
+
+        my $position;
+        if $cpx.defined and $cpy.defined {
+            $position = [$cpx, $cpy];
+        }
+        elsif $cpx.defined {
+            $position = [$cpx, $!cpy];
+        }
+        elsif $cpy.defined {
+            $position = [$!cpx, $cpy];
+        }
+
+        my $font = $Font ?? $Font.font !! $!font.font;
+        my $font-size = $Font ?? $Font.size !! $!font.size;
+
+        # we need an %opt hash to pass to print and
+        # fill the %opt hash with defined values only
+        my %opt;
+        #%opt<:$position> if $position.defined;
+        #=begin comment
+        %opt<:$position> = $position if $position.defined;
+        %opt<:$align> = $align if $align.defined;
+        %opt<:$valign> = $valign if $valign.defined;
+        %opt<:$font> = $font if $font.defined;
+        %opt<:$font-size> = $font-size if $font-size.defined;
+        %opt<:$kern> = $kern if $kern.defined;
+        %opt<:$leading> = $leading if $leading.defined;
+        %opt<:$width> = $width if $width.defined;
+        %opt<:$height> = $height if $height.defined;
+        %opt<:$nl> = $nl if $nl.defined;
+        #=end comment
+
+        my ($X0, $Y0, $X1, $Y1) = $!page.gfx.print(
+                         $string, |%opt,
+                         =begin comment
+                         :$position,
                          :$align,
                          :$valign,
                          :$font, # rawfont
@@ -392,13 +430,28 @@ class Doc does PDF-role is export {
                          :$width,
                          :$height,
                          :$nl,
+                         =end comment
                         );
+        if 1 {
+            note "DEBUG: text-position:"; # $t; # dumping \@p:";
+            note "  $X0, $Y0, $X1, $Y1";
+            #note "  $_" for @p;
+            #note "early exit";
+            #exit
+        }
+
+        #=begin comment
+        # reset cpx, cpy
+        $!cpx = $X1;
+        $!cpy = $Y0;
+        #=end comment
     }
 
     # convenience methods
     # use the current page and cpx/cpy
     multi method mvto($x, $y) {
-        self.MoveTo($x, $y);
+        #self.MoveTo($x, $y);
+        #$!page.text.text-position = $x, $y; # self.MoveTo($x, $y);
         # reset cpx/cpy
         $!cpx = $x;
         $!cpy = $y;
@@ -411,7 +464,8 @@ class Doc does PDF-role is export {
         elsif $br { $x = $!x0 + $!width; $y = $!y0 }
         else      { return }
 
-        self.MoveTo($x, $y);
+        #self.MoveTo($x, $y);
+        #$!page.gfx.text-position = $x, $y; # self.MoveTo($x, $y);
         # reset cpx/cpy
         $!cpx = $x;
         $!cpy = $y;
@@ -419,17 +473,18 @@ class Doc does PDF-role is export {
     method rmvto($delta-x, $delta-y) is export {
         my $x = $!cpx + $delta-x;
         my $y = $!cpy + $delta-y;
-        self.MoveTo($x, $y);
+        #self.MoveTo($x, $y);
         # reset cpx/cpy
         $!cpx = $x;
         $!cpy = $y;
     }
     method nl($n = 1) is export {
         # moves cpy down by n lines, resets cx=0
+        die "no cpy" if not $!cpy.defined;
         my $delta-y = $n * $!leading;
         my $x = $!x0;
         my $y = $!cpy - $delta-y;
-        self.MoveTo($x, $y);
+        #self.MoveTo($x, $y);
         # reset cpx/cpy
         $!cpx = $x;
         $!cpy = $y;
