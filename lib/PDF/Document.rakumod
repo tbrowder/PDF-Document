@@ -1,21 +1,40 @@
 unit module PDF::Document:ver<0.0.2>:auth<cpan:TBROWDER>;
 
 use PDF::Lite;
+
+use Text::Utils :wrap-text;
 use Font::AFM;
 # local roles
 use PDF::PDF-role;
+
+my $debug  = 0;
+my $debug2 = 1;
 
 # Below are some convenience constants for converting various
 # length units to PS points (72 per inch).
 # Use them like this:
 #
-#   my $left-margin = 1 * i2p; # converts 1 inch to 72 points
+#   my $left-margin = 1 * in2pt; # converts 1 inch to 72 points
 # British units
-constant i2p  is export = 72;           # inches
-constant f2p  is export = 12 * i2p;     # feet
+constant in2pt  is export = 72;            # inches
+constant ft2pt  is export = 12 * in2pt;    # feet
+constant yd2pt  is export = 36 * in2pt;    # yards
 # SI units
-constant cm2p is export = 1/2.54 * i2p; # centimeters
-constant mm2p is export = 0.1 * cm2p;   # millimeters
+constant cm2pt is export = 1/2.54 * in2pt; # centimeters
+constant mm2pt is export = 0.1 * cm2pt;    # millimeters
+constant dm2pt is export = 10  * cm2pt;    # decimeters
+constant  m2pt is export = 100 * cm2pt;    # meters
+
+# alternative versions
+constant i2p is export = in2pt;
+constant f2p is export = ft2pt;
+constant y2p is export = yd2pt;
+constant mm2p is export = mm2pt;
+constant c2p is export = cm2pt;
+constant cm2p is export = cm2pt;
+constant d2p is export = dm2pt;
+constant dm2p is export = dm2pt;
+constant m2p is export = m2pt;
 
 # These are the "core" fonts from PostScript
 # and have short names as keys
@@ -100,13 +119,25 @@ class DocFont is export {
     method UnderlinePosition {
         $!afm.UnderlinePosition * $!sf
     }
-    method up { self.UnderlinePosition }
+    method upos { self.UnderlinePosition }
+
+    method spos {
+        # define the position of the strikethrough line
+        # as midheight of some character
+        constant \schar = 'm';
+        my ($llx, $lly, $urx, $ury) = $!afm.BBox{schar}  * $!sf;
+        0.5 * ($ury - $lly);
+    }
+    method swid {
+        # without any other source, use same as underline
+        $!afm.UnderlineThickness * $!sf
+    }
 
     #| UnderlineThickness
     method UnderlineThickness {
         $!afm.UnderlineThickness * $!sf
     }
-    method ut { self.UnderlineThickness() }
+    method uwid { self.UnderlineThickness() }
 
     # ($kerned, $width) = $afm.kern($string, $fontsize?, :%glyphs?)
     # Kern the string. Returns an array of string segments, separated
@@ -234,6 +265,12 @@ class FontFactory is export {
 
 # the big kahuna: it should have all major methods and attrs from lower levels at this level
 class Doc does PDF-role is export {
+    # output file attrs
+    has $.pdf-name = "Doc-output-default.pdf";
+    has $.is-saved = False;
+    has $.force    = False;
+    has $.page-numbering = False;
+    
     has $.paper;
     has $.media-box = 'Letter'; # = is required;
 
@@ -267,6 +304,23 @@ class Doc does PDF-role is export {
     has DocFont $.font;
 
     submethod TWEAK {
+        if $!pdf-name !~~ /:i '.pdf' $/ {
+            $!pdf-name ~= '.pdf';
+        }
+        if $!pdf-name.IO.f {
+            if not $!force {
+                note qq:to/HERE/;
+                FATAL: Desired output file '$!pdf-name' exists.
+                       Define ':\$force' to allow overwriting existing files.
+                HERE
+                exit;
+            }
+            else {
+                note qq:to/HERE/;
+                WARNING: Desired output file '$!pdf-name' exists and will be over written.
+                HERE
+            }
+        }
         $!pdf = PDF::Lite.new;
         $!pdf.media-box = 'Letter'; #$!paper;
         $!page = $!pdf.add-page;
@@ -305,7 +359,6 @@ class Doc does PDF-role is export {
 
     # text subs
 
-    # private
     method !choose-font($fontalias) {
         my $font; # rawfont
         my Real $size;
@@ -328,123 +381,216 @@ class Doc does PDF-role is export {
     }
     =end comment
 
-    method text($string, :$x, :$y, :$fontalias,
-        :$j, # justify: l (default), c, r
-        :$kern = True, # False for Courier
-        :$box,
-        # room for more tuning and embellishment here:
-        :%extra,
-        ) {
-
-        my ($font, $size) = self!choose-font($fontalias);
-        # At this point we may need some fancy handling
-        # which we determine by whether there are any
-        # %extra elements.
-        my $use-xy = ($x.defined and $y.defined) ?? True !! False;
-
-        if %extra.elems {
-            # assuming a line of text, no para, no filling or line wrapping
-
-            # unless we are using fixed-width fonts (e.g., Courier), we WILL
-            # use kerning
-
-            # for underlining, we need to know the width of the text, and
-            # the thickness and position of the underlining and then
-            # add the underline
-
-            my $sw;
-            if $font.afm.IsFixedPitch {
-                # get the width of the string without kerning
-                $sw = $font.afm.stringwidth: $string, $size;
-            }
-            else {
-                # get the width of the string with kerning
-                $sw = $font.afm.stringwidth: $string, $size, :kern;
-            }
-        }
-        if $x.defined and $y.defined {
-            $!page.text: { .text-position = $x, $y; .font = $font, $size; .say($string); }
-        }
-        else {
-            $!page.text: { .font = $font, $size; .say($string); }
-        }
+    method line($x0, $y0, $x1, $y1, :$linewidth = 0) {
+        self.Save;
+        self.SetLineWidth($linewidth);
+        self.MoveTo($x0, $y0);
+        self.LineTo($x1, $y1);
+        self.Stroke;
+        self.Restore;
     }
 
     #| Starts at the current position
-    method print($string,
+    method print($text,
                  # these args must resolve to cpx/cpy => :position or undefined
-                 :$x, :$y, :$tr, :$tl, :$br, :$bl,
+                 :$x is copy, :$y is copy,
+                 :$tr, :$tl, :$br, :$bl,
                  # this arg must resolve to :font/:font-size or undefined
                  DocFont :$Font, # docfont
+                 # these args resolve to :align keys
+                 :$rj, :$lj, :$cj,
+                 # these args resolve to :valign keys
+                 :$ta, :$ma, :$ca,
+
+                 # Special args that need special handling
+                 # by first breaking the text into separate lines, then
+                 # printing each line separately and drawing the underline
+                 # and strikethrough as appropriate:
+                 :$ul, # underline
+                 :$st, # strikethrough
 
                  # expected args: add to %opt only if defined
-                 :$align, :$valign, :$kern, :$leading, :$width, :$height, :$nl,
+                 # note that explicit :width needs to be specified to
+                 # affect wrapping
+                 :$align is copy, :$valign is copy, :$width is copy, :$height is copy,
+                 :$kern, :$leading, :$nl,
                 ) {
-        my ($cpx, $cpy);
-        if    $tl { $cpx = $!x0;           $cpy = $!y0 + $!height }
-        elsif $tr { $cpx = $!x0 + $!width; $cpy = $!y0 + $!height }
-        elsif $bl { $cpx = $!x0;           $cpy = $!y0 }
-        elsif $br { $cpx = $!x0 + $!width; $cpy = $!y0 }
-
-        my $position;
-        if $cpx.defined and $cpy.defined {
-            $position = [$cpx, $cpy];
-        }
-        elsif $cpx.defined {
-            $position = [$cpx, $!cpy];
-        }
-        elsif $cpy.defined {
-            $position = [$!cpx, $cpy];
-        }
 
         my $font = $Font ?? $Font.font !! $!font.font;
         my $font-size = $Font ?? $Font.size !! $!font.size;
+        my $font-name = $Font ?? $Font.name !! $!font.name;
+
+        my ($cpx, $cpy);
+        if    $tl { $cpx = $!x0;           $cpy = $!y0 + $!height }
+        elsif $tr { $cpx = $!x0 + $!width; $cpy = $!y0 + $!height }
+        elsif $bl { $cpx = $!x0;           $cpy = $!y0            }
+        elsif $br { $cpx = $!x0 + $!width; $cpy = $!y0            }
+        else {
+            # set cpx/cpy according to :x and :y
+            if $x.defined and $y.defined { $cpx = $x;    $cpy = $y    }
+            elsif $x.defined             { $cpx = $x;    $cpy = $!cpy }
+            elsif $y.defined             { $cpx = $!cpx; $cpy = $y    }
+            else                         { $cpx = $!cpx; $cpy = $!cpy }
+        }
+
+        # :align
+        if    $rj { $align = 'right'  }
+        elsif $lj { $align = 'left'   }
+        elsif $cj { $align = 'center' }
+        # :valign
+        if    $ta { $valign = 'top'    }
+        elsif $ma { $valign = 'middle' }
+        elsif $cj { $valign = 'center' }
+
+        my Bool $preserve;
+        # David says :position default is 0,0!!
+        my List $position = [$cpx, $cpy];
 
         # we need an %opt hash to pass to print and
         # fill the %opt hash with defined values only
+        # but NOT $position
         my %opt;
-        #%opt<:$position> if $position.defined;
-        #=begin comment
-        %opt<:$position> = $position if $position.defined;
-        %opt<:$align> = $align if $align.defined;
-        %opt<:$valign> = $valign if $valign.defined;
-        %opt<:$font> = $font if $font.defined;
-        %opt<:$font-size> = $font-size if $font-size.defined;
-        %opt<:$kern> = $kern if $kern.defined;
-        %opt<:$leading> = $leading if $leading.defined;
-        %opt<:$width> = $width if $width.defined;
-        %opt<:$height> = $height if $height.defined;
-        %opt<:$nl> = $nl if $nl.defined;
-        #=end comment
+        %opt<align> = $align if $align.defined;
+        %opt<valign> = $valign if $valign.defined;
+        %opt<font> = $font if $font.defined;
+        %opt<font-size> = $font-size if $font-size.defined;
+        %opt<kern> = $kern if $kern.defined;
+        %opt<leading> = $leading if $leading.defined;
+        %opt<width> = $width if $width.defined;
+        %opt<height> = $height if $height.defined;
+        %opt<nl> = $nl if $nl.defined;
 
-        my ($X0, $Y0, $X1, $Y1) = $!page.gfx.print(
-                         $string, |%opt,
-                         =begin comment
-                         :$position,
-                         :$align,
-                         :$valign,
-                         :$font, # rawfont
-                         :$font-size,
-                         :$kern,
-                         :$leading,
-                         :$width,
-                         :$height,
-                         :$nl,
-                         =end comment
-                        );
+        my @curpos;
+        my ($x0, $y0, $x1, $y1);
+        if $ul or $st {
+            # we have to treat each line indvidually
+            my @lines = wrap-text $text, :$width, :$font-name, :$font-size;
+            for @lines -> $line {
+                # the line may be underlined or have a strikethrough line
+                # position and width changes for following lines
+                my $swidth = $Font.stringthwidth: $line;
+                if $ul {
+                    my $dy   = $Font.upos;
+                    my $swid = $Font.uwid;
+                    my $ys   = @curpos[1] + $dy;
+                    #self.line 
+                }
+                if $st {
+                    # strikethrough
+                    my $dy   = $Font.spos;
+                    my $swid = $Font.swid;
+                    my $ys   = @curpos[1] + $dy;
+                    #self.line 
+                }
+                $!page.text: -> $txt {
+                    $txt.font = $font, $font-size;
+                    ($x0, $y0, $x1, $y1) = $txt.print: $text, :$position, |%opt;
+                    @curpos = $txt.text-position.List;
+                }
+            }
+        }
+        elsif $position.defined {
+            $!page.text: -> $txt {
+                $txt.font = $font, $font-size;
+                ($x0, $y0, $x1, $y1) = $txt.print: $text, :$position, |%opt;
+                @curpos = $txt.text-position.List;
+            }
+        }
+        else {
+            $!page.text: -> $txt {
+                $txt.font = $font, $font-size;
+                ($x0, $y0, $x1, $y1) = $txt.print: $text, |%opt;
+                @curpos = $txt.text-position.List;
+            }
+        }
+ 
+        if $debug {
+            my $cap = %opt.Capture;
+            note "DEBUG: Capture: {$cap.raku}";
+        }
+
+        =begin comment
+        if $position.defined and not %opt.elems {
+            note "DEBUG: with position, no \%opt" if $debug2;
+            $!page.text: -> $txt {
+                $txt.font = $font, $font-size;
+                ($x0, $y0, $x1, $y1) = $txt.say($text, :$position, :$nl);
+                @curpos = $txt.text-position.List;
+            }
+        }
+        elsif $position.defined and %opt.elems  {
+            note "DEBUG: with position and \%opt" if $debug2;
+            $!page.text: -> $txt {
+                $txt.font = $font, $font-size;
+                ($x0, $y0, $x1, $y1) = $txt.say($text, :$position, |%opt);
+                @curpos = $txt.text-position.List;
+            }
+        }
+        elsif %opt.elems  {
+            note "DEBUG: text with \%opt" if $debug2;
+            $!page.text: -> $txt {
+                $txt.font = $font, $font-size;
+                ($x0, $y0, $y1, $y1) = $txt.say($text, |%opt,);
+                @curpos = $txt.text-position.List;
+            }
+        }
+        else {
+            note "DEBUG: with text only" if $debug2;
+            $!page.text: -> $txt {
+                $txt.font = $font, $font-size;
+                ($x0, $y0, $x1, $y1) = $txt.say($text);
+                @curpos = $txt.text-position.List;
+            }
+        }
+        =end comment
+
+        #if $debug {
         if 1 {
-            note "DEBUG: text-position:"; # $t; # dumping \@p:";
-            note "  $X0, $Y0, $X1, $Y1";
-            #note "  $_" for @p;
+            # draw a box outlining the text bounding box
+            self.Save; 
+            self.SetLineWidth(0);
+            self.MoveTo($x0, $y0); 
+            self.LineTo($x1, $y0);
+            self.LineTo($x1, $y1);
+            self.LineTo($x0, $y1);
+            self.ClosePath;
+            self.Stroke;
+            self.Restore;
+            # draw an "x" at the curpos
+
+            my $xc = @curpos[0];
+            my $yc = @curpos[1];
+            my $r  = 30;
+            self.Save; 
+            self.MoveTo($xc+$r, $yc+$r); 
+            self.LineTo($xc-$r, $yc-$r); 
+            self.MoveTo($xc-$r, $yc+$r); 
+            self.LineTo($xc+$r, $yc-$r); 
+            self.Stroke;
+            self.Restore;
+        }
+
+        if 1 {
+            note "DEBUG: text bbox: [$x0, $y0, $x1, $y1]; curpos = {@curpos.raku}";
             #note "early exit";
             #exit
         }
 
-        #=begin comment
         # reset cpx, cpy
-        $!cpx = $X1;
-        $!cpy = $Y0;
-        #=end comment
+        # TODO adjust cpx for word spacing, cpy should be the baseline of the last line
+        if $nl {
+            $!cpx = $!x0;
+        }
+        else {
+            $!cpx = $x1;
+        }
+        $!cpy = $y0;
+    }
+
+    method say($text, *%opt) {
+        # calls method print with :nl (newline) true
+        %opt<nl> = True;
+        self.print: $text, |%opt;
     }
 
     # convenience methods
@@ -492,8 +638,123 @@ class Doc does PDF-role is export {
     method np() is export {
         $!page = $!pdf.add-page
     }
-    method save($file-name) is export {
-        $!pdf.save-as: $file-name
+
+    method end-doc($file-name?) is export {
+        return if not (self or $!pdf);
+        self.number-pages if $!page-numbering;
+        my $fname = $file-name.defined ?? $file-name !! $!pdf-name;
+        if not $!is-saved {
+            $!pdf.save-as: $fname;
+            $!is-saved = True;
+        }
+        note "See output file: '$fname'";
+    }
+
+    method number-pages() {
+        my $npages = self.pdf.page-count;
+        for 1 .. $npages -> $n {
+            self.page = self.pdf.page: $n;
+        }
+    }
+    method setlinewidth($width where { $_ >= 0 }) {
+        self.SetLineWidth: $width;
+    }
+    method setgray($level where {0 <= $_ <= 1}) {
+    }
+    method setrgb($r where {0 <= $_ <= 1}, 
+                  $g where {0 <= $_ <= 1}, 
+                  $b where {0 <= $_ <= 1},
+                 ) {
+    }
+    method save() {
+        self.Save;
+    }
+    method restore() {
+        self.Restore;
+    }
+
+    sub value2points($val is copy) {
+        if $val ~~ /:i ^ (<[\d.+-]>+) ([in|cm|mm|ft])? \N* $/ {
+            $val = +$0;
+            return $val if not $1.defined;
+            my $units = ~$1;
+            given $units {
+                when $_ eq 'in' { $val *= in2pt }
+                when $_ eq 'cm' { $val *= cm2pt }
+                when $_ eq 'mm' { $val *= mm2pt }
+                when $_ eq 'ft' { $val *= ft2pt }
+                default { 
+                    die "FATAL: Unknown units in input value '$val'";
+                }
+            }
+        }
+        return $val;
+    }
+
+    multi method ellipse(:$x, :$y, :$a, :$b) {
+        my $cx = value2points $x;
+        my $cy = value2points $y;
+        my $ca = value2points $a;
+        my $cb = value2points $b;
+        self.ellipse($cx, $cy, $ca, $cb); 
+    }
+    multi method ellipse($x, $y, $a, $b, :$fill = False) {
+        self.Save;
+        self.MoveTo: $x, $y;
+        # define x1/y1, x2/y2, and x3/y3 as bezier control points with new cp at x3/y3
+        # for an ellipse we can do that with two semiellipses:
+        #   work counterclockwise      
+        self.MoveTo:  $x + $a, $y;       # start at the right, angle of zero degrees
+        self.CurveTo: $x + $a, $y + $b,  # upper right
+                      $x - $a, $y + $b,  # upper left
+                      $x - $a, $y;       # left
+        self.CurveTo: $x - $a, $y - $b,  # lower left
+                      $x + $a, $y - $b,  # lower right
+                      $x - $a, $y;       # back to the right
+        self.ClosePath;
+        if $fill { self.Fill; }
+        else { self.Stroke; }
+        self.Restore;
+    }
+
+    multi method rectangle(:$llx, :$lly, :$width, :$height, :$fill = False) {
+        my $x = value2points $llx;
+        my $y = value2points $lly;
+        my $w = value2points $width;
+        my $h = value2points $height;
+        self.rectangle($x, $, $w, $h, :$fill);
+    }
+    multi method rectangle($llx, $lly, $width, $height, :$fill = False) {
+        self.Save;
+        self.Rectangle: $llx, $lly, $width, $height;
+        if $fill { self.Fill; }
+        else { self.Stroke; }
+        self.Restore;
+    }
+
+    multi method circle(:$x, :$y, :$radius, :$fill = False) {
+        my $cx = value2points $x;
+        my $cy = value2points $y;
+        my $cr = value2points $radius;
+        self.circle($cx, $cy, $cr); 
+    }
+    multi method circle($x, $y, $r, :$fill = False) {
+        self.Save;
+        self.MoveTo: $x, $y;
+        # define x1/y1, x2/y2, and x3/y3 as bezier control points with new cp at x3/y3
+        # for a circle we can do that with two semicircles:
+        #   work counterclockwise      
+        self.MoveTo:  $x + $r, $y;       # start at the right, angle of zero degrees
+        self.CurveTo: $x + $r, $y + $r,  # upper right
+                      $x - $r, $y + $r,  # upper left
+                      $x - $r, $y;       # left
+        self.CurveTo: $x - $r, $y - $r,  # lower left
+                      $x + $r, $y - $r,  # lower right
+                      $x - $r, $y;       # back to the right
+        self.ClosePath;
+        if $fill { self.Fill; }
+        else { self.Stroke; }
+        self.Restore;
     }
 
     # Many other methods are provided by roles "PDF-role"
