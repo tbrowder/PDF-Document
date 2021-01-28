@@ -391,11 +391,27 @@ class Doc does PDF-role is export {
     }
     =end comment
 
-    method line($x0, $y0, $x1, $y1, :$linewidth = 0) {
+
+    multi method line(List $from, :$length!, :$angle!, :$linewidth = 0) {
+        my $x0  = value2points $from.begin;
+        my $y0  = value2points $from.end;
+        my $len = value2points $length;
+        my $x1  = $len * sin($angle); 
+        my $y1  = $len * cos($angle); 
+        self.line: $x0, $y0, $x1, $y1, :$linewidth;
+    }
+    multi method line(List $from, List $to, :$linewidth = 0) {
+        my $x0 = value2points $from.begin;
+        my $y0 = value2points $from.end;
+        my $x1 = value2points $to.begin;
+        my $y1 = value2points $to.end;
+        self.line: $x0, $y0, $x1, $y1, :$linewidth;
+    }
+    multi method line(Real $x0, Real $y0, Real $x1, Real $y1, :$linewidth = 0) {
         self.Save;
-        self.SetLineWidth($linewidth);
-        self.MoveTo($x0, $y0);
-        self.LineTo($x1, $y1);
+        self.SetLineWidth: $linewidth;
+        self.MoveTo: $x0, $y0;
+        self.LineTo: $x1, $y1;
         self.Stroke;
         self.Restore;
     }
@@ -588,7 +604,7 @@ class Doc does PDF-role is export {
         #if $debug {
         if 1 {
             # draw a box outlining the text bounding box
-            self.rectangle: $x0, $y0, $x1, $y1;
+            self!draw-rectangle: $x0, $y0, $x1, $y1;
             # draw an "x" at the curpos
             my $xc = @curpos[0];
             my $yc = @curpos[1];
@@ -736,10 +752,10 @@ class Doc does PDF-role is export {
                   $b where {0 <= $_ <= 1},
                  ) {
     }
-    method save() {
+    method save {
         self.Save;
     }
-    method restore() {
+    method restore {
         self.Restore;
     }
 
@@ -765,18 +781,26 @@ class Doc does PDF-role is export {
             die "FATAL: Non-numeric input value: '$oval'";
         }
         =end comment
+        note "DEBUG: v2p, output val = $val points";
         return $val;
     }
 
-    multi method ellipse(:$x, :$y, :$a, :$b) {
+    multi method ellipse(:$x!, :$y!, :$a!, :$b!, 
+        :$fill = False, 
+        :$linewidth = 0
+        ) {
         my $cx = value2points $x;
         my $cy = value2points $y;
         my $ca = value2points $a;
         my $cb = value2points $b;
-        self.ellipse($cx, $cy, $ca, $cb);
+        self!draw-ellipse($cx, $cy, $ca, $cb, :$fill, :$linewidth);
     }
-    multi method ellipse($x, $y, $a, $b, :$fill = False) {
+    method !draw-ellipse($x, $y, $a, $b, 
+        :$fill = False, 
+        :$linewidth = 0
+        ) {
         self.Save;
+        self.SetLineWidth: $linewidth;
         # from stack overflow: copyright 2022 by Spencer Mortenson
         # treat $a as length in x direction, $b as length in y direction
         self.page.gfx.transform: :translate[$x, $y];
@@ -795,8 +819,12 @@ class Doc does PDF-role is export {
 
     # this is the method that the other rectangle methods should resolve to
     # as it actually renders the figure
-    multi method rectangle(Real $llx, Real $lly, Real $urx, Real $ury, :$fill = False) {
+    method !draw-rectangle(Real $llx, Real $lly, Real $urx, Real $ury, 
+        :$fill = False,
+        :$linewidth = 0,
+        ) {
         self.Save;
+        self.SetLineWidth: $linewidth;
         self.MoveTo: $llx, $lly;
         self.LineTo: $urx, $lly;
         self.LineTo: $urx, $ury;
@@ -806,7 +834,10 @@ class Doc does PDF-role is export {
         else { self.Stroke; }
         self.Restore;
     }
-    multi method rectangle(:$llx! is copy, :$ury! is copy, :$width!, :$height!, :$fill = False) {
+    multi method rectangle(:$llx! is copy, :$ury! is copy, :$width!, :$height!, 
+        :$fill = False,
+        :$linewidth = 0
+        ) {
         # from upper-left corner
         $llx = value2points $llx;
         $ury = value2points $ury;
@@ -814,9 +845,12 @@ class Doc does PDF-role is export {
         my $h = value2points $height;
         my $urx = $llx + $w;
         my $lly = $ury - $h;
-        self.rectangle: $llx, $lly, $urx, $ury, :$fill;
+        self.draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth;
     }
-    multi method rectangle(:$urx! is copy, :$ury! is copy, :$width!, :$height!, :$fill = False) {
+    multi method rectangle(:$urx! is copy, :$ury! is copy, :$width!, :$height!, 
+        :$fill = False,
+        :$linewidth = 0
+        ) {
         # from upper-right corner
         $urx = value2points $urx;
         $ury = value2points $ury;
@@ -824,9 +858,12 @@ class Doc does PDF-role is export {
         my $h = value2points $height;
         my $llx = $urx - $w;
         my $lly = $ury - $h;
-        self.rectangle: $llx, $lly, $urx, $ury, :$fill;
+        self.draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth;
     }
-    multi method rectangle(:$urx! is copy, :$lly! is copy, :$width!, :$height!, :$fill = False) {
+    multi method rectangle(:$urx! is copy, :$lly! is copy, :$width!, :$height!, 
+        :$fill = False,
+        :$linewidth = 0
+        ) {
         # from lower-right corner
         $urx = value2points $urx;
         $lly = value2points $lly;
@@ -834,10 +871,13 @@ class Doc does PDF-role is export {
         my $h = value2points $height;
         my $llx = $urx - $w;
         my $ury = $lly + $h;
-        self.rectangle: $llx, $lly, $urx, $ury, :$fill;
+        self.draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth;
     }
 
-    multi method rectangle(:$llx! is copy, :$lly! is copy, :$width!, :$height!, :$fill = False) {
+    multi method rectangle(:$llx! is copy, :$lly! is copy, :$width!, :$height!, 
+        :$fill = False,
+        :$linewidth = 0
+        ) {
         # from lower-left corner
         $llx = value2points $llx;
         $lly = value2points $lly;
@@ -845,16 +885,22 @@ class Doc does PDF-role is export {
         my $h = value2points $height;
         my $urx = $llx + $w;
         my $ury = $lly + $h;
-        self.rectangle: $llx, $lly, $urx, $ury, :$fill;
+        self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth;
     }
 
-    multi method circle(:$x, :$y, :$radius, :$fill = False) {
+    multi method circle(:$x!, :$y!, :$radius!, 
+        :$fill = False,
+        :$linewidth = 0
+        ) {
         my $cx = value2points $x;
         my $cy = value2points $y;
         my $cr = value2points $radius;
-        self.circle($cx, $cy, $cr);
+        self!draw-circle($cx, $cy, $cr, :$fill, :$linewidth);
     }
-    multi method circle($x, $y, $r, :$fill = False) {
+    method !draw-circle($x, $y, $r, 
+        :$fill = False,
+        :$linewidth =0
+        ) {
         self.Save;
         # from stack overflow: copyright 2022 by Spencer Mortenson
         self.page.gfx.transform: :translate[$x, $y];
@@ -869,6 +915,34 @@ class Doc does PDF-role is export {
         if $fill { self.Fill; }
         else { self.Stroke; }
         self.Restore;
+    }
+
+    method polyline(@pts, :$fill = False, :$closepath = False, :$linewidth = 0) {
+        # array of x/y points, path is not closed
+        my $np = @pts.elems;
+        die "FATAL: polyline points array is empty" if not $np;
+        die "FATAL: polyline points array ($np pts) must have an even number of entries" if $np mod 2;
+        my $x = @pts.shift;
+        my $y = @pts.shift;
+        self.Save;
+        self.SetLineWidth: $linewidth;
+        self.MoveTo: $x, $y;
+        while @pts.elems {
+            $x = @pts.shift;
+            $y = @pts.shift;
+            self.LineTo: $x, $y;
+        }
+        self.ClosePath if $closepath;
+        if $closepath and $fill { self.Fill; }
+        else { self.Stroke; }
+        self.Restore;
+    }
+    method polygon(@pts, :$fill = False, :$linewidth = 0) {
+        # array of x/y points, path is closed
+        my $np = @pts.elems;
+        die "FATAL: polygon points array is empty" if not @pts.elems;
+        die "FATAL: polygon points array ($np pts) must have an even number of entries" if $np mod 2;
+        self.polyline: @pts, :$fill, :closepath(True), :$linewidth;
     }
 
     # Many other methods are provided by roles "PDF-role"
