@@ -42,7 +42,7 @@ MoveSetShowText(aw, ac, string) | " | Move to the next line and show a text stri
 #--- | --- | ---
 MoveTo(x, y) | m | Begin a new sub-path by moving the current point to coordinates (x, y), omitting any connecting line segment. If the previous path construction operator in the current path was also m, the new m overrides it.
 LineTo(x, y) | l | Append a straight line segment from the current point to the point (x, y). The new current point is (x, y).
-CurveTo(x1, y1, x2, y2, x3, y3) | c | Append a cubic Bézier curve to the current path. The curve extends from the current point to the poin (x3, y3), using (x1, y1) and (x2, y2) as the Bézier control points. The new current point is (x3, y3).
+CurveTo(x1, y1, x2, y2, x3, y3) | c | Append a cubic Bézier curve to the current path. The curve extends from the current point to the poit (x3, y3), using (x1, y1) and (x2, y2) as the Bézier control points. The new current point is (x3, y3).
 ClosePath | h | Close the current sub-path by appending a straight line segment from the current point to the starting point of the sub-path.
 Rectangle(x, y, width, Height) | re | Append a rectangle to the current path as a complete sub-path, with lower-left corner (x, y) and dimensions `width` and `height`.
 
@@ -50,14 +50,14 @@ Rectangle(x, y, width, Height) | re | Append a rectangle to the current path as 
 #--- | --- | ---
 
 # TODO: fix these tests:
-#Stroke() | S | Stroke the path.
-#CloseStroke() | s | Close and stroke the path. Same as: $.Close; $.Stroke
-#Fill() | f | Fill the path, using the nonzero winding number rule to determine the region. Any open sub-paths are implicitly closed before being filled.
-#FillStroke() | B | Fill and then stroke the path, using the nonzero winding number rule to determine the region to fill.
-#CloseFillStroke() | b | Close, fill, and then stroke the path, using the nonzero winding number rule to determine the region to fill.
+Stroke() | S | Stroke the path.
+CloseStroke() | s | Close and stroke the path. Same as: $.Close; $.Stroke
+Fill() | f | Fill the path, using the nonzero winding number rule to determine the region. Any open sub-paths are implicitly closed before being filled.
+FillStroke() | B | Fill and then stroke the path, using the nonzero winding number rule to determine the region to fill.
+CloseFillStroke() | b | Close, fill, and then stroke the path, using the nonzero winding number rule to determine the region to fill.
 
 #Method | Code | Description
 #--- | --- | ---
 
 # TODO: fix these tests:
-#Clip() | W | Modify the current clipping path by intersecting it with the current path, using the nonzero winding number rule to determine which regions lie inside the clipping path.
+Clip() | W | Modify the current clipping path by intersecting it with the current path, using the nonzero winding number rule to determine which regions lie inside the clipping path.

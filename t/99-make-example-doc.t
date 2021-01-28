@@ -4,7 +4,7 @@ use PDF::Document;
 use PDF::Lite;
 use Font::AFM;
 
-plan 1;
+plan 3;
 
 my $doc;
 lives-ok {
@@ -13,6 +13,10 @@ lives-ok {
 
 lives-ok {
     shell "./dev/make-example-doc.raku";
-}, "testing the example doc";
+}, "testing the example doc with no args";
+
+lives-ok {
+    shell "./dev/make-example-doc.raku g";
+}, "testing the example doc with arg of 'g'";
 
 

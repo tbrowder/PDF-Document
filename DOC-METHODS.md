@@ -219,7 +219,7 @@ method CurveTo(
 ) returns Mu
 ```
 
-Append a cubic Bézier curve to the current path. The curve extends from the current point to the poin (x3, y3), using (x1 , y1) and (x2, y2) as the Bézier control points. The new current point is (x3, y3).
+Append a cubic Bézier curve to the current path. The curve extends from the current point to the poit (x3, y3), using (x1, y1) and (x2, y2) as the Bézier control points. The new current point is (x3, y3).
 
 ### method ClosePath
 
@@ -241,4 +241,52 @@ method Rectangle(
 ```
 
 Append a rectangle to the current path as a complete sub-path, with lower-left corner (x, y) and dimensions `width` and `height`.
+
+### method Stroke
+
+```perl6
+method Stroke() returns Mu
+```
+
+Stroke the path.
+
+### method CloseStroke
+
+```perl6
+method CloseStroke() returns Mu
+```
+
+Close and stroke the path. Same as: $.Close; $.Stroke
+
+### method Fill
+
+```perl6
+method Fill() returns Mu
+```
+
+Fill the path, using the nonzero winding number rule to determine the region. Any open sub-paths are implicitly closed before being filled.
+
+### method FillStroke
+
+```perl6
+method FillStroke() returns Mu
+```
+
+Fill and then stroke the path, using the nonzero winding number rule to determine the region to fill.
+
+### method CloseFillStroke
+
+```perl6
+method CloseFillStroke() returns Mu
+```
+
+Close, fill, and then stroke the path, using the nonzero winding number rule to determine the region to fill.
+
+### method Clip
+
+```perl6
+method Clip() returns Mu
+```
+
+Modify the current clipping path by intersecting it with the current path, using the nonzero winding number rule to determine which regions lie inside the clipping path.
 

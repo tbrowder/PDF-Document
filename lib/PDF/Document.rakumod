@@ -10,6 +10,17 @@ use PDF::PDF-role;
 my $debug  = 0;
 my $debug2 = 1;
 
+# for angle conversions
+#--------------------------------
+# 2 pi rad = 360 degrees
+# rad = 360 deg / 2 pi = 180 / pi
+constant deg2rad is export = 180/pi;
+#--------------------------------
+# 360 deg = 2 pi rad
+# deg = 2 pi rad / 360 = pi / 180
+constant rad2deg is export = pi/180;
+#--------------------------------
+
 # Below are some convenience constants for converting various
 # length units to PS points (72 per inch).
 # Use them like this:
@@ -396,8 +407,9 @@ class Doc does PDF-role is export {
         my $x0  = value2points $from.begin;
         my $y0  = value2points $from.end;
         my $len = value2points $length;
-        my $x1  = $len * sin($angle); 
-        my $y1  = $len * cos($angle); 
+        my $ang = value2radians $angle; # convert to default radians if need be
+        my $x1  = $ang.sin * $len; 
+        my $y1  = $ang.cos * $len; 
         self.line: $x0, $y0, $x1, $y1, :$linewidth;
     }
     multi method line(List $from, List $to, :$linewidth = 0) {
@@ -759,6 +771,23 @@ class Doc does PDF-role is export {
         self.Restore;
     }
 
+    sub value2radians($val is copy --> Real) {
+        note "DEBUG: v2p, input val = '$val'";
+        if $val ~~ /:i ^ (<[\d.+-]>+) (d|deg||rad|r)? $/ {
+            $val = +$0;
+            return $val if not $1.defined;
+            my $units = ~$1;
+            given $units {
+                when /d|deg/   { $val *= deg2rad }
+                when /r|rad/   { $val }
+                default {
+                    die "FATAL: Unknown units in input value '$val'";
+                }
+            }
+        }
+        note "DEBUG: v2p, output val = $val points";
+        return $val;
+    }
     sub value2points($val is copy --> Real) {
         note "DEBUG: v2p, input val = '$val'";
         my $oval = $val;
@@ -771,6 +800,8 @@ class Doc does PDF-role is export {
                 when $_ eq 'cm' { $val *= cm2pt }
                 when $_ eq 'mm' { $val *= mm2pt }
                 when $_ eq 'ft' { $val *= ft2pt }
+                when /d||deg/   { $val *= deg2rad }
+                when /d||deg/   { $val *= deg2rad }
                 default {
                     die "FATAL: Unknown units in input value '$val'";
                 }

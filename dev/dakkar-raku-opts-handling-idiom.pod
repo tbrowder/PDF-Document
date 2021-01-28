@@ -1,0 +1,37 @@
+=begin pod
+
+From IRC #raku on 2021-01-21:
+  https://colabti.org/irclogger/irclogger_log/raku?date=2021-01-21#l396
+
+Also help by @elcaro and @moritz
+
+1616: dakkar:
+============
+
+tbrowder: if you have a `sub something($thing, $:named, $:other)` and
+you want to wrap it so it ignores named arguments with undefined
+values, you could do:
+
+1617: dakkar:
+============
+
+tbrowder: `sub something_wrapped($thing, *%named) { my %args =
+%named.pairs.grep(*.value.defined); return something($thing, |%args)
+}`
+
+=begin code
+
+#= a sub to be wrapped
+sub some-foreign-sub($thing, :$named, :$other, ...) {
+...
+}
+
+#= the
+sub some-wrapper-sub($thing, *%named) {
+    my %args = %named.pairs.grep(*.value.defined);
+    return some-foreign-sub($thing, |%args)
+}
+
+=end code
+
+=end pod

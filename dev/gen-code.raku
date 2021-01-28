@@ -58,14 +58,23 @@ my $of4 = "AFM-role.rakumod";
 my %no-alias = set < MoveShowText MoveSetShowText TextNextLine >;
 # These tests are used with other tests so we don't 
 # test them individually:
-my %no-test = set < Save Restore BeginText EndText >;
+my %no-test = set < 
+Clip
+Save 
+Restore 
+BeginText 
+EndText 
+Stroke
+CloseStroke
+Fill
+FillStroke
+CloseFillStroke
+>;
 # Some methods need special handling (context) in tests
 # Outside of a text block, these need to between BeginText/EndText pairs 
 my %need-BT-ET = set < TextMove TextMoveSet TextNextLine ShowText MoveShowText MoveSetShowText >;
 # These need to be between Save/Restore pairs
 my %need-q-Q = set < SetStrokeGray SetFillGray SetStrokeRGB SetFillRGB SetLineWidth SetLineCap SetLineJoin SetMiterLimit >;
-
-
 
 class PMeth {
     # methods in the PDF::API6 list
