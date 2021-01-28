@@ -18,9 +18,9 @@ if not @*ARGS {
 # turn page numbering on:
 my \d = Doc.new: :pdf-name<example-letter>, :force, :page-numbering;
 
-# use the 'given' block to ease typing by one character
+# use the 'with' block to ease typing by one character
 # per command
-given d {
+with d {
 # but you'll crash if you forget to close the block!
 #=========== THE LETTER =================
 # starts with a new page, current position top baseline, left margin
