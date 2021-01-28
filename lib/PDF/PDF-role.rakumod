@@ -176,7 +176,7 @@ method l($x, $y) {
 }
 
 #| Append a cubic Bézier curve to the current path. The curve extends from the
-#| current point to the poin (x3, y3), using (x1 , y1) and (x2, y2) as the
+#| current point to the poit (x3, y3), using (x1, y1) and (x2, y2) as the
 #| Bézier control points. The new current point is (x3, y3).
 method CurveTo($x1, $y1, $x2, $y2, $x3, $y3) {
     $!page.gfx.CurveTo($x1, $y1, $x2, $y2, $x3, $y3);
@@ -201,5 +201,58 @@ method Rectangle($x, $y, $width, $Height) {
 }
 method re($x, $y, $width, $Height) {
     $!page.gfx.Rectangle($x, $y, $width, $Height);
+}
+
+#| Stroke the path.
+method Stroke() {
+    $!page.gfx.Stroke();
+}
+method S() {
+    $!page.gfx.Stroke();
+}
+
+#| Close and stroke the path. Same as: $.Close; $.Stroke
+method CloseStroke() {
+    $!page.gfx.CloseStroke();
+}
+method s() {
+    $!page.gfx.CloseStroke();
+}
+
+#| Fill the path, using the nonzero winding number rule to determine the
+#| region. Any open sub-paths are implicitly closed before being filled.
+method Fill() {
+    $!page.gfx.Fill();
+}
+method f() {
+    $!page.gfx.Fill();
+}
+
+#| Fill and then stroke the path, using the nonzero winding number rule to
+#| determine the region to fill.
+method FillStroke() {
+    $!page.gfx.FillStroke();
+}
+method B() {
+    $!page.gfx.FillStroke();
+}
+
+#| Close, fill, and then stroke the path, using the nonzero winding number
+#| rule to determine the region to fill.
+method CloseFillStroke() {
+    $!page.gfx.CloseFillStroke();
+}
+method b() {
+    $!page.gfx.CloseFillStroke();
+}
+
+#| Modify the current clipping path by intersecting it with the current path,
+#| using the nonzero winding number rule to determine which regions lie inside
+#| the clipping path.
+method Clip() {
+    $!page.gfx.Clip();
+}
+method W() {
+    $!page.gfx.Clip();
 }
 

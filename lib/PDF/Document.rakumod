@@ -15,6 +15,7 @@ my $debug2 = 1;
 # Use them like this:
 #
 #   my $left-margin = 1 * in2pt; # converts 1 inch to 72 points
+#
 # British units
 constant in2pt  is export = 72;            # inches
 constant ft2pt  is export = 12 * in2pt;    # feet
@@ -26,15 +27,15 @@ constant dm2pt is export = 10  * cm2pt;    # decimeters
 constant  m2pt is export = 100 * cm2pt;    # meters
 
 # alternative versions
-constant i2p is export = in2pt;
-constant f2p is export = ft2pt;
-constant y2p is export = yd2pt;
+constant  i2p is export = in2pt;
+constant  f2p is export = ft2pt;
+constant  y2p is export = yd2pt;
 constant mm2p is export = mm2pt;
-constant c2p is export = cm2pt;
+constant  c2p is export = cm2pt;
 constant cm2p is export = cm2pt;
-constant d2p is export = dm2pt;
+constant  d2p is export = dm2pt;
 constant dm2p is export = dm2pt;
-constant m2p is export = m2pt;
+constant  m2p is export =  m2pt;
 
 # These are the "core" fonts from PostScript
 # and have short names as keys
@@ -114,6 +115,11 @@ class DocFont is export {
 
     # Convenience methods (and aliases) from the afm object and size.
     # See Font::AFM for details.
+    method first-line-height {
+        # distance from baseline to top of highest char in the font,
+        # get from bbox ury
+        $!afm.FontBBox[3]
+    }
 
     #| UnderlinePosition
     method UnderlinePosition {
@@ -128,7 +134,7 @@ class DocFont is export {
         my ($llx, $lly, $urx, $ury) = $!afm.BBox{schar}  * $!sf;
         0.5 * ($ury - $lly);
     }
-    method swid {
+    method sthk {
         # without any other source, use same as underline
         $!afm.UnderlineThickness * $!sf
     }
@@ -137,7 +143,7 @@ class DocFont is export {
     method UnderlineThickness {
         $!afm.UnderlineThickness * $!sf
     }
-    method uwid { self.UnderlineThickness() }
+    method uthk { self.UnderlineThickness() }
 
     # ($kerned, $width) = $afm.kern($string, $fontsize?, :%glyphs?)
     # Kern the string. Returns an array of string segments, separated
@@ -270,7 +276,7 @@ class Doc does PDF-role is export {
     has $.is-saved = False;
     has $.force    = False;
     has $.page-numbering = False;
-    
+
     has $.paper;
     has $.media-box = 'Letter'; # = is required;
 
@@ -340,8 +346,9 @@ class Doc does PDF-role is export {
         $!height  = $!pheight - $!tm - $!bm;
         $!x0 = $!lm;
         $!y0 = $!bm;
+        # set my current point
         $!cpx = $!x0;
-        $!cpy = $!y0;
+        $!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
     }
 
     method set-font($alias) {
@@ -349,6 +356,9 @@ class Doc does PDF-role is export {
     }
     method add-page() {
         $!page = $!pdf.add-page;
+        # set my current point
+        $!cpx = $!x0;
+        $!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
     }
     method set-margins(:$left, :$right, :$top, :$bottom) {
         $!lm = $left if $left;
@@ -427,10 +437,22 @@ class Doc does PDF-role is export {
         elsif $br { $cpx = $!x0 + $!width; $cpy = $!y0            }
         else {
             # set cpx/cpy according to :x and :y
-            if $x.defined and $y.defined { $cpx = $x;    $cpy = $y    }
-            elsif $x.defined             { $cpx = $x;    $cpy = $!cpy }
-            elsif $y.defined             { $cpx = $!cpx; $cpy = $y    }
-            else                         { $cpx = $!cpx; $cpy = $!cpy }
+            if $x.defined and $y.defined {
+                $cpx = value2points $x;
+                $cpy = value2points $y;
+            }
+            elsif $x.defined {
+                $cpx = value2points $x;
+                $cpy = $!cpy;
+            }
+            elsif $y.defined {
+                $cpx = $!cpx;
+                $cpy = value2points $y;
+            }
+            else {
+                $cpx = $!cpx;
+                $cpy = $!cpy;
+            }
         }
 
         # :align
@@ -456,31 +478,50 @@ class Doc does PDF-role is export {
         %opt<font-size> = $font-size if $font-size.defined;
         %opt<kern> = $kern if $kern.defined;
         %opt<leading> = $leading if $leading.defined;
-        %opt<width> = $width if $width.defined;
+
+        if $width.defined {
+            %opt<width> = $width;
+        }
+        else {
+            %opt<width> = $!width;
+        }
+
         %opt<height> = $height if $height.defined;
         %opt<nl> = $nl if $nl.defined;
 
+        my $label  = $nl ?? 'nl' !! 'no nl';
+        my $label2 = '';
         my @curpos;
         my ($x0, $y0, $x1, $y1);
         if $ul or $st {
             # we have to treat each line indvidually
+            # calling sub in Text::Utils:
             my @lines = wrap-text $text, :$width, :$font-name, :$font-size;
             for @lines -> $line {
                 # the line may be underlined or have a strikethrough line
                 # position and width changes for following lines
                 my $swidth = $Font.stringthwidth: $line;
                 if $ul {
-                    my $dy   = $Font.upos;
-                    my $swid = $Font.uwid;
-                    my $ys   = @curpos[1] + $dy;
-                    #self.line 
+                    $label2 = 'ul';
+                    # underline
+                    # Note one source says the underline position for a
+                    # font is the TOP of the stroke so the actual
+                    # position should be adjusted for the underline
+                    # thickness.
+                    my $xx  = @curpos[0];
+                    my $dy  = $Font.upos;
+                    my $thk = $Font.uthk;
+                    my $yy  = @curpos[1] + $dy;
+                    self.line: $xx, $yy, $xx + $swidth, $yy, :linethickness($thk);
                 }
                 if $st {
+                    $label2 = $label2 ?? $label2 ~ '&st' !! 'st';
                     # strikethrough
-                    my $dy   = $Font.spos;
-                    my $swid = $Font.swid;
-                    my $ys   = @curpos[1] + $dy;
-                    #self.line 
+                    my $xx  = @curpos[0];
+                    my $dy  = $Font.spos;
+                    my $thk = $Font.sthk;
+                    my $yy  = @curpos[1] + $dy;
+                    self.line: $xx, $yy, $xx + $swidth, $yy, :linethickness($thk);
                 }
                 $!page.text: -> $txt {
                     $txt.font = $font, $font-size;
@@ -503,7 +544,7 @@ class Doc does PDF-role is export {
                 @curpos = $txt.text-position.List;
             }
         }
- 
+
         if $debug {
             my $cap = %opt.Capture;
             note "DEBUG: Capture: {$cap.raku}";
@@ -547,31 +588,43 @@ class Doc does PDF-role is export {
         #if $debug {
         if 1 {
             # draw a box outlining the text bounding box
-            self.Save; 
+            self.rectangle: $x0, $y0, $x1, $y1;
+            # draw an "x" at the curpos
+            my $xc = @curpos[0];
+            my $yc = @curpos[1];
+            my $r  = 20;
+            self.line: $xc+$r, $yc+$r, $xc-$r, $yc-$r;
+            self.line: $xc-$r, $yc+$r, $xc+$r, $yc-$r;
+
+            =begin comment
+            # draw a box outlining the text bounding box
+            self.Save;
             self.SetLineWidth(0);
-            self.MoveTo($x0, $y0); 
+            self.MoveTo($x0, $y0);
             self.LineTo($x1, $y0);
             self.LineTo($x1, $y1);
             self.LineTo($x0, $y1);
             self.ClosePath;
             self.Stroke;
             self.Restore;
-            # draw an "x" at the curpos
 
+            # draw an "x" at the curpos
             my $xc = @curpos[0];
             my $yc = @curpos[1];
             my $r  = 30;
-            self.Save; 
-            self.MoveTo($xc+$r, $yc+$r); 
-            self.LineTo($xc-$r, $yc-$r); 
-            self.MoveTo($xc-$r, $yc+$r); 
-            self.LineTo($xc+$r, $yc-$r); 
+            self.Save;
+            self.MoveTo($xc+$r, $yc+$r);
+            self.LineTo($xc-$r, $yc-$r);
+            self.MoveTo($xc-$r, $yc+$r);
+            self.LineTo($xc+$r, $yc-$r);
             self.Stroke;
             self.Restore;
+            =end comment
         }
 
         if 1 {
-            note "DEBUG: text bbox: [$x0, $y0, $x1, $y1]; curpos = {@curpos.raku}";
+            my $lab = $label2 ?? "$label; $label2" !! $label;
+            note "DEBUG: text bbox ($lab): [$x0, $y0, $x1, $y1]; curpos = {@curpos.raku}";
             #note "early exit";
             #exit
         }
@@ -636,7 +689,11 @@ class Doc does PDF-role is export {
         $!cpy = $y;
     }
     method np() is export {
-        $!page = $!pdf.add-page
+        $!page = $!pdf.add-page;
+        # TODO set current point to x=lm, y= height of highest char in curr font
+        # set my current point
+        $!cpx = $!x0;
+        $!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
     }
 
     method end-doc($file-name?) is export {
@@ -651,9 +708,22 @@ class Doc does PDF-role is export {
     }
 
     method number-pages() {
+        # on each page the default will be to:
+        #   use the same as the document font but at 0.8 its size
+        #   define the baseline as 0.5 in above the media box bottom (y < 0)
+        #   define the print position at the right margin, align right (rj)
+        #   format: Page n of N
+        my $name  = $!font.name;
+        my $size  = $!font.size * 0.8;
+        my $basefont = find-basefont :pdf($!pdf), :$name;
+        my $font = select-docfont :$basefont, :$size;
+        my $x = $!x0 + $!width;
+        my $y = $!y0 - (0.5 * i2p);
         my $npages = self.pdf.page-count;
+        note "DEBUG: printing page number on $npages pages";
         for 1 .. $npages -> $n {
-            self.page = self.pdf.page: $n;
+            my $page = self.pdf.page: $n;
+            $page.gfx.print: "Page $n of $npages", :position[$x, $y], :align<right>;
         }
     }
     method setlinewidth($width where { $_ >= 0 }) {
@@ -661,8 +731,8 @@ class Doc does PDF-role is export {
     }
     method setgray($level where {0 <= $_ <= 1}) {
     }
-    method setrgb($r where {0 <= $_ <= 1}, 
-                  $g where {0 <= $_ <= 1}, 
+    method setrgb($r where {0 <= $_ <= 1},
+                  $g where {0 <= $_ <= 1},
                   $b where {0 <= $_ <= 1},
                  ) {
     }
@@ -673,8 +743,10 @@ class Doc does PDF-role is export {
         self.Restore;
     }
 
-    sub value2points($val is copy) {
-        if $val ~~ /:i ^ (<[\d.+-]>+) ([in|cm|mm|ft])? \N* $/ {
+    sub value2points($val is copy --> Real) {
+        note "DEBUG: v2p, input val = '$val'";
+        my $oval = $val;
+        if $val ~~ /:i ^ (<[\d.+-]>+) (in|cm|mm|ft)? $/ {
             $val = +$0;
             return $val if not $1.defined;
             my $units = ~$1;
@@ -683,11 +755,16 @@ class Doc does PDF-role is export {
                 when $_ eq 'cm' { $val *= cm2pt }
                 when $_ eq 'mm' { $val *= mm2pt }
                 when $_ eq 'ft' { $val *= ft2pt }
-                default { 
+                default {
                     die "FATAL: Unknown units in input value '$val'";
                 }
             }
         }
+        =begin comment
+        else {
+            die "FATAL: Non-numeric input value: '$oval'";
+        }
+        =end comment
         return $val;
     }
 
@@ -696,61 +773,98 @@ class Doc does PDF-role is export {
         my $cy = value2points $y;
         my $ca = value2points $a;
         my $cb = value2points $b;
-        self.ellipse($cx, $cy, $ca, $cb); 
+        self.ellipse($cx, $cy, $ca, $cb);
     }
     multi method ellipse($x, $y, $a, $b, :$fill = False) {
         self.Save;
-        self.MoveTo: $x, $y;
-        # define x1/y1, x2/y2, and x3/y3 as bezier control points with new cp at x3/y3
-        # for an ellipse we can do that with two semiellipses:
-        #   work counterclockwise      
-        self.MoveTo:  $x + $a, $y;       # start at the right, angle of zero degrees
-        self.CurveTo: $x + $a, $y + $b,  # upper right
-                      $x - $a, $y + $b,  # upper left
-                      $x - $a, $y;       # left
-        self.CurveTo: $x - $a, $y - $b,  # lower left
-                      $x + $a, $y - $b,  # lower right
-                      $x - $a, $y;       # back to the right
+        # from stack overflow: copyright 2022 by Spencer Mortenson
+        # treat $a as length in x direction, $b as length in y direction
+        self.page.gfx.transform: :translate[$x, $y];
+        constant c = 0.551915024495;
+        self.MoveTo: 0*$a, 1*$b;
+        # use four curves (x/y)
+        self.CurveTo:  c*$a, 1*$b,  1*$a, c*$b,  1*$a, 0*$b;
+        self.CurveTo:  1*$a,-c*$b,  c*$a,-1*$b,  0*$a,-1*$b;
+        self.CurveTo: -c*$a,-1*$b, -1*$a,-c*$b, -1*$a, 0*$b;
+        self.CurveTo: -1*$a, c*$b, -c*$a, 1*$b,  0*$a, 1*$b;
         self.ClosePath;
         if $fill { self.Fill; }
         else { self.Stroke; }
         self.Restore;
     }
 
-    multi method rectangle(:$llx, :$lly, :$width, :$height, :$fill = False) {
-        my $x = value2points $llx;
-        my $y = value2points $lly;
-        my $w = value2points $width;
-        my $h = value2points $height;
-        self.rectangle($x, $, $w, $h, :$fill);
-    }
-    multi method rectangle($llx, $lly, $width, $height, :$fill = False) {
+    # this is the method that the other rectangle methods should resolve to
+    # as it actually renders the figure
+    multi method rectangle(Real $llx, Real $lly, Real $urx, Real $ury, :$fill = False) {
         self.Save;
-        self.Rectangle: $llx, $lly, $width, $height;
+        self.MoveTo: $llx, $lly;
+        self.LineTo: $urx, $lly;
+        self.LineTo: $urx, $ury;
+        self.LineTo: $llx, $ury;
+        self.ClosePath;
         if $fill { self.Fill; }
         else { self.Stroke; }
         self.Restore;
+    }
+    multi method rectangle(:$llx! is copy, :$ury! is copy, :$width!, :$height!, :$fill = False) {
+        # from upper-left corner
+        $llx = value2points $llx;
+        $ury = value2points $ury;
+        my $w = value2points $width;
+        my $h = value2points $height;
+        my $urx = $llx + $w;
+        my $lly = $ury - $h;
+        self.rectangle: $llx, $lly, $urx, $ury, :$fill;
+    }
+    multi method rectangle(:$urx! is copy, :$ury! is copy, :$width!, :$height!, :$fill = False) {
+        # from upper-right corner
+        $urx = value2points $urx;
+        $ury = value2points $ury;
+        my $w = value2points $width;
+        my $h = value2points $height;
+        my $llx = $urx - $w;
+        my $lly = $ury - $h;
+        self.rectangle: $llx, $lly, $urx, $ury, :$fill;
+    }
+    multi method rectangle(:$urx! is copy, :$lly! is copy, :$width!, :$height!, :$fill = False) {
+        # from lower-right corner
+        $urx = value2points $urx;
+        $lly = value2points $lly;
+        my $w = value2points $width;
+        my $h = value2points $height;
+        my $llx = $urx - $w;
+        my $ury = $lly + $h;
+        self.rectangle: $llx, $lly, $urx, $ury, :$fill;
+    }
+
+    multi method rectangle(:$llx! is copy, :$lly! is copy, :$width!, :$height!, :$fill = False) {
+        # from lower-left corner
+        $llx = value2points $llx;
+        $lly = value2points $lly;
+        my $w = value2points $width;
+        my $h = value2points $height;
+        my $urx = $llx + $w;
+        my $ury = $lly + $h;
+        self.rectangle: $llx, $lly, $urx, $ury, :$fill;
     }
 
     multi method circle(:$x, :$y, :$radius, :$fill = False) {
         my $cx = value2points $x;
         my $cy = value2points $y;
         my $cr = value2points $radius;
-        self.circle($cx, $cy, $cr); 
+        self.circle($cx, $cy, $cr);
     }
     multi method circle($x, $y, $r, :$fill = False) {
         self.Save;
-        self.MoveTo: $x, $y;
-        # define x1/y1, x2/y2, and x3/y3 as bezier control points with new cp at x3/y3
-        # for a circle we can do that with two semicircles:
-        #   work counterclockwise      
-        self.MoveTo:  $x + $r, $y;       # start at the right, angle of zero degrees
-        self.CurveTo: $x + $r, $y + $r,  # upper right
-                      $x - $r, $y + $r,  # upper left
-                      $x - $r, $y;       # left
-        self.CurveTo: $x - $r, $y - $r,  # lower left
-                      $x + $r, $y - $r,  # lower right
-                      $x - $r, $y;       # back to the right
+        # from stack overflow: copyright 2022 by Spencer Mortenson
+        self.page.gfx.transform: :translate[$x, $y];
+        constant c = 0.551915024495;
+        self.MoveTo: 0*$r, 1*$r;
+        # use four curves
+        self.CurveTo:  c*$r, 1*$r,  1*$r, c*$r,  1*$r, 0*$r;
+        self.CurveTo:  1*$r,-c*$r,  c*$r,-1*$r,  0*$r,-1*$r;
+        self.CurveTo: -c*$r,-1*$r, -1*$r,-c*$r, -1*$r, 0*$r;
+        self.CurveTo: -1*$r, c*$r, -c*$r, 1*$r,  0*$r, 1*$r;
         self.ClosePath;
         if $fill { self.Fill; }
         else { self.Stroke; }
