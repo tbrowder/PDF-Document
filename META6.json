@@ -11,7 +11,7 @@
     "File::Temp",
     "Config::TOML",
     "Text::Utils",
-    "Font::AFM",
+    "Font::AFM:ver<1.24.2>",
     "PDF:ver<0.4.5+>",
     "PDF::Lite"
   ],
