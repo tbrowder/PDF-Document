@@ -1,0 +1,36 @@
+This directory contains the Java source of the package by ?  whose
+method for calculating cubic Bezier curve control points seems to be
+the best I can find.
+
+His method is for the general case of an elliptical curve, with major
+diameter a and minor diameter b, with its center at point x,y whose
+major axis is at a known angle ccw from the positive x-axis, with its
+starting point at angle a0 from the major axis, and its ending point
+at angle a1 from the starting point.
+
+Thus his method can handle ellipses and circles whether complete or
+not and oriented as desired.
+
+His implementation will be made part of a Java CLI program which takes
+as input the desired parameters to call the Java class:
+
+  TODO
+
+The using Raku routine will call the Java program using either routine
+'run' or 'shell'.
+
+The Java class in turn will output its results to a temporary file in
+the following format:
+
+  TODO
+
+
+Some resources:
+
++ A Java CLI helper:
+
+  https://picocli.info/
+
++ Java code for the cubic Bezier curve control points:
+
+http://www.spaceroots.org/documents/ellipse/EllipticalArc.java
