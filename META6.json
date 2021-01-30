@@ -5,9 +5,9 @@
     "Tom Browder"
   ],
   "build-depends": [
+    "Pod::To::Markdown"
   ],
   "depends": [
-    "Pod::To::Markdown",
     "File::Temp",
     "Config::TOML",
     "Text::Utils",
