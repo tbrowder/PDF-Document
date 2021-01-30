@@ -29,7 +29,7 @@
   "tags": [
   ],
   "test-depends": [
-      "App::Prove6"
+    "App::Prove6"
   ],
   "version": "0.0.2"
 }
