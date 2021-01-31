@@ -23,7 +23,7 @@ my \d = Doc.new;
 #   text is kerned
 # begin writing...
 
-given d {
+with d {
 
 .text: "2021-03-04";
 .nl: 1; # set currentpoint x=0,y one line down from top-left corner
