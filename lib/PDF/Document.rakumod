@@ -754,8 +754,12 @@ class Doc does PDF-role is export {
             $page.gfx.print: "Page $n of $npages", :position[$x, $y], :align<right>;
         }
     }
-    method setlinewidth($width where { $_ >= 0 }) {
+    method setlinewidth($width where {$_ >= 0}) {
         self.SetLineWidth: $width;
+    }
+    method setdash($level where {0 <= $_ <= 1}) {
+    }
+    method setlinecap($level where {0 <= $_ <= 1}) {
     }
     method setgray($level where {0 <= $_ <= 1}) {
     }
@@ -772,7 +776,7 @@ class Doc does PDF-role is export {
     }
 
     sub value2radians($val is copy --> Real) {
-        note "DEBUG: v2p, input val = '$val'";
+        note "DEBUG: v2r, input val = '$val'";
         if $val ~~ /:i ^ (<[\d.+-]>+) (d|deg||rad|r)? $/ {
             $val = +$0;
             return $val if not $1.defined;
@@ -785,7 +789,7 @@ class Doc does PDF-role is export {
                 }
             }
         }
-        note "DEBUG: v2p, output val = $val points";
+        note "DEBUG: v2r, output val = $val radians";
         return $val;
     }
     sub value2points($val is copy --> Real) {
@@ -800,18 +804,11 @@ class Doc does PDF-role is export {
                 when $_ eq 'cm' { $val *= cm2pt }
                 when $_ eq 'mm' { $val *= mm2pt }
                 when $_ eq 'ft' { $val *= ft2pt }
-                when /d||deg/   { $val *= deg2rad }
-                when /d||deg/   { $val *= deg2rad }
                 default {
                     die "FATAL: Unknown units in input value '$val'";
                 }
             }
         }
-        =begin comment
-        else {
-            die "FATAL: Non-numeric input value: '$oval'";
-        }
-        =end comment
         note "DEBUG: v2p, output val = $val points";
         return $val;
     }
@@ -905,6 +902,35 @@ class Doc does PDF-role is export {
         self.draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth;
     }
 
+    method circular-arc(
+        :$cx! is copy, :$cy! is copy, 
+        :$start-angle!, :$end-angle!,
+        :$fill = False,
+        :$linewidth = 0
+        ) {
+        $cx = value2points $cx;
+        $cy = value2points $cy; 
+        my $sa = value2radians $start-angle;
+        my $ea = value2radians $end-angle;
+    }
+
+    method elliptical-arc(
+        :$cx! is copy, :$cy! is copy, 
+        :$a! is copy, :$b! is copy, 
+        :$start-angle!, :$end-angle!,
+        :$rot-angle = 0,
+        :$fill = False,
+        :$linewidth = 0
+        ) {
+        $cx = value2points $cx;
+        $cy = value2points $cy; 
+        $a  = value2points $b;
+        $b  = value2points $b; 
+        my $sa = value2radians $start-angle;
+        my $ea = value2radians $end-angle;
+        my $ra = value2radians $rot-angle;
+    }
+
     multi method rectangle(:$llx! is copy, :$lly! is copy, :$width!, :$height!, 
         :$fill = False,
         :$linewidth = 0
@@ -974,6 +1000,27 @@ class Doc does PDF-role is export {
         die "FATAL: polygon points array is empty" if not @pts.elems;
         die "FATAL: polygon points array ($np pts) must have an even number of entries" if $np mod 2;
         self.polyline: @pts, :$fill, :closepath(True), :$linewidth;
+    }
+
+    method moon-phase(
+        :$cx! is copy,
+        :$cy! is copy,
+        :$radius! where {$_ >= 0},
+        :$frac! where {0 <= $_ <= 1},
+        :$type! where {/:i wax|wan/},
+        :$hemi where {/:i n|s/} = 'n',
+        ) {
+        # Until we get circular and elliptical arcs we will have
+        # to use circles and ellipses and overlay black with 
+        # white for certain input combinations.
+
+        # northern hemisphere
+        # waxing, new moon to full moon, light increasing from the right (frac 0..1)
+        # waning, full moon to new moon, darkness increasing from the right (frac 1..0)
+
+        # southern hemisphere
+        # waxing, new moon to full moon, light increasing from the left(frac 0..1)
+        # waning, full moon to new moon, darkness increasing from the left (frac 1..0)
     }
 
     # Many other methods are provided by roles "PDF-role"
