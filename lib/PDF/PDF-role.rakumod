@@ -96,6 +96,14 @@ method M($ratio) {
     $!page.gfx.SetMiterLimit($ratio);
 }
 
+#| Set the line dash pattern in the graphics state
+method SetDashPattern($dashArray, $dashPhase) {
+    $!page.gfx.SetDashPattern($dashArray, $dashPhase);
+}
+method d($dashArray, $dashPhase) {
+    $!page.gfx.SetDashPattern($dashArray, $dashPhase);
+}
+
 #| Begin a text object, initializing $.TextMatrix, to the identity matrix.
 #| Text objects cannot be nested.
 method BeginText() {
