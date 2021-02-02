@@ -840,15 +840,30 @@ class Doc does PDF-role is export {
         # treat $a as length in x direction, $b as length in y direction
         self.page.gfx.transform: :translate[$x, $y];
         constant c = 0.551915024495;
-        self.MoveTo: 0*$a, 1*$b;
-        # use four curves (x/y)
-        self.CurveTo:  c*$a, 1*$b,  1*$a, c*$b,  1*$a, 0*$b;
-        self.CurveTo:  1*$a,-c*$b,  c*$a,-1*$b,  0*$a,-1*$b;
-        self.CurveTo: -c*$a,-1*$b, -1*$a,-c*$b, -1*$a, 0*$b;
-        self.CurveTo: -1*$a, c*$b, -c*$a, 1*$b,  0*$a, 1*$b;
-        self.ClosePath;
-        if $fill { self.Fill; }
-        else { self.Stroke; }
+        if 0 {
+            # TODO use .transform: :scale[$a,$b]
+            self.page.gfx.transform: :scale[$a, $b];
+            self.MoveTo: 0, 1;
+            # use four curves (x/y)
+            self.CurveTo:  c, 1,  1, c,  1, 0;
+            self.CurveTo:  1,-c,  c,-1,  0,-1;
+            self.CurveTo: -c,-1, -1,-c, -1, 0;
+            self.CurveTo: -1, c, -c, 1,  0, 1;
+            self.ClosePath;
+            if $fill { self.Fill; }
+            else { self.Stroke; }
+        }
+        else {
+            self.MoveTo: 0*$a, 1*$b;
+            # use four curves (x/y)
+            self.CurveTo:  c*$a, 1*$b,  1*$a, c*$b,  1*$a, 0*$b;
+            self.CurveTo:  1*$a,-c*$b,  c*$a,-1*$b,  0*$a,-1*$b;
+            self.CurveTo: -c*$a,-1*$b, -1*$a,-c*$b, -1*$a, 0*$b;
+            self.CurveTo: -1*$a, c*$b, -c*$a, 1*$b,  0*$a, 1*$b;
+            self.ClosePath;
+            if $fill { self.Fill; }
+            else { self.Stroke; }
+        }
         self.Restore;
     }
 
@@ -1068,6 +1083,7 @@ class Doc does PDF-role is export {
         ) {
         
         self.Save;
+        self.Transform: :translate[$cx,$cy];
         if $angle.defined {
             self.Transform: :rotate($angle);
         }
@@ -1078,26 +1094,32 @@ class Doc does PDF-role is export {
             # New Moon to First Quarter
             # 1. left semicircle is black
             #    make black circle
-            self.circle;
+            self!draw-circle: 0, 0, $radius, :fill;
             #    make white square covering right semicircle
-            self.rectangle;
+            self.setgray: 1;
+            self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill;
+            self.setgray: 0;
             # 2. black on right semicircle is 0.5 - frac
             #    make black-filled ellipse with b = radius * (0.5 - frac)
-            self.ellipse;
+            self!draw-ellipse: 0, 0, $radius, $radius * (0.5 - $frac), :fill;
         }
         elsif $frac > 0.5 {
             # First Quarter to Full Moon
             # 1. right semicircle is white
             #    make black circle
-            self.circle;
+            self!draw-circle: 0, 0, $radius, :fill;
             #    make white square covering right semicircle
-            self.polygon;
+            self.setgray: 1;
+            self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill;
+            self.setgray: 0;
             # 2. white on left semicircle is frac - 0.5
             #    make white-filled ellipse with b = radius * (frac - 0.5)
-            self.ellipse;
+            self.setgray: 1;
+            self!draw-ellipse: 0, 0, $radius, $radius * ($frac - 0.5), :fill;
+            self.setgray: 0;
         }
         # 3. stroke the circle's circumference
-        self.circle;
+        self!draw-circle: 0, 0, $radius;
         self.Restore;
     }
 
