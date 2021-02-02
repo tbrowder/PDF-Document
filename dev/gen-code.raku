@@ -59,22 +59,26 @@ my %no-alias = set < MoveShowText MoveSetShowText TextNextLine >;
 # These tests are used with other tests so we don't 
 # test them individually:
 my %no-test = set < 
-Clip
-Save 
-Restore 
-BeginText 
-EndText 
-Stroke
-CloseStroke
-Fill
-FillStroke
-CloseFillStroke
+    Clip
+    Save 
+    Restore 
+    BeginText 
+    EndText 
+    Stroke
+    CloseStroke
+    Fill
+    FillStroke
+    CloseFillStroke
 >;
+
 # Some methods need special handling (context) in tests
 # Outside of a text block, these need to between BeginText/EndText pairs 
 my %need-BT-ET = set < TextMove TextMoveSet TextNextLine ShowText MoveShowText MoveSetShowText >;
 # These need to be between Save/Restore pairs
-my %need-q-Q = set < SetStrokeGray SetFillGray SetStrokeRGB SetFillRGB SetLineWidth SetLineCap SetLineJoin SetMiterLimit >;
+my %need-q-Q = set < SetDashPattern SetStrokeGray SetFillGray SetStrokeRGB SetFillRGB SetLineWidth SetLineCap SetLineJoin SetMiterLimit >;
+
+# These have an array as first param, scalar as second
+my %need-list-scalar = set < SetDashPattern >;
 
 class PMeth {
     # methods in the PDF::API6 list
@@ -342,7 +346,7 @@ sub write-pdf-method-tests($ofil, @pmethods, :$debug) {
     use Test;
     use File::Temp;
     use PDF::Document;
-    plan 37;
+    plan 39;
     # global vars
     my ($of, $fh) = tempfile;
     my ($doc, $x, $y);
@@ -428,7 +432,12 @@ sub get-val($a, $meth?) {
     }
 
     if $meth eq 'SetDashPattern' {
-        $val = '"some text"'
+        if $a ~~ /:i array / {
+            $val = '[4, 2]'
+        }
+        else {
+            $val = 0
+        }
     }
     elsif $meth eq 'SetRenderingIntent' {
         $val = '"some text"'
@@ -438,7 +447,7 @@ sub get-val($a, $meth?) {
 
 sub expand-args(@args, $meth?, :$spaces = SPACES4) {
     # expand args to add values
-    # my $arg-vals = expand-args @args)
+    # my $arg-vals = expand-args @args
     my $s = '';
     return $s unless @args;
 

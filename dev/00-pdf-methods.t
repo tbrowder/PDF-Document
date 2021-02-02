@@ -6,7 +6,7 @@
 use Test;
 use File::Temp;
 use PDF::Document;
-plan 37;
+plan 39;
 # global vars
 my ($of, $fh) = tempfile;
 my ($doc, $x, $y);
@@ -142,13 +142,29 @@ lives-ok {
 }, "testing method 'SetMiterLimit', alias 'M'";
 # test 19
 lives-ok {
+    $doc.q;
+    my $dashArray = [4, 2];
+    my $dashPhase = 0;
+    $doc.SetDashPattern($dashArray, $dashPhase);
+    $doc.Q;
+}, "testing method 'SetDashPattern'";
+# test 20
+lives-ok {
+    $doc.q;
+    my $dashArray = [4, 2];
+    my $dashPhase = 0;
+    $doc.d($dashArray, $dashPhase);
+    $doc.Q;
+}, "testing method 'SetDashPattern', alias 'd'";
+# test 21
+lives-ok {
     $doc.BT;
     my $tx = 100;
     my $ty = 100;
     $doc.TextMove($tx, $ty);
     $doc.ET;
 }, "testing method 'TextMove'";
-# test 20
+# test 22
 lives-ok {
     $doc.BT;
     my $tx = 100;
@@ -156,7 +172,7 @@ lives-ok {
     $doc.Td($tx, $ty);
     $doc.ET;
 }, "testing method 'TextMove', alias 'Td'";
-# test 21
+# test 23
 lives-ok {
     $doc.BT;
     my $tx = 100;
@@ -164,7 +180,7 @@ lives-ok {
     $doc.TextMoveSet($tx, $ty);
     $doc.ET;
 }, "testing method 'TextMoveSet'";
-# test 22
+# test 24
 lives-ok {
     $doc.BT;
     my $tx = 100;
@@ -172,34 +188,34 @@ lives-ok {
     $doc.TD($tx, $ty);
     $doc.ET;
 }, "testing method 'TextMoveSet', alias 'TD'";
-# test 23
+# test 25
 lives-ok {
     $doc.BT;
     $doc.TextNextLine;
     $doc.ET;
 }, "testing method 'TextNextLine'";
-# test 24
+# test 26
 lives-ok {
     $doc.BT;
     my $string = "some text";
     $doc.ShowText($string);
     $doc.ET;
 }, "testing method 'ShowText'";
-# test 25
+# test 27
 lives-ok {
     $doc.BT;
     my $string = "some text";
     $doc.Tj($string);
     $doc.ET;
 }, "testing method 'ShowText', alias 'Tj'";
-# test 26
+# test 28
 lives-ok {
     $doc.BT;
     my $string = "some text";
     $doc.MoveShowText($string);
     $doc.ET;
 }, "testing method 'MoveShowText'";
-# test 27
+# test 29
 lives-ok {
     $doc.BT;
     my $aw = 100;
@@ -208,31 +224,31 @@ lives-ok {
     $doc.MoveSetShowText($aw, $ac, $string);
     $doc.ET;
 }, "testing method 'MoveSetShowText'";
-# test 28
+# test 30
 lives-ok {
     my $x = 100;
     my $y = 100;
     $doc.MoveTo($x, $y);
 }, "testing method 'MoveTo'";
-# test 29
+# test 31
 lives-ok {
     my $x = 100;
     my $y = 100;
     $doc.m($x, $y);
 }, "testing method 'MoveTo', alias 'm'";
-# test 30
+# test 32
 lives-ok {
     my $x = 100;
     my $y = 100;
     $doc.LineTo($x, $y);
 }, "testing method 'LineTo'";
-# test 31
+# test 33
 lives-ok {
     my $x = 100;
     my $y = 100;
     $doc.l($x, $y);
 }, "testing method 'LineTo', alias 'l'";
-# test 32
+# test 34
 lives-ok {
     my $x1 = 100;
     my $y1 = 100;
@@ -242,7 +258,7 @@ lives-ok {
     my $y3 = 100;
     $doc.CurveTo($x1, $y1, $x2, $y2, $x3, $y3);
 }, "testing method 'CurveTo'";
-# test 33
+# test 35
 lives-ok {
     my $x1 = 100;
     my $y1 = 100;
@@ -252,15 +268,15 @@ lives-ok {
     my $y3 = 100;
     $doc.c($x1, $y1, $x2, $y2, $x3, $y3);
 }, "testing method 'CurveTo', alias 'c'";
-# test 34
+# test 36
 lives-ok {
     $doc.ClosePath;
 }, "testing method 'ClosePath'";
-# test 35
+# test 37
 lives-ok {
     $doc.h;
 }, "testing method 'ClosePath', alias 'h'";
-# test 36
+# test 38
 lives-ok {
     my $x = 100;
     my $y = 100;
@@ -268,7 +284,7 @@ lives-ok {
     my $Height = 100;
     $doc.Rectangle($x, $y, $width, $Height);
 }, "testing method 'Rectangle'";
-# test 37
+# test 39
 lives-ok {
     my $x = 100;
     my $y = 100;

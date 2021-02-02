@@ -21,8 +21,7 @@ SetLineCap(cap-style) | J | Set the line cap style in the graphics state (see Li
 SetLineJoin(join-style) | j | Set the line join style in the graphics state (see LineJoin enum)
 SetMiterLimit(ratio) | M | Set the miter limit in the graphics state
 
-# TODO fix:
-#SetDashPattern(dashArray, dashPhase) | d | Set the line dash pattern in the graphics state
+SetDashPattern(dashArray, dashPhase) | d | Set the line dash pattern in the graphics state
 
 # TODO fix:
 #SetRenderingIntent(intent) | ri | Set the colour rendering intent in the graphics state: AbsoluteColorimetric, RelativeColormetric, Saturation, or Perceptual
