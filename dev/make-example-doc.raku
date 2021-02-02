@@ -74,12 +74,12 @@ PARA
 .np; # for some more graphics examples
 
 .say: "polyline:", :y<7in>;
-my @pts = 1*i2p, 7*i2p, 4*i2p, 6.5*i2p, 3*i2p, 4*i2p;
+my @pts = 1*i2p, 7*i2p, 4*i2p, 6.5*i2p, 3*i2p, 5*i2p;
 .polyline: @pts;
 
 
-.say: "polyline:", :y<4in>;
-@pts = 1*i2p, 4*i2p, 4*i2p, 3.5*i2p, 3*i2p, 1*i2p;
+.say: "polygon:", :y<4in>;
+@pts = 1*i2p, 4*i2p, 4*i2p, 3.5*i2p, 3*i2p, 2*i2p;
 .polygon: @pts;
 
 .end-doc; # renders the pdf and saves the output
