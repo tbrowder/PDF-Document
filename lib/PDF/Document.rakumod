@@ -764,7 +764,7 @@ class Doc does PDF-role is export {
         #   adjust the total stroke line to have symmetrical results)
         self.SetDashPattern: @pattern, $phase;
     }
-    method setlinecap($level where {0 <= $_ <= 1}) {
+    method setlinejoin($level where {0 <= $_ <= 1}) {
     }
     method setgray($level where {0 <= $_ <= 1}) {
     }
@@ -1143,13 +1143,16 @@ class Doc does PDF-role is export {
         $radius = value2points $cy;
         $angle = value2radians $angle;
 
-        # northern hemisphere
-        # waxing, new moon to full moon, light increasing from the right (frac 0..1)
-        # waning, full moon to new moon, darkness increasing from the right (frac 1..0)
-
-        # southern hemisphere
-        # waxing, new moon to full moon, light increasing from the left(frac 0..1)
-        # waning, full moon to new moon, darkness increasing from the left (frac 1..0)
+        if $type.contains<wax> {
+            # waxing, new moon to full moon, light increasing from the right (frac 0..1)
+            # (from the left in the southern hemisphere)
+            self!moon-waxing: :$cx, :$cy, :$radius, :$angle, :$frac, :$hemi;
+        }
+        else {
+            # waning, full moon to new moon, darkness increasing from the right (frac 1..0)
+            # (from the left in the southern hemisphere)
+            self!moon-waning: :$cx, :$cy, :$radius, :$angle, :$frac, :$hemi;
+        }
     }
 
     # Many other methods are provided by roles "PDF-role"
