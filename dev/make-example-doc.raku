@@ -82,6 +82,29 @@ my @pts = 1*i2p, 7*i2p, 4*i2p, 6.5*i2p, 3*i2p, 5*i2p;
 @pts = 1*i2p, 4*i2p, 4*i2p, 3.5*i2p, 3*i2p, 2*i2p;
 .polygon: @pts;
 
+.np; # for some more graphics examples
+
+# moon phases waxing
+# frac: 0..1
+my @x = 0.5, 1, 2, 3, 4, 5, 6; # inches from the left margin
+my @y = 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9; # inches from the top margin
+my $np = @x.elems * @y.elems * 1;
+my $p = 0;
+my $radius = 0.4 * i2p;
+my $frac = 0;
+my $frac-delta = 1/($np-1);
+for @y -> $y {
+    my $cy = $y * i2p;
+    for @x -> $x {
+        my $cx = $x * i2p;
+        .moon-phase: :$cx, :$cy, :$radius, :$frac, :type<wax>;
+        $frac += $frac-delta;
+    }
+}
+
+
+
+
 .end-doc; # renders the pdf and saves the output
           # also numbers the pages if you requested it
 #=========== END THE LETTER =================

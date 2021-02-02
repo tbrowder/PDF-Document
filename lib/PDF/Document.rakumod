@@ -874,13 +874,13 @@ class Doc does PDF-role is export {
     # This is the method that the other rectangle methods should resolve to
     # as it actually renders the figure.
     method !draw-rectangle(Real $llx, Real $lly, Real $urx, Real $ury, 
-        Real :$angle, # radians
+        :$angle, # radians
         :$fill = False,
         :$linewidth = 0,
         ) {
         self.Save;
         if $angle.defined {
-            self.Transform: :rotate($angle);
+            self.page.gfx.transform: :rotate($angle);
         }
         self.SetLineWidth: $linewidth;
         self.MoveTo: $llx, $lly;
@@ -953,7 +953,7 @@ class Doc does PDF-role is export {
         my $lly = $cy - $hw;
         my $urx = $cx + $hh;
         my $ury = $cy + $hh;
-        self.draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle;
+        self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle;
     }
 
     method circular-arc(
@@ -1081,14 +1081,14 @@ class Doc does PDF-role is export {
         Real $cy,
         Real $radius where {$_ >= 0},
         Real $frac where {0 <= $_ <= 1},
-        Real :$angle,
+        :$angle,
         :$hemi where {/:i n|s/} = 'n',
         ) {
         
         self.Save;
-        self.Transform: :translate[$cx,$cy];
+        self.page.gfx.transform: :translate[$cx,$cy];
         if $angle.defined {
-            self.Transform: :rotate($angle);
+            self.page.gfx.transform: :rotate($angle);
         }
         if $hemi.defined and $hemi ~~ /:i s/ {
             ; # TODO fix this
@@ -1141,17 +1141,17 @@ class Doc does PDF-role is export {
         $cx = value2points $cx;
         $cy = value2points $cy;
         $radius = value2points $cy;
-        $angle = value2radians $angle;
+        $angle = value2radians($angle) if $angle.defined;
 
-        if $type.contains<wax> {
+        if $type.contains('wax') {
             # waxing, new moon to full moon, light increasing from the right (frac 0..1)
             # (from the left in the southern hemisphere)
-            self!moon-waxing: :$cx, :$cy, :$radius, :$angle, :$frac, :$hemi;
+            self!moon-waxing: $cx, $cy, $radius, $frac, :$angle, :$hemi;
         }
         else {
             # waning, full moon to new moon, darkness increasing from the right (frac 1..0)
             # (from the left in the southern hemisphere)
-            self!moon-waning: :$cx, :$cy, :$radius, :$angle, :$frac, :$hemi;
+            self!moon-waning: $cx, $cy, $radius, $frac, :$angle, :$hemi;
         }
     }
 
