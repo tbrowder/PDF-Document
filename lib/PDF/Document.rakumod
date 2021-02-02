@@ -758,7 +758,11 @@ class Doc does PDF-role is export {
     method setlinewidth($width where {$_ >= 0}) {
         self.SetLineWidth: $width;
     }
-    method setdash($level where {0 <= $_ <= 1}) {
+    method setdash(@pattern, $phase) {
+        # @pattern is an array of mark-space (on,off) lengths in PS points to describe the dash pattern
+        # $phase is the offset distance to the start of the first dash pattern (used to
+        #   adjust the total stroke line to have symmetrical results)
+        self.SetDashPattern: @pattern, $phase;
     }
     method setlinecap($level where {0 <= $_ <= 1}) {
     }
@@ -1068,7 +1072,6 @@ class Doc does PDF-role is export {
         if $hemi.defined and $hemi ~~ /:i s/ {
             ; # TODO fix this
         }
-
         self.Restore;
     }
 
