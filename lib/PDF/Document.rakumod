@@ -129,7 +129,7 @@ class DocFont is export {
     method first-line-height {
         # distance from baseline to top of highest char in the font,
         # get from bbox ury
-        $!afm.FontBBox[3]
+        $!afm.FontBBox[3] * $!sf;
     }
 
     #| UnderlinePosition
@@ -717,6 +717,7 @@ class Doc does PDF-role is export {
         $!cpy = $y;
     }
     method np() is export {
+        note "DEBUG: first-line-height = {$!font.first-line-height} points";
         $!page = $!pdf.add-page;
         # TODO set current point to x=lm, y= height of highest char in curr font
         # set my current point
@@ -813,10 +814,12 @@ class Doc does PDF-role is export {
         return $val;
     }
 
-    multi method ellipse(:$x!, :$y!, :$a!, :$b!, 
+    method ellipse(:$x!, :$y!, :$a!, :$b!, 
+        :$angle is copy,
         :$fill = False, 
         :$linewidth = 0
         ) {
+        $angle = value2radians $angle if $angle.defined;
         my $cx = value2points $x;
         my $cy = value2points $y;
         my $ca = value2points $a;
@@ -824,10 +827,14 @@ class Doc does PDF-role is export {
         self!draw-ellipse($cx, $cy, $ca, $cb, :$fill, :$linewidth);
     }
     method !draw-ellipse($x, $y, $a, $b, 
+        Real :$angle, # radians
         :$fill = False, 
         :$linewidth = 0
         ) {
         self.Save;
+        if $angle.defined {
+            self.Transform: :rotate($angle);
+        }
         self.SetLineWidth: $linewidth;
         # from stack overflow: copyright 2022 by Spencer Mortenson
         # treat $a as length in x direction, $b as length in y direction
@@ -845,13 +852,17 @@ class Doc does PDF-role is export {
         self.Restore;
     }
 
-    # this is the method that the other rectangle methods should resolve to
-    # as it actually renders the figure
+    # This is the method that the other rectangle methods should resolve to
+    # as it actually renders the figure.
     method !draw-rectangle(Real $llx, Real $lly, Real $urx, Real $ury, 
+        Real :$angle, # radians
         :$fill = False,
         :$linewidth = 0,
         ) {
         self.Save;
+        if $angle.defined {
+            self.Transform: :rotate($angle);
+        }
         self.SetLineWidth: $linewidth;
         self.MoveTo: $llx, $lly;
         self.LineTo: $urx, $lly;
@@ -863,9 +874,11 @@ class Doc does PDF-role is export {
         self.Restore;
     }
     multi method rectangle(:$llx! is copy, :$ury! is copy, :$width!, :$height!, 
+        :$angle is copy,
         :$fill = False,
         :$linewidth = 0
         ) {
+        $angle = value2radians $angle if $angle.defined;
         # from upper-left corner
         $llx = value2points $llx;
         $ury = value2points $ury;
@@ -873,12 +886,14 @@ class Doc does PDF-role is export {
         my $h = value2points $height;
         my $urx = $llx + $w;
         my $lly = $ury - $h;
-        self.draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth;
+        self.draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle;
     }
     multi method rectangle(:$urx! is copy, :$ury! is copy, :$width!, :$height!, 
+        :$angle is copy,
         :$fill = False,
         :$linewidth = 0
         ) {
+        $angle = value2radians $angle if $angle.defined;
         # from upper-right corner
         $urx = value2points $urx;
         $ury = value2points $ury;
@@ -886,12 +901,14 @@ class Doc does PDF-role is export {
         my $h = value2points $height;
         my $llx = $urx - $w;
         my $lly = $ury - $h;
-        self.draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth;
+        self.draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle;
     }
     multi method rectangle(:$urx! is copy, :$lly! is copy, :$width!, :$height!, 
+        :$angle is copy,
         :$fill = False,
         :$linewidth = 0
         ) {
+        $angle = value2radians $angle if $angle.defined;
         # from lower-right corner
         $urx = value2points $urx;
         $lly = value2points $lly;
@@ -899,7 +916,25 @@ class Doc does PDF-role is export {
         my $h = value2points $height;
         my $llx = $urx - $w;
         my $ury = $lly + $h;
-        self.draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth;
+        self.draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle;
+    }
+    multi method rectangle(:$cx! is copy, :$cy! is copy, :$width!, :$height!, 
+        :$angle is copy,
+        :$fill = False,
+        :$linewidth = 0
+        ) {
+        $angle = value2radians $angle if $angle.defined;
+        # from the center 
+        $cx = value2points $cx;
+        $cy = value2points $cy;
+        my $hw = 0.5 * value2points $width;
+        my $hh = 0.5 * value2points $height;
+
+        my $llx = $cx - $hw;
+        my $lly = $cy - $hw;
+        my $urx = $cx + $hh;
+        my $ury = $cy + $hh;
+        self.draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle;
     }
 
     method circular-arc(
@@ -1002,17 +1037,86 @@ class Doc does PDF-role is export {
         self.polyline: @pts, :$fill, :closepath(True), :$linewidth;
     }
 
+    method !moon-waning(
+        # waning, Full Moon to New moon, darkness increasing from the right (frac 1..0)
+        Real :$cx! is copy,
+        Real :$cy! is copy,
+        Real :$radius! where {$_ >= 0},
+        Real :$frac! where {0 <= $_ <= 1},
+        Real :$angle,
+        :$hemi where {/:i n|s/} = 'n',
+        ) {
+        self.Save;
+        if $angle.defined {
+            self.Transform: :rotate($angle);
+        }
+        if $hemi.defined and $hemi ~~ /:i s/ {
+            ; # TODO fix this
+        }
+
+        self.Restore;
+    }
+
+    method !moon-waxing(
+        # waxing, New Moon to Full Moon, light increasing from the right (frac 0..1)
+        Real $cx,
+        Real $cy,
+        Real $radius where {$_ >= 0},
+        Real $frac where {0 <= $_ <= 1},
+        Real :$angle,
+        :$hemi where {/:i n|s/} = 'n',
+        ) {
+        
+        self.Save;
+        if $angle.defined {
+            self.Transform: :rotate($angle);
+        }
+        if $hemi.defined and $hemi ~~ /:i s/ {
+            ; # TODO fix this
+        }
+        if $frac < 0.5 {
+            # New Moon to First Quarter
+            # 1. left semicircle is black
+            #    make black circle
+            self.circle;
+            #    make white square covering right semicircle
+            self.rectangle;
+            # 2. black on right semicircle is 0.5 - frac
+            #    make black-filled ellipse with b = radius * (0.5 - frac)
+            self.ellipse;
+        }
+        elsif $frac > 0.5 {
+            # First Quarter to Full Moon
+            # 1. right semicircle is white
+            #    make black circle
+            self.circle;
+            #    make white square covering right semicircle
+            self.polygon;
+            # 2. white on left semicircle is frac - 0.5
+            #    make white-filled ellipse with b = radius * (frac - 0.5)
+            self.ellipse;
+        }
+        # 3. stroke the circle's circumference
+        self.circle;
+        self.Restore;
+    }
+
     method moon-phase(
         :$cx! is copy,
         :$cy! is copy,
-        :$radius! where {$_ >= 0},
+        :$radius! is copy,
         :$frac! where {0 <= $_ <= 1},
         :$type! where {/:i wax|wan/},
         :$hemi where {/:i n|s/} = 'n',
+        :$angle is copy,
         ) {
         # Until we get circular and elliptical arcs we will have
         # to use circles and ellipses and overlay black with 
         # white for certain input combinations.
+        $cx = value2points $cx;
+        $cy = value2points $cy;
+        $radius = value2points $cy;
+        $angle = value2radians $angle;
 
         # northern hemisphere
         # waxing, new moon to full moon, light increasing from the right (frac 0..1)
