@@ -93,11 +93,13 @@ my $p = 0;
 my $radius = 0.4 * i2p;
 my $frac = 0;
 my $frac-delta = 1/($np-1);
-for @y -> $y {
-    my $cy = $y * i2p;
+PTS: for @y -> $y {
+    my $dy = $y * i2p;
+    my $cy = .pheight - .tm - $dy;
     for @x -> $x {
         my $cx = $x * i2p;
         .moon-phase: :$cx, :$cy, :$radius, :$frac, :type<wax>;
+        last PTS if 1;
         $frac += $frac-delta;
     }
 }
@@ -109,4 +111,3 @@ for @y -> $y {
           # also numbers the pages if you requested it
 #=========== END THE LETTER =================
 } # don't forget to close the 'given...' block
-
