@@ -5,6 +5,8 @@ use PDF::Document;
 use PDF::Lite;
 use Font::AFM;
 
+say "Tests the font factory";
+
 # test with a pdf doc
 my $pdf = PDF::Lite.new;
 # quickie font factory checks
