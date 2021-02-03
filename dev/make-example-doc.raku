@@ -86,24 +86,45 @@ my @pts = 1*i2p, 7*i2p, 4*i2p, 6.5*i2p, 3*i2p, 5*i2p;
 
 # moon phases waxing
 # frac: 0..1
-my @x = 0.5, 1, 2, 3, 4, 5, 6; # inches from the left margin
-my @y = 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9; # inches from the top margin
-my $np = @x.elems * @y.elems * 1;
-my $p = 0;
-my $radius = 0.4 * i2p;
+my $dx = 0.75 * i2p; # points
+my $dy = 1.00 * i2p; # points
+my @x; # array of x points
+my @y; # array of y points
+my $radius = 0.2 * i2p;
+# starting points:
+my $sx = .lm + $dx;
+my $sy = .pheight - .tm - $dy;
+# ending points:
+my $ex = .pwidth - .rm - $dx;
+my $ey = .bm + $dy;
+# create the x and y points
+my ($px,$py) = $sx, $sy;
+while $px <= $ex { @x.push: $px; $px += $dx; }
+while $py >= $ey { @y.push: $py; $py -= $dy; }
+my $np = @x.elems * @y.elems;
 my $frac = 0;
 my $frac-delta = 1/($np-1);
-PTS: for @y -> $y {
-    my $dy = $y * i2p;
-    my $cy = .pheight - .tm - $dy;
-    for @x -> $x {
-        my $cx = $x * i2p;
+PTS: for @y -> $cy {
+    for @x -> $cx {
+        note "DEBUG: moon-phase: cx = $cx, cy = $cy, radius = $radius, frac = $frac";
         .moon-phase: :$cx, :$cy, :$radius, :$frac, :type<wax>;
-        last PTS if 1;
+        last PTS if 0;
         $frac += $frac-delta;
     }
 }
 
+.np;
+
+$frac = 1;
+
+PTS2: for @y -> $cy {
+    for @x -> $cx {
+        note "DEBUG: moon-phase: cx = $cx, cy = $cy, radius = $radius, frac = $frac";
+        .moon-phase: :$cx, :$cy, :$radius, :$frac, :type<wan>;
+        last PTS2 if 0;
+        $frac -= $frac-delta;
+    }
+}
 
 
 

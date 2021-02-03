@@ -688,7 +688,7 @@ class Doc does PDF-role is export {
         $!page = $!pdf.add-page;
         # set my current point
         $!cpx = $!x0;
-        $!cpy = $!pheight - $!tm - $!font.first-line-height; 
+        $!cpy = $!pheight - $!tm - $!font.first-line-height;
     }
 
     method end-doc($file-name?) is export {
@@ -719,8 +719,8 @@ class Doc does PDF-role is export {
         for 1 .. $npages -> $n {
             my $page = self.pdf.page: $n;
             # TODO pass the font in the print call
-            $page.gfx.print: "Page $n of $npages", :position[$x, $y], 
-                :font($font.font), :font-size($font.size), 
+            $page.gfx.print: "Page $n of $npages", :position[$x, $y],
+                :font($font.font), :font-size($font.size),
                 :align<right>;
         }
     }
@@ -810,9 +810,11 @@ class Doc does PDF-role is export {
         ) {
         self.Save;
         if $angle.defined {
-            self.Transform: :rotate($angle);
+            self.page.gfx.transform: :rotate($angle);
         }
         self.SetLineWidth: $linewidth;
+
+        note "DEBUG: draw-ellipse: x = $x, y = $y, a = $a, b = $b";
         # from stack overflow: copyright 2022 by Spencer Mortenson
         # treat $a as length in x direction, $b as length in y direction
         constant c = 0.551915024495;
@@ -1034,20 +1036,51 @@ class Doc does PDF-role is export {
 
     method !moon-waning(
         # waning, Full Moon to New moon, darkness increasing from the right (frac 1..0)
-        Real :$cx! is copy,
-        Real :$cy! is copy,
-        Real :$radius! where {$_ >= 0},
-        Real :$frac! where {0 <= $_ <= 1},
-        Real :$angle,
+        Real $cx,
+        Real $cy,
+        Real $radius where {$_ >= 0},
+        Real $frac where {0 <= $_ <= 1},
+        :$angle,
         :$hemi where {/:i n|s/} = 'n',
         ) {
         self.Save;
+        self.page.gfx.transform: :translate[$cx,$cy];
         if $angle.defined {
-            self.Transform: :rotate($angle);
+            self.page.gfx.transform: :rotate($angle);
         }
         if $hemi.defined and $hemi ~~ /:i s/ {
             ; # TODO fix this
         }
+        if $frac < 0.5 {
+            # Third Quarter to New Moon
+            # 1. left semicircle is white
+            #    make black-filled circle
+            self!draw-circle: 0, 0, $radius, :fill(True);
+            #    make white square covering right semicircle
+            self.setgray: 1;
+            self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
+            self.setgray: 0;
+            # 2. black on right semicircle is 0.5 - frac
+            #    make black-filled ellipse with a = radius * (0.5 - frac)
+            self!draw-ellipse: 0, 0, $radius * (0.5 - $frac), $radius, :fill(True);
+        }
+        elsif $frac > 0.5 {
+            # Full Moon to Third Quarter
+            # 1. right semicircle is white
+            #    make black circle
+            self!draw-circle: 0, 0, $radius, :fill(True);
+            #    make white-filled square covering right semicircle
+            self.setgray: 1;
+            self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
+            self.setgray: 0;
+            # 2. white on left semicircle is frac - 0.5
+            #    make white-filled ellipse with a = radius * (frac - 0.5)
+            self.setgray: 1;
+            self!draw-ellipse: 0, 0, $radius * ($frac - 0.5), $radius, :fill(True);
+            self.setgray: 0;
+        }
+        # 3. stroke the circle's circumference
+        self!draw-circle: 0, 0, $radius;
         self.Restore;
     }
 
@@ -1116,7 +1149,7 @@ class Doc does PDF-role is export {
         # white for certain input combinations.
         $cx     = value2points $cx;
         $cy     = value2points $cy;
-        $radius = value2points $cy;
+        $radius = value2points $radius;
         $angle  = value2radians($angle) if $angle.defined;
 
         if $type.contains('wax') {
