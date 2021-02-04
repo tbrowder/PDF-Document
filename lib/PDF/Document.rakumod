@@ -1061,8 +1061,9 @@ class Doc does PDF-role is export {
             self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
             self.setgray: 0;
             # 2. black on right semicircle is 0.5 - frac
-            #    make black-filled ellipse with a = radius * (0.5 - frac)
-            self!draw-ellipse: 0, 0, $radius * (0.5 - $frac), $radius, :fill(True);
+            #    make black-filled ellipse with a = radius - (2 * radius * frac)
+            my $dfa = 2 * $radius * $frac;
+            self!draw-ellipse: 0, 0, $radius - $dfa, $radius, :fill(True);
         }
         elsif $frac > 0.5 {
             # Full Moon to Third Quarter
@@ -1074,9 +1075,10 @@ class Doc does PDF-role is export {
             self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
             self.setgray: 0;
             # 2. white on left semicircle is frac - 0.5
-            #    make white-filled ellipse with a = radius * (frac - 0.5)
+            #    make white-filled ellipse with a = (2 * radius * frac) - radius
             self.setgray: 1;
-            self!draw-ellipse: 0, 0, $radius * ($frac - 0.5), $radius, :fill(True);
+            my $dfa = 2 * $radius * $frac;
+            self!draw-ellipse: 0, 0, $dfa - $radius, $radius, :fill(True);
             self.setgray: 0;
         }
         # 3. stroke the circle's circumference
@@ -1111,9 +1113,12 @@ class Doc does PDF-role is export {
             self.setgray: 1;
             self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
             self.setgray: 0;
-            # 2. black on right semicircle is 0.5 - frac
-            #    make black-filled ellipse with a = radius * (0.5 - frac)
-            self!draw-ellipse: 0, 0, $radius * (0.5 - $frac), $radius, :fill(True);
+            # 2. black on right semicircle 
+            #    when frac = 0.0, a = radius
+            #    when frac = 0.5, a = 0
+            #    make black-filled ellipse with a = radius - (2 * radius * frac)
+            my $dfa = 2 * $radius * $frac;
+            self!draw-ellipse: 0, 0, $radius - $dfa, $radius, :fill(True);
         }
         elsif $frac > 0.5 {
             # First Quarter to Full Moon
@@ -1124,10 +1129,13 @@ class Doc does PDF-role is export {
             self.setgray: 1;
             self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
             self.setgray: 0;
-            # 2. white on left semicircle is frac - 0.5
-            #    make white-filled ellipse with a = radius * (frac - 0.5)
+            # 2. white on left semicircle 
+            #    when frac = 1.0, a = radius
+            #    when frac = 0.5, a = 0
+            #    make white-filled ellipse with a = (2 * radius * frac) - radius
+            my $dfa = 2 * $radius * $frac;
             self.setgray: 1;
-            self!draw-ellipse: 0, 0, $radius * ($frac - 0.5), $radius, :fill(True);
+            self!draw-ellipse: 0, 0, $dfa - $radius, $radius, :fill(True);
             self.setgray: 0;
         }
         # 3. stroke the circle's circumference
