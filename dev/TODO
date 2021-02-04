@@ -1,0 +1,9 @@
+Need to handle color generally, particularly for geometric
+  objects
+Maybe a color class with r,g,b attrs:
+  if only r is defined it's a gray value, but r,g,b defined is color
+  that should work for rgb color (could add cmyk)
+
+Make all geom objects classes with color role
+
+

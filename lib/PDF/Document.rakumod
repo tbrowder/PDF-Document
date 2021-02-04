@@ -395,25 +395,34 @@ class Doc does PDF-role is export {
         return ($font, $size);
     }
 
-    multi method line(List $from, :$length!, :$angle!, :$linewidth = 0) {
+    multi method line(List $from, :$length!, :$angle!, 
+        :$color = [0], # black
+        :$linewidth = 0
+        ) {
         my $x0  = value2points $from.begin;
         my $y0  = value2points $from.end;
         my $len = value2points $length;
         my $ang = value2radians $angle; # convert to default radians if need be
         my $x1  = $ang.sin * $len;
         my $y1  = $ang.cos * $len;
-        self.line: $x0, $y0, $x1, $y1, :$linewidth;
+        self.line: $x0, $y0, $x1, $y1, :$linewidth, :$color;
     }
-    multi method line(List $from, List $to, :$linewidth = 0) {
+    multi method line(List $from, List $to, 
+        :$color = [0], # black
+        :$linewidth = 0
+        ) {
         my $x0 = value2points $from.begin;
         my $y0 = value2points $from.end;
         my $x1 = value2points $to.begin;
         my $y1 = value2points $to.end;
-        self.line: $x0, $y0, $x1, $y1, :$linewidth;
+        self.line: $x0, $y0, $x1, $y1, :$linewidth, :$color;
     }
-    multi method line(Real $x0, Real $y0, Real $x1, Real $y1, :$linewidth = 0) {
+    multi method line(Real $x0, Real $y0, Real $x1, Real $y1, 
+        :$color = [0], # black
+        :$linewidth = 0
+        ) {
         self.Save;
-        self.SetLineWidth: $linewidth;
+        self.SetLineWidth: $linewidth, :$color;
         self.MoveTo: $x0, $y0;
         self.LineTo: $x1, $y1;
         self.Stroke;
@@ -718,7 +727,6 @@ class Doc does PDF-role is export {
         note "DEBUG: printing page number on $npages pages";
         for 1 .. $npages -> $n {
             my $page = self.pdf.page: $n;
-            # TODO pass the font in the print call
             $page.gfx.print: "Page $n of $npages", :position[$x, $y],
                 :font($font.font), :font-size($font.size),
                 :align<right>;
@@ -727,7 +735,8 @@ class Doc does PDF-role is export {
     method setlinewidth($width where {$_ >= 0}) {
         self.SetLineWidth: $width;
     }
-    method setdash(@pattern, $phase) {
+    method setdash(@pattern, $phase, $color?) {
+        # TODO test this
         # @pattern is an array of mark-space (on,off) lengths in PS points to describe the dash pattern
         # $phase is the offset distance to the start of the first dash pattern (used to
         #   adjust the total stroke line to have symmetrical results)
@@ -794,6 +803,7 @@ class Doc does PDF-role is export {
     method ellipse(:$x!, :$y!, :$a!, :$b!,
         :$angle is copy,
         :$fill = False,
+        :$color = [0], # black
         :$linewidth = 0
         ) {
         $angle = value2radians $angle if $angle.defined;
@@ -801,18 +811,19 @@ class Doc does PDF-role is export {
         my $cy = value2points $y;
         my $ca = value2points $a;
         my $cb = value2points $b;
-        self!draw-ellipse($cx, $cy, $ca, $cb, :$fill, :$linewidth);
+        self!draw-ellipse($cx, $cy, $ca, $cb, :$fill, :$linewidth, :$color);
     }
     method !draw-ellipse($x, $y, $a, $b,
         Real :$angle, # radians
         :$fill = False,
+        :$color = [0], # black
         :$linewidth = 0
         ) {
         self.Save;
         if $angle.defined {
             self.page.gfx.transform: :rotate($angle);
         }
-        self.SetLineWidth: $linewidth;
+        self.SetLineWidth: $linewidth, :$color;
 
         note "DEBUG: draw-ellipse: x = $x, y = $y, a = $a, b = $b";
         # from stack overflow: copyright 2022 by Spencer Mortenson
@@ -835,6 +846,8 @@ class Doc does PDF-role is export {
             else { self.Stroke; }
         }
         else {
+            # Draw the elipse starting at the top and working
+            # counterclockwise.
             self.page.gfx.transform: :translate[$x, $y];
             self.MoveTo: 0*$a, 1*$b;
             # use four curves (x/y)
@@ -854,6 +867,7 @@ class Doc does PDF-role is export {
     method !draw-rectangle(Real $llx, Real $lly, Real $urx, Real $ury,
         :$angle, # radians
         :$fill = False,
+        :$color = [0], # black
         :$linewidth = 0,
         ) {
         self.Save;
@@ -873,6 +887,7 @@ class Doc does PDF-role is export {
     multi method rectangle(:$llx! is copy, :$ury! is copy, :$width!, :$height!,
         :$angle is copy,
         :$fill = False,
+        :$color = [0], # black
         :$linewidth = 0
         ) {
         $angle = value2radians $angle if $angle.defined;
@@ -883,11 +898,12 @@ class Doc does PDF-role is export {
         my $h = value2points $height;
         my $urx = $llx + $w;
         my $lly = $ury - $h;
-        self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle;
+        self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle, :$color;
     }
     multi method rectangle(:$urx! is copy, :$ury! is copy, :$width!, :$height!,
         :$angle is copy,
         :$fill = False,
+        :$color = [0], # black
         :$linewidth = 0
         ) {
         $angle = value2radians $angle if $angle.defined;
@@ -898,11 +914,12 @@ class Doc does PDF-role is export {
         my $h = value2points $height;
         my $llx = $urx - $w;
         my $lly = $ury - $h;
-        self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle;
+        self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle, :$color;
     }
     multi method rectangle(:$urx! is copy, :$lly! is copy, :$width!, :$height!,
         :$angle is copy,
         :$fill = False,
+        :$color = [0], # black
         :$linewidth = 0
         ) {
         $angle = value2radians $angle if $angle.defined;
@@ -913,11 +930,12 @@ class Doc does PDF-role is export {
         my $h = value2points $height;
         my $llx = $urx - $w;
         my $ury = $lly + $h;
-        self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle;
+        self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle, :$color;
     }
     multi method rectangle(:$cx! is copy, :$cy! is copy, :$width!, :$height!,
         :$angle is copy,
         :$fill = False,
+        :$color = [0], # black
         :$linewidth = 0
         ) {
         $angle = value2radians $angle if $angle.defined;
@@ -931,27 +949,52 @@ class Doc does PDF-role is export {
         my $lly = $cy - $hw;
         my $urx = $cx + $hh;
         my $ury = $cy + $hh;
-        self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle;
+        self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle, :$color;
+    }
+
+    method wedge(
+        # TODO finish
+        :$cx! is copy, :$cy! is copy, :$radius!,
+        :$start-angle!, :$end-angle!,
+        :$fill = False,
+        :$color = [0], # black
+        :$linewidth = 0
+        ) {
     }
 
     method circular-arc(
-        :$cx! is copy, :$cy! is copy,
+        # TODO finish
+        :$cx! is copy, :$cy! is copy, :$radius!,
         :$start-angle!, :$end-angle!,
         :$fill = False,
+        :$color = [0], # black
         :$linewidth = 0
         ) {
-        $cx = value2points $cx;
-        $cy = value2points $cy;
+        $cx    = value2points $cx;
+        $cy    = value2points $cy;
+        my $r  = value2points $radius;
         my $sa = value2radians $start-angle;
         my $ea = value2radians $end-angle;
+        # Scheme is to create the circle, then
+        # create a triangle to cut out the 
+        # perimeter between the desired angles.
+        self.Save;
+        # translate to the center
+        # rotate
+        # create the circle
+        # create the cutting wedge with radius 2r
+        self.wedge: :cx(0), :cy(0), :radius(2*$r), :start-angle($sa), :end-angle($ea), :fill(True);
+        self.Restore;
     }
 
     method elliptical-arc(
-        :$cx! is copy, :$cy! is copy,
+        # TODO finish
+        :$cx! is copy, :$cy! is copy, :$radius!,
         :$a! is copy, :$b! is copy,
         :$start-angle!, :$end-angle!,
         :$rot-angle = 0,
         :$fill = False,
+        :$color = [0], # black
         :$linewidth = 0
         ) {
         $cx = value2points $cx;
@@ -961,10 +1004,14 @@ class Doc does PDF-role is export {
         my $sa = value2radians $start-angle;
         my $ea = value2radians $end-angle;
         my $ra = value2radians $rot-angle;
+        # Scheme is to create the ellipse, then
+        # create a triangle to cut out the 
+        # perimeter between the desired angles.
     }
 
     multi method rectangle(:$llx! is copy, :$lly! is copy, :$width!, :$height!,
         :$fill = False,
+        :$color = [0], # black
         :$linewidth = 0
         ) {
         # from lower-left corner
@@ -974,20 +1021,22 @@ class Doc does PDF-role is export {
         my $h = value2points $height;
         my $urx = $llx + $w;
         my $ury = $lly + $h;
-        self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth;
+        self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$color;
     }
 
     multi method circle(:$x!, :$y!, :$radius!,
         :$fill = False,
+        :$color = [0], # black
         :$linewidth = 0
         ) {
         my $cx = value2points $x;
         my $cy = value2points $y;
         my $cr = value2points $radius;
-        self!draw-circle($cx, $cy, $cr, :$fill, :$linewidth);
+        self!draw-circle($cx, $cy, $cr, :$fill, :$linewidth, :$color);
     }
     method !draw-circle($x, $y, $r,
         :$fill = False,
+        :$color = [0], # black
         :$linewidth =0
         ) {
         self.Save;
@@ -1006,7 +1055,10 @@ class Doc does PDF-role is export {
         self.Restore;
     }
 
-    method polyline(@pts, :$fill = False, :$closepath = False, :$linewidth = 0) {
+    method polyline(@pts, :$fill = False, :$closepath = False, 
+        :$color = [0], # black
+        :$linewidth = 0
+        ) {
         # array of x/y points, path is not closed
         my $np = @pts.elems;
         die "FATAL: polyline points array is empty" if not $np;
@@ -1026,12 +1078,15 @@ class Doc does PDF-role is export {
         else { self.Stroke; }
         self.Restore;
     }
-    method polygon(@pts, :$fill = False, :$linewidth = 0) {
+    method polygon(@pts, :$fill = False, 
+        :$color = [0], # black
+        :$linewidth = 0
+        ) {
         # array of x/y points, path is closed
         my $np = @pts.elems;
         die "FATAL: polygon points array is empty" if not @pts.elems;
         die "FATAL: polygon points array ($np pts) must have an even number of entries" if $np mod 2;
-        self.polyline: @pts, :$fill, :closepath(True), :$linewidth;
+        self.polyline: @pts, :$fill, :closepath(True), :$linewidth, :$color;
     }
 
     method !moon-waning(
@@ -1051,35 +1106,36 @@ class Doc does PDF-role is export {
         if $hemi.defined and $hemi ~~ /:i s/ {
             ; # TODO fix this
         }
-        if $frac < 0.5 {
-            # Third Quarter to New Moon
-            # 1. left semicircle is white
-            #    make black-filled circle
-            self!draw-circle: 0, 0, $radius, :fill(True);
-            #    make white square covering right semicircle
-            self.setgray: 1;
-            self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
-            self.setgray: 0;
-            # 2. black on right semicircle is 0.5 - frac
-            #    make black-filled ellipse with a = radius - (2 * radius * frac)
-            my $dfa = 2 * $radius * $frac;
-            self!draw-ellipse: 0, 0, $radius - $dfa, $radius, :fill(True);
-        }
-        elsif $frac > 0.5 {
+        # TODO fix waning
+        if $frac > 0.5 {
             # Full Moon to Third Quarter
-            # 1. right semicircle is white
+            # 1. right semicircle is white to begin with
             #    make black circle
             self!draw-circle: 0, 0, $radius, :fill(True);
-            #    make white-filled square covering right semicircle
+            #    make white-filled square covering left semicircle
             self.setgray: 1;
-            self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
+            self.rectangle: :cx(-$radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
             self.setgray: 0;
-            # 2. white on left semicircle is frac - 0.5
+            # 2. white on right semicircle is frac - 0.5
             #    make white-filled ellipse with a = (2 * radius * frac) - radius
             self.setgray: 1;
             my $dfa = 2 * $radius * $frac;
             self!draw-ellipse: 0, 0, $dfa - $radius, $radius, :fill(True);
             self.setgray: 0;
+        }
+        elsif $frac < 0.5 {
+            # Third Quarter to New Moon
+            # 1. left semicircle is white to begin with
+            #    make black-filled circle
+            self!draw-circle: 0, 0, $radius, :fill(True);
+            #    make white square covering left semicircle
+            self.setgray: 1;
+            self.rectangle: :cx(-$radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
+            self.setgray: 0;
+            # 2. black on left semicircle is 0.5 - frac
+            #    make black-filled ellipse with a = radius - (2 * radius * frac)
+            my $dfa = 2 * $radius * $frac;
+            self!draw-ellipse: 0, 0, $radius - $dfa, $radius, :fill(True);
         }
         # 3. stroke the circle's circumference
         self!draw-circle: 0, 0, $radius;
@@ -1113,7 +1169,7 @@ class Doc does PDF-role is export {
             self.setgray: 1;
             self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
             self.setgray: 0;
-            # 2. black on right semicircle 
+            # 2. black on right semicircle
             #    when frac = 0.0, a = radius
             #    when frac = 0.5, a = 0
             #    make black-filled ellipse with a = radius - (2 * radius * frac)
@@ -1129,7 +1185,7 @@ class Doc does PDF-role is export {
             self.setgray: 1;
             self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
             self.setgray: 0;
-            # 2. white on left semicircle 
+            # 2. white on left semicircle
             #    when frac = 1.0, a = radius
             #    when frac = 0.5, a = 0
             #    make white-filled ellipse with a = (2 * radius * frac) - radius
