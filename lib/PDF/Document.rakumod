@@ -769,11 +769,21 @@ class Doc does PDF-role is export {
         }
     }
 
-    method setcmyk($c where {0 <= $_ <= 1},
-                   $m where {0 <= $_ <= 1},
-                   $y where {0 <= $_ <= 1},
-                   $k where {0 <= $_ <= 1},
-                 ) {
+    method setcmyk(*@a) {
+        my $ne = @a.elems;
+        if $ne != 4 {
+            die "FATAL: cmyk method requires 4 values but received $ne";
+        }
+        my ($c,$m,$y,$k) = @a;
+        self!set-cmyk: $c, $m, $y, $k;
+    }
+
+    method !set-cmyk(
+        $c where {0 <= $_ <= 1},
+        $m where {0 <= $_ <= 1},
+        $y where {0 <= $_ <= 1},
+        $k where {0 <= $_ <= 1},
+        ) {
         use PDF::Content::Color :cmyk;
         self.gfx.FillColor:   cmyk($c, $m, $y, $k);
         self.gfx.StrokeColor: cmyk($c, $m, $y, $k);
@@ -785,12 +795,12 @@ class Doc does PDF-role is export {
             die "FATAL: rgb method requires 3 values but received $ne";
         }
         my ($r,$g,$b) = @a;
-        self!set-rgb: :$r, :$g, :$b;
+        self!set-rgb: $r, $g, $b;
     }
     method !set-rgb(
-        :$r! where {0 <= $_ <= 1},
-        :$g! where {0 <= $_ <= 1},
-        :$b! where {0 <= $_ <= 1},
+        $r where {0 <= $_ <= 1},
+        $g where {0 <= $_ <= 1},
+        $b where {0 <= $_ <= 1},
         ) {
         self.SetStrokeRGB: $r, $g, $b;
         self.SetFillRGB:   $r, $g, $b;
