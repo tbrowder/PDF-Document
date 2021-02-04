@@ -748,13 +748,54 @@ class Doc does PDF-role is export {
         self.SetStrokeGray: $level;
         self.SetFillGray:   $level;
     }
-    method setrgb($r where {0 <= $_ <= 1},
-                  $g where {0 <= $_ <= 1},
-                  $b where {0 <= $_ <= 1},
-                 ) {
-        self.SetStrokeColor: $r, $g, $b;
-        self.SetFillColor:   $r, $g, $b;
+    method setcolor(
+        $color # a list of 1 to 4 elements
+        ) {
+        my $ne = $color.elems;
+        if $ne == 1 {
+            # gray
+            self.setgray: $color[0];
+        }
+        elsif $ne == 3 {
+            # rgb
+            self.setrgb: $color[*];
+        }
+        elsif $ne == 4 {
+            # cmyk
+            self.setcmyk: $color[*];
+        }
+        else {
+            die "FATAL: color method has $ne elements but should have 1 (gray level), 3 (RGB) , or 4 (CYMK)";
+        }
     }
+
+    method setcmyk($c where {0 <= $_ <= 1},
+                   $m where {0 <= $_ <= 1},
+                   $y where {0 <= $_ <= 1},
+                   $k where {0 <= $_ <= 1},
+                 ) {
+        use PDF::Content::Color :cmyk;
+        self.gfx.FillColor:   cmyk($c, $m, $y, $k);
+        self.gfx.StrokeColor: cmyk($c, $m, $y, $k);
+    }
+
+    method setrgb(*@a) {
+        my $ne = @a.elems;
+        if $ne != 3 {
+            die "FATAL: rgb method requires 3 values but received $ne";
+        }
+        my ($r,$g,$b) = @a;
+        self!set-rgb: :$r, :$g, :$b;
+    }
+    method !set-rgb(
+        :$r! where {0 <= $_ <= 1},
+        :$g! where {0 <= $_ <= 1},
+        :$b! where {0 <= $_ <= 1},
+        ) {
+        self.SetStrokeRGB: $r, $g, $b;
+        self.SetFillRGB:   $r, $g, $b;
+    }
+
     method save {
         self.Save;
     }
@@ -1067,6 +1108,7 @@ class Doc does PDF-role is export {
         my $y = @pts.shift;
         self.Save;
         self.SetLineWidth: $linewidth;
+        self.setcolor: $color;
         self.MoveTo: $x, $y;
         while @pts.elems {
             $x = @pts.shift;

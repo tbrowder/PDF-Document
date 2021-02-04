@@ -6,4 +6,8 @@ Maybe a color class with r,g,b attrs:
 
 Make all geom objects classes with color role
 
+Need to have a private introspection method to determine
+what existing color state is so the methods that depend
+on color masking (e,g., moon-phase) work properly.
+
 

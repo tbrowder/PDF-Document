@@ -78,9 +78,9 @@ my @pts = 1*i2p, 7*i2p, 4*i2p, 6.5*i2p, 3*i2p, 5*i2p;
 .polyline: @pts;
 
 
-.say: "polygon:", :y<4in>;
+.say: "blue polygon:", :y<4in>;
 @pts = 1*i2p, 4*i2p, 4*i2p, 3.5*i2p, 3*i2p, 2*i2p;
-.polygon: @pts;
+.polygon: @pts, :fill, :color[0,0,1]; # rgb, 0-1 values
 
 .np; # for some more graphics examples
 
