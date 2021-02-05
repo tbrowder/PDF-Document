@@ -3,20 +3,24 @@
 use lib <./lib ../lib>;
 use PDF::Document;
 
+my $debug = 0;
 if not @*ARGS {
     say qq:to/HERE/;
-    Usage:  {$*PROGRAM.IO.basename} go
+    Usage:  {$*PROGRAM.IO.basename} go [debug]
 
     Executes the example program in the docs.
     HERE
     exit;
+}
+for @*ARGS {
+    when /d/ { $debug = 1 }
 }
 
 # We change only three of the many defaults for this
 # example: (1) output file name, (2) force option to
 # allow overwriting that file if it exists, and (3)
 # turn page numbering on:
-my \d = Doc.new: :pdf-name<example-letter>, :force, :page-numbering;
+my \d = Doc.new: :pdf-name<example-letter>, :force, :page-numbering, :$debug;
 
 # use the 'with' block to ease typing by one character
 # per command
@@ -27,12 +31,12 @@ with d {
 
 # put the date at the top-right corner
 .print: "2021-03-04", :tr, :align<right>, :valign<top>;
-.say: ""; # adds the newline, resets x to left margin
+.nl; # adds the newline, resets x to left margin
 
-.say: "Dear Mom,"; # automatically adds a newline
+.say: "Dear Mom,"; # SHOULD automatically add a newline
 .nl: 1; # moves y down one line, resets x=0 (left margin)
 .say: "I am fine.";
-
+.nl: 1;
 .say: "How are you?";
 
 # simple graphics: circle, etc.
@@ -50,6 +54,8 @@ that extends at least more than one line length in the
 current font so we can observe the effect of  paragraph
 wrapping. Isn't this swell!
 PARA
+
+.nl: 3;
 
 .say: "Thats all, folks, but see following pages for other bells and whistles!";
 .nl: 2;
@@ -73,59 +79,14 @@ PARA
 
 .np; # for some more graphics examples
 
-.say: "polyline:", :y<7in>;
+.say: "polyline:", :y<7.5in>;
 my @pts = 1*i2p, 7*i2p, 4*i2p, 6.5*i2p, 3*i2p, 5*i2p;
 .polyline: @pts;
 
 
-.say: "blue polygon:", :y<4in>;
+.say: "blue polygon:", :y<4.5in>;
 @pts = 1*i2p, 4*i2p, 4*i2p, 3.5*i2p, 3*i2p, 2*i2p;
 .polygon: @pts, :fill, :color[0,0,1]; # rgb, 0-1 values
-
-.np; # for some more graphics examples
-
-# moon phases waxing
-# frac: 0..1
-my $dx = 0.75 * i2p; # points
-my $dy = 1.00 * i2p; # points
-my @x; # array of x points
-my @y; # array of y points
-my $radius = 0.2 * i2p;
-# starting points:
-my $sx = .lm + $dx;
-my $sy = .pheight - .tm - $dy;
-# ending points:
-my $ex = .pwidth - .rm - $dx;
-my $ey = .bm + $dy;
-# create the x and y points
-my ($px,$py) = $sx, $sy;
-while $px <= $ex { @x.push: $px; $px += $dx; }
-while $py >= $ey { @y.push: $py; $py -= $dy; }
-my $np = @x.elems * @y.elems;
-my $frac = 0;
-my $frac-delta = 1/($np-1);
-PTS: for @y -> $cy {
-    for @x -> $cx {
-        note "DEBUG: moon-phase: cx = $cx, cy = $cy, radius = $radius, frac = $frac";
-        .moon-phase: :$cx, :$cy, :$radius, :$frac, :type<wax>;
-        last PTS if 0;
-        $frac += $frac-delta;
-    }
-}
-
-.np;
-
-$frac = 1;
-
-PTS2: for @y -> $cy {
-    for @x -> $cx {
-        note "DEBUG: moon-phase: cx = $cx, cy = $cy, radius = $radius, frac = $frac";
-        .moon-phase: :$cx, :$cy, :$radius, :$frac, :type<wan>;
-        last PTS2 if 0;
-        $frac -= $frac-delta;
-    }
-}
-
 
 
 .end-doc; # renders the pdf and saves the output

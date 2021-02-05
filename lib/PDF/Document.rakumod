@@ -295,6 +295,10 @@ class Doc does PDF-role is export {
     has $.linespacing;
     has $.leading-ratio = 1.3; #= leading/fontsize
 
+    # miscellaneous
+    has $.debug = 0;
+    has $.debug-bbox = 0;
+
     # the current page params
     # origin
     has $.x0 = 0;
@@ -395,29 +399,29 @@ class Doc does PDF-role is export {
         return ($font, $size);
     }
 
-    multi method line(List $from, :$length!, :$angle!, 
+    multi method line(List $from, :$length!, :$angle!,
         :$color = [0], # black
         :$linewidth = 0
         ) {
-        my $x0  = value2points $from.begin;
-        my $y0  = value2points $from.end;
-        my $len = value2points $length;
-        my $ang = value2radians $angle; # convert to default radians if need be
+        my $x0  = self!value2points: $from.begin;
+        my $y0  = self!value2points: $from.end;
+        my $len = self!value2points: $length;
+        my $ang = self!value2radians: $angle; # convert to default radians if need be
         my $x1  = $ang.sin * $len;
         my $y1  = $ang.cos * $len;
         self.line: $x0, $y0, $x1, $y1, :$linewidth, :$color;
     }
-    multi method line(List $from, List $to, 
+    multi method line(List $from, List $to,
         :$color = [0], # black
         :$linewidth = 0
         ) {
-        my $x0 = value2points $from.begin;
-        my $y0 = value2points $from.end;
-        my $x1 = value2points $to.begin;
-        my $y1 = value2points $to.end;
+        my $x0 = self!value2points: $from.begin;
+        my $y0 = self!value2points: $from.end;
+        my $x1 = self!value2points: $to.begin;
+        my $y1 = self!value2points: $to.end;
         self.line: $x0, $y0, $x1, $y1, :$linewidth, :$color;
     }
-    multi method line(Real $x0, Real $y0, Real $x1, Real $y1, 
+    multi method line(Real $x0, Real $y0, Real $x1, Real $y1,
         :$color = [0], # black
         :$linewidth = 0
         ) {
@@ -467,16 +471,16 @@ class Doc does PDF-role is export {
         else {
             # set cpx/cpy according to :x and :y
             if $x.defined and $y.defined {
-                $cpx = value2points $x;
-                $cpy = value2points $y;
+                $cpx = self!value2points: $x;
+                $cpy = self!value2points: $y;
             }
             elsif $x.defined {
-                $cpx = value2points $x;
+                $cpx = self!value2points: $x;
                 $cpy = $!cpy;
             }
             elsif $y.defined {
                 $cpx = $!cpx;
-                $cpy = value2points $y;
+                $cpy = self!value2points: $y;
             }
             else {
                 $cpx = $!cpx;
@@ -574,10 +578,12 @@ class Doc does PDF-role is export {
             }
         }
 
+        =begin comment
         if $debug {
             my $cap = %opt.Capture;
             note "DEBUG: Capture: {$cap.raku}";
         }
+        =end comment
 
         =begin comment
         if $position.defined and not %opt.elems {
@@ -615,7 +621,7 @@ class Doc does PDF-role is export {
         =end comment
 
         #if $debug {
-        if 1 {
+        if self.debug {
             # draw a box outlining the text bounding box
             self!draw-rectangle: $x0, $y0, $x1, $y1;
             # draw an "x" at the curpos
@@ -626,7 +632,7 @@ class Doc does PDF-role is export {
             self.line: $xc-$r, $yc+$r, $xc+$r, $yc-$r;
         }
 
-        if 1 {
+        if self.debug {
             my $lab = $label2 ?? "$label; $label2" !! $label;
             note "DEBUG: text bbox ($lab): [$x0, $y0, $x1, $y1]; curpos = {@curpos.raku}";
             #note "early exit";
@@ -693,7 +699,7 @@ class Doc does PDF-role is export {
         $!cpy = $y;
     }
     method np() is export {
-        note "DEBUG: first-line-height = {$!font.first-line-height} points";
+        note "DEBUG: first-line-height = {$!font.first-line-height} points" if self.debug;
         $!page = $!pdf.add-page;
         # set my current point
         $!cpx = $!x0;
@@ -724,7 +730,7 @@ class Doc does PDF-role is export {
         my $x = $!x0 + $!width;
         my $y = $!y0 - (0.5 * i2p);
         my $npages = self.pdf.page-count;
-        note "DEBUG: printing page number on $npages pages";
+        note "DEBUG: printing page number on $npages pages" if self.debug;
         for 1 .. $npages -> $n {
             my $page = self.pdf.page: $n;
             $page.gfx.print: "Page $n of $npages", :position[$x, $y],
@@ -813,8 +819,8 @@ class Doc does PDF-role is export {
         self.Restore;
     }
 
-    sub value2radians($val is copy --> Real) {
-        note "DEBUG: v2r, input val = '$val'";
+    method !value2radians($val is copy --> Real) {
+        note "DEBUG: v2r, input val = '$val'" if self.debug > 2;
         if $val ~~ /:i ^ (<[\d.+-]>+) (d|deg||rad|r)? $/ {
             $val = +$0;
             return $val if not $1.defined;
@@ -827,11 +833,12 @@ class Doc does PDF-role is export {
                 }
             }
         }
-        note "DEBUG: v2r, output val = $val radians";
+        note "DEBUG: v2r, output val = $val radians" if self.debug > 2;
         return $val;
     }
-    sub value2points($val is copy --> Real) {
-        note "DEBUG: v2p, input val = '$val'";
+
+    method !value2points($val is copy, --> Real) {
+        note "DEBUG: v2p, input val = '$val'" if self.debug > 2;
         my $oval = $val;
         if $val ~~ /:i ^ (<[\d.+-]>+) (in|cm|mm|ft)? $/ {
             $val = +$0;
@@ -847,7 +854,7 @@ class Doc does PDF-role is export {
                 }
             }
         }
-        note "DEBUG: v2p, output val = $val points";
+        note "DEBUG: v2p, output val = $val points" if self.debug > 2;
         return $val;
     }
 
@@ -857,11 +864,11 @@ class Doc does PDF-role is export {
         :$color = [0], # black
         :$linewidth = 0
         ) {
-        $angle = value2radians $angle if $angle.defined;
-        my $cx = value2points $x;
-        my $cy = value2points $y;
-        my $ca = value2points $a;
-        my $cb = value2points $b;
+        $angle = self!value2radians($angle) if $angle.defined;
+        my $cx = self!value2points: $x;
+        my $cy = self!value2points: $y;
+        my $ca = self!value2points: $a;
+        my $cb = self!value2points: $b;
         self!draw-ellipse($cx, $cy, $ca, $cb, :$fill, :$linewidth, :$color);
     }
     method !draw-ellipse($x, $y, $a, $b,
@@ -876,7 +883,7 @@ class Doc does PDF-role is export {
         }
         self.SetLineWidth: $linewidth, :$color;
 
-        note "DEBUG: draw-ellipse: x = $x, y = $y, a = $a, b = $b";
+        note "DEBUG: draw-ellipse: x = $x, y = $y, a = $a, b = $b" if self.debug;
         # from stack overflow: copyright 2022 by Spencer Mortenson
         # treat $a as length in x direction, $b as length in y direction
         constant c = 0.551915024495;
@@ -941,12 +948,12 @@ class Doc does PDF-role is export {
         :$color = [0], # black
         :$linewidth = 0
         ) {
-        $angle = value2radians $angle if $angle.defined;
+        $angle = self!value2radians($angle) if $angle.defined;
         # from upper-left corner
-        $llx = value2points $llx;
-        $ury = value2points $ury;
-        my $w = value2points $width;
-        my $h = value2points $height;
+        $llx = self!value2points: $llx;
+        $ury = self!value2points: $ury;
+        my $w = self!value2points: $width;
+        my $h = self!value2points: $height;
         my $urx = $llx + $w;
         my $lly = $ury - $h;
         self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle, :$color;
@@ -957,12 +964,12 @@ class Doc does PDF-role is export {
         :$color = [0], # black
         :$linewidth = 0
         ) {
-        $angle = value2radians $angle if $angle.defined;
+        $angle = self!value2radians($angle) if $angle.defined;
         # from upper-right corner
-        $urx = value2points $urx;
-        $ury = value2points $ury;
-        my $w = value2points $width;
-        my $h = value2points $height;
+        $urx = self!value2points: $urx;
+        $ury = self!value2points: $ury;
+        my $w = self!value2points: $width;
+        my $h = self!value2points: $height;
         my $llx = $urx - $w;
         my $lly = $ury - $h;
         self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle, :$color;
@@ -973,12 +980,12 @@ class Doc does PDF-role is export {
         :$color = [0], # black
         :$linewidth = 0
         ) {
-        $angle = value2radians $angle if $angle.defined;
+        $angle = self!value2radians($angle) if $angle.defined;
         # from lower-right corner
-        $urx = value2points $urx;
-        $lly = value2points $lly;
-        my $w = value2points $width;
-        my $h = value2points $height;
+        $urx = self!value2points: $urx;
+        $lly = self!value2points: $lly;
+        my $w = self!value2points: $width;
+        my $h = self!value2points: $height;
         my $llx = $urx - $w;
         my $ury = $lly + $h;
         self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle, :$color;
@@ -989,12 +996,12 @@ class Doc does PDF-role is export {
         :$color = [0], # black
         :$linewidth = 0
         ) {
-        $angle = value2radians $angle if $angle.defined;
+        $angle = self!value2radians($angle) if $angle.defined;
         # from the center
-        $cx = value2points $cx;
-        $cy = value2points $cy;
-        my $hw = 0.5 * value2points $width;
-        my $hh = 0.5 * value2points $height;
+        $cx = self!value2points: $cx;
+        $cy = self!value2points: $cy;
+        my $hw = 0.5 * self!value2points: $width;
+        my $hh = 0.5 * self!value2points: $height;
 
         my $llx = $cx - $hw;
         my $lly = $cy - $hw;
@@ -1021,13 +1028,13 @@ class Doc does PDF-role is export {
         :$color = [0], # black
         :$linewidth = 0
         ) {
-        $cx    = value2points $cx;
-        $cy    = value2points $cy;
-        my $r  = value2points $radius;
-        my $sa = value2radians $start-angle;
-        my $ea = value2radians $end-angle;
+        $cx    = self!value2points: $cx;
+        $cy    = self!value2points: $cy;
+        my $r  = self!value2points: $radius;
+        my $sa = self!value2radians: $start-angle;
+        my $ea = self!value2radians: $end-angle;
         # Scheme is to create the circle, then
-        # create a triangle to cut out the 
+        # create a triangle to cut out the
         # perimeter between the desired angles.
         self.Save;
         # translate to the center
@@ -1048,15 +1055,15 @@ class Doc does PDF-role is export {
         :$color = [0], # black
         :$linewidth = 0
         ) {
-        $cx = value2points $cx;
-        $cy = value2points $cy;
-        $a  = value2points $b;
-        $b  = value2points $b;
-        my $sa = value2radians $start-angle;
-        my $ea = value2radians $end-angle;
-        my $ra = value2radians $rot-angle;
+        $cx = self!value2points: $cx;
+        $cy = self!value2points: $cy;
+        $a  = self!value2points: $b;
+        $b  = self!value2points: $b;
+        my $sa = self!value2radians: $start-angle;
+        my $ea = self!value2radians: $end-angle;
+        my $ra = self!value2radians: $rot-angle;
         # Scheme is to create the ellipse, then
-        # create a triangle to cut out the 
+        # create a triangle to cut out the
         # perimeter between the desired angles.
     }
 
@@ -1066,10 +1073,10 @@ class Doc does PDF-role is export {
         :$linewidth = 0
         ) {
         # from lower-left corner
-        $llx = value2points $llx;
-        $lly = value2points $lly;
-        my $w = value2points $width;
-        my $h = value2points $height;
+        $llx = self!value2points: $llx;
+        $lly = self!value2points: $lly;
+        my $w = self!value2points: $width;
+        my $h = self!value2points: $height;
         my $urx = $llx + $w;
         my $ury = $lly + $h;
         self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$color;
@@ -1080,9 +1087,9 @@ class Doc does PDF-role is export {
         :$color = [0], # black
         :$linewidth = 0
         ) {
-        my $cx = value2points $x;
-        my $cy = value2points $y;
-        my $cr = value2points $radius;
+        my $cx = self!value2points: $x;
+        my $cy = self!value2points: $y;
+        my $cr = self!value2points: $radius;
         self!draw-circle($cx, $cy, $cr, :$fill, :$linewidth, :$color);
     }
     method !draw-circle($x, $y, $r,
@@ -1106,7 +1113,7 @@ class Doc does PDF-role is export {
         self.Restore;
     }
 
-    method polyline(@pts, :$fill = False, :$closepath = False, 
+    method polyline(@pts, :$fill = False, :$closepath = False,
         :$color = [0], # black
         :$linewidth = 0
         ) {
@@ -1130,7 +1137,7 @@ class Doc does PDF-role is export {
         else { self.Stroke; }
         self.Restore;
     }
-    method polygon(@pts, :$fill = False, 
+    method polygon(@pts, :$fill = False,
         :$color = [0], # black
         :$linewidth = 0
         ) {
@@ -1157,9 +1164,10 @@ class Doc does PDF-role is export {
         }
         if $hemi.defined and $hemi ~~ /:i s/ {
             ; # TODO fix this
+            self.page.gfx.transform: :scale[-1,1];
         }
         # TODO fix waning
-        if $frac > 0.5 {
+        if $frac >= 0.5 {
             # Full Moon to Third Quarter
             # 1. right semicircle is white to begin with
             #    make black circle
@@ -1210,7 +1218,7 @@ class Doc does PDF-role is export {
             self.page.gfx.transform: :rotate($angle);
         }
         if $hemi.defined and $hemi ~~ /:i s/ {
-            ; # TODO fix this
+            self.page.gfx.transform: :scale[-1,1];
         }
         if $frac < 0.5 {
             # New Moon to First Quarter
@@ -1228,7 +1236,7 @@ class Doc does PDF-role is export {
             my $dfa = 2 * $radius * $frac;
             self!draw-ellipse: 0, 0, $radius - $dfa, $radius, :fill(True);
         }
-        elsif $frac > 0.5 {
+        elsif $frac >= 0.5 {
             # First Quarter to Full Moon
             # 1. right semicircle is white
             #    make black circle
@@ -1263,10 +1271,10 @@ class Doc does PDF-role is export {
         # Until we get circular and elliptical arcs we will have
         # to use circles and ellipses and overlay black with
         # white for certain input combinations.
-        $cx     = value2points $cx;
-        $cy     = value2points $cy;
-        $radius = value2points $radius;
-        $angle  = value2radians($angle) if $angle.defined;
+        $cx     = self!value2points: $cx;
+        $cy     = self!value2points: $cy;
+        $radius = self!value2points: $radius;
+        $angle  = self!value2radians($angle) if $angle.defined;
 
         if $type.contains('wax') {
             # waxing, new moon to full moon, light increasing from the right (frac 0..1)
@@ -1278,6 +1286,19 @@ class Doc does PDF-role is export {
             # (from the left in the southern hemisphere)
             self!moon-waning: $cx, $cy, $radius, $frac, :$angle, :$hemi;
         }
+    }
+
+    method get-gfx-state(:$delta) {
+        if $delta.defined {
+            return self.page.gfx.graphics-state(:$delta);
+        }
+        else {
+            return self.page.gfx.graphics-state;
+        }
+    }
+
+    method get-content() {
+        return self.page.gfx.content-dump;
     }
 
     # Many other methods are provided by roles "PDF-role"
