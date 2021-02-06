@@ -93,13 +93,15 @@ for @y -> $cy {
 }
 
 # waxing, southern hemisphere
+# for demo make crescent angle 45 degrees
+my $angle = 45 * deg2rad;
 $type = 'wax';
 get-points @x, @y, :startx($sx), :starty($sywax-s), :$dx, :$dy, :$ncols, :$nrows;
 $frac = 0;
 for @y -> $cy {
     for @x -> $cx {
         note "DEBUG: moon-phase: cx = $cx, cy = $cy, radius = $radius, frac = $frac, type = $type" if $debug;
-        .moon-phase: :$cx, :$cy, :$radius, :$frac, :type<wax>, :hemi<s>;
+        .moon-phase: :$cx, :$cy, :$radius, :$frac, :type<wax>, :hemi<s>, :$angle;
         $frac += $frac-delta;
     }
 }
@@ -111,7 +113,7 @@ $frac = 1;
 for @y -> $cy {
     for @x -> $cx {
         note "DEBUG: moon-phase: cx = $cx, cy = $cy, radius = $radius, frac = $frac, type = $type" if $debug;
-        .moon-phase: :$cx, :$cy, :$radius, :$frac, :type<wan>, :hemi<s>;
+        .moon-phase: :$cx, :$cy, :$radius, :$frac, :type<wan>, :hemi<s>, :$angle;
         $frac -= $frac-delta;
     }
 }
