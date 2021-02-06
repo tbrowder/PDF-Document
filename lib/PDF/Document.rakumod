@@ -1159,14 +1159,13 @@ class Doc does PDF-role is export {
         ) {
         self.Save;
         self.page.gfx.transform: :translate[$cx,$cy];
-        if $angle.defined {
-            self.page.gfx.transform: :rotate($angle);
-        }
         if $hemi.defined and $hemi ~~ /:i s/ {
             ; # TODO fix this
             self.page.gfx.transform: :scale[-1,1];
         }
-        # TODO fix waning
+        if $angle.defined {
+            self.page.gfx.transform: :rotate($angle);
+        }
         if $frac >= 0.5 {
             # Full Moon to Third Quarter
             # 1. right semicircle is white to begin with
@@ -1214,12 +1213,28 @@ class Doc does PDF-role is export {
 
         self.Save;
         self.page.gfx.transform: :translate[$cx,$cy];
-        if $angle.defined {
-            self.page.gfx.transform: :rotate($angle);
-        }
+
+        my $rot   = 0;
+        my $trans = 0;
         if $hemi.defined and $hemi ~~ /:i s/ {
-            self.page.gfx.transform: :scale[-1,1];
+            ++$trans;
         }
+        if $angle.defined {
+            ++$rot;
+        }
+        given 1 {
+            when $rot and $trans {
+                die "FATAL: Cannot yet reflect and rotate.";
+                self.page.gfx.transform: :scale[-1,1], :roate($angle);
+            }
+            when $trans {
+                self.page.gfx.transform: :scale[-1,1];
+            }
+            when $rot {
+                self.page.gfx.transform: :rotate($angle);
+            }
+        }
+
         if $frac < 0.5 {
             # New Moon to First Quarter
             # 1. left semicircle is black
