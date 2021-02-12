@@ -18,6 +18,9 @@ SYNOPSIS
 ========
 
 ```raku
+#!/usr/bin/env raku
+use PDF::Document;
+
 # We change only three of the many defaults for this
 # example: (1) output file name, (2) force option to
 # allow overwriting that file if it exists, and (3)
