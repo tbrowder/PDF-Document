@@ -13,12 +13,12 @@ my $debug2 = 1;
 # for angle conversions
 #--------------------------------
 # 2 pi rad = 360 degrees
-# rad = 360 deg / 2 pi = 180 / pi
-constant deg2rad is export = 180/pi;
+# rad = 360 deg / 2 pi = 180 / pi => rad/deg => rad2deg
+constant rad2deg is export = 180/pi;
 #--------------------------------
 # 360 deg = 2 pi rad
-# deg = 2 pi rad / 360 = pi / 180
-constant rad2deg is export = pi/180;
+# deg = 2 pi rad / 360 = pi / 180 => deg/rad => deg2rad
+constant deg2rad is export = pi/180;
 #--------------------------------
 
 # Below are some convenience constants for converting various
@@ -366,6 +366,10 @@ class Doc does PDF-role is export {
         $!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
     }
 
+    method transform(*%opt) {
+        self.page.gfx.transform: %opt
+    }
+
     method set-font($alias) {
         $!font = $!ff.get-font($alias)
     }
@@ -403,22 +407,22 @@ class Doc does PDF-role is export {
         :$color = [0], # black
         :$linewidth = 0
         ) {
-        my $x0  = self!value2points: $from.begin;
-        my $y0  = self!value2points: $from.end;
+        my $x0  = self!value2points: $from.head;
+        my $y0  = self!value2points: $from.tail;
         my $len = self!value2points: $length;
         my $ang = self!value2radians: $angle; # convert to default radians if need be
-        my $x1  = $ang.sin * $len;
-        my $y1  = $ang.cos * $len;
+        my $x1  = $x0 + $ang.cos * $len;
+        my $y1  = $y0 + $ang.sin * $len;
         self.line: $x0, $y0, $x1, $y1, :$linewidth, :$color;
     }
     multi method line(List $from, List $to,
         :$color = [0], # black
         :$linewidth = 0
         ) {
-        my $x0 = self!value2points: $from.begin;
-        my $y0 = self!value2points: $from.end;
-        my $x1 = self!value2points: $to.begin;
-        my $y1 = self!value2points: $to.end;
+        my $x0 = self!value2points: $from.head;
+        my $y0 = self!value2points: $from.tail;
+        my $x1 = self!value2points: $to.head;
+        my $y1 = self!value2points: $to.tail;
         self.line: $x0, $y0, $x1, $y1, :$linewidth, :$color;
     }
     multi method line(Real $x0, Real $y0, Real $x1, Real $y1,
@@ -426,7 +430,7 @@ class Doc does PDF-role is export {
         :$linewidth = 0
         ) {
         self.Save;
-        self.SetLineWidth: $linewidth, :$color;
+        self.setlinewidth: $linewidth, :$color;
         self.MoveTo: $x0, $y0;
         self.LineTo: $x1, $y1;
         self.Stroke;
@@ -738,15 +742,17 @@ class Doc does PDF-role is export {
                 :align<right>;
         }
     }
-    method setlinewidth($width where {$_ >= 0}) {
+    method setlinewidth($width where {$_ >= 0}, :$color) {
         self.SetLineWidth: $width;
+        self.setcolor($color) if $color.defined;
     }
-    method setdash(@pattern, $phase, $color?) {
+    method setdash(@pattern, $phase, :$color) {
         # TODO test this
         # @pattern is an array of mark-space (on,off) lengths in PS points to describe the dash pattern
         # $phase is the offset distance to the start of the first dash pattern (used to
         #   adjust the total stroke line to have symmetrical results)
         self.SetDashPattern: @pattern, $phase;
+        self.setcolor($color) if $color.defined;
     }
     method setlinejoin($level where {0 <= $_ <= 1}) {
     }
@@ -881,7 +887,7 @@ class Doc does PDF-role is export {
         if $angle.defined {
             self.page.gfx.transform: :rotate($angle);
         }
-        self.SetLineWidth: $linewidth, :$color;
+        self.setlinewidth: $linewidth, :$color;
 
         note "DEBUG: draw-ellipse: x = $x, y = $y, a = $a, b = $b" if self.debug;
         # from stack overflow: copyright 2022 by Spencer Mortenson
@@ -932,7 +938,7 @@ class Doc does PDF-role is export {
         if $angle.defined {
             self.page.gfx.transform: :rotate($angle);
         }
-        self.SetLineWidth: $linewidth;
+        self.setlinewidth: $linewidth, :$color;
         self.MoveTo: $llx, $lly;
         self.LineTo: $urx, $lly;
         self.LineTo: $urx, $ury;
@@ -1095,9 +1101,10 @@ class Doc does PDF-role is export {
     method !draw-circle($x, $y, $r,
         :$fill = False,
         :$color = [0], # black
-        :$linewidth =0
+        :$linewidth = 0
         ) {
         self.Save;
+        self.setlinewidth: $linewidth, :$color;
         # from stack overflow: copyright 2022 by Spencer Mortenson
         self.page.gfx.transform: :translate[$x, $y];
         constant c = 0.551915024495;
@@ -1155,32 +1162,46 @@ class Doc does PDF-role is export {
         Real $radius where {$_ >= 0},
         Real $frac where {0 <= $_ <= 1},
         :$angle,
-        :$hemi where {/:i n|s/} = 'n',
+        :$hemi where {/:i n|s/ } = 'n',
         ) {
         self.Save;
         self.page.gfx.transform: :translate[$cx,$cy];
+
+        my ($rotate, $reflect) = (0,0);
         if $hemi.defined and $hemi ~~ /:i s/ {
-            ; # TODO fix this
-            self.page.gfx.transform: :scale[-1,1];
+            ++$reflect;
         }
         if $angle.defined {
-            self.page.gfx.transform: :rotate($angle);
+            ++$rotate;
         }
+        given * {
+            when $rotate and $reflect {
+                self.page.gfx.transform: :reflect(pi/2);
+                self.page.gfx.transform: :rotate($angle);
+            }
+            when $reflect {
+                self.page.gfx.transform: :reflect(pi/2);
+            }
+            when $rotate {
+                self.page.gfx.transform: :rotate($angle);
+            }
+        }
+
         if $frac >= 0.5 {
             # Full Moon to Third Quarter
             # 1. right semicircle is white to begin with
             #    make black circle
             self!draw-circle: 0, 0, $radius, :fill(True);
             #    make white-filled square covering left semicircle
-            self.setgray: 1;
+            self.setgray: 1; # white
             self.rectangle: :cx(-$radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
-            self.setgray: 0;
+            self.setgray: 0; # black
             # 2. white on right semicircle is frac - 0.5
             #    make white-filled ellipse with a = (2 * radius * frac) - radius
-            self.setgray: 1;
+            self.setgray: 1; # white
             my $dfa = 2 * $radius * $frac;
             self!draw-ellipse: 0, 0, $dfa - $radius, $radius, :fill(True);
-            self.setgray: 0;
+            self.setgray: 0; # black
         }
         elsif $frac < 0.5 {
             # Third Quarter to New Moon
@@ -1188,9 +1209,9 @@ class Doc does PDF-role is export {
             #    make black-filled circle
             self!draw-circle: 0, 0, $radius, :fill(True);
             #    make white square covering left semicircle
-            self.setgray: 1;
+            self.setgray: 1; # white
             self.rectangle: :cx(-$radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
-            self.setgray: 0;
+            self.setgray: 0; # black
             # 2. black on left semicircle is 0.5 - frac
             #    make black-filled ellipse with a = radius - (2 * radius * frac)
             my $dfa = 2 * $radius * $frac;
@@ -1214,23 +1235,22 @@ class Doc does PDF-role is export {
         self.Save;
         self.page.gfx.transform: :translate[$cx,$cy];
 
-        my $rot   = 0;
-        my $trans = 0;
+        my ($rotate, $reflect) = (0,0);
         if $hemi.defined and $hemi ~~ /:i s/ {
-            ++$trans;
+            ++$reflect;
         }
         if $angle.defined {
-            ++$rot;
+            ++$rotate;
         }
-        given 1 {
-            when $rot and $trans {
-                die "FATAL: Cannot yet reflect and rotate.";
-                self.page.gfx.transform: :scale[-1,1], :roate($angle);
+        given * {
+            when $rotate and $reflect {
+                self.page.gfx.transform: :reflect(pi/2);
+                self.page.gfx.transform: :rotate($angle);
             }
-            when $trans {
-                self.page.gfx.transform: :scale[-1,1];
+            when $reflect {
+                self.page.gfx.transform: :reflect(pi/2);
             }
-            when $rot {
+            when $rotate {
                 self.page.gfx.transform: :rotate($angle);
             }
         }
@@ -1241,9 +1261,9 @@ class Doc does PDF-role is export {
             #    make black-filled circle
             self!draw-circle: 0, 0, $radius, :fill(True);
             #    make white square covering right semicircle
-            self.setgray: 1;
+            self.setgray: 1; # white
             self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
-            self.setgray: 0;
+            self.setgray: 0; # black
             # 2. black on right semicircle
             #    when frac = 0.0, a = radius
             #    when frac = 0.5, a = 0
@@ -1257,17 +1277,17 @@ class Doc does PDF-role is export {
             #    make black circle
             self!draw-circle: 0, 0, $radius, :fill(True);
             #    make white-filled square covering right semicircle
-            self.setgray: 1;
+            self.setgray: 1; # white
             self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
-            self.setgray: 0;
+            self.setgray: 0; # black
             # 2. white on left semicircle
             #    when frac = 1.0, a = radius
             #    when frac = 0.5, a = 0
             #    make white-filled ellipse with a = (2 * radius * frac) - radius
             my $dfa = 2 * $radius * $frac;
-            self.setgray: 1;
+            self.setgray: 1; # white
             self!draw-ellipse: 0, 0, $dfa - $radius, $radius, :fill(True);
-            self.setgray: 0;
+            self.setgray: 0; # black
         }
         # 3. stroke the circle's circumference
         self!draw-circle: 0, 0, $radius;
@@ -1292,13 +1312,13 @@ class Doc does PDF-role is export {
         $angle  = self!value2radians($angle) if $angle.defined;
 
         if $type.contains('wax') {
-            # waxing, new moon to full moon, light increasing from the right (frac 0..1)
-            # (from the left in the southern hemisphere)
+            # Waxing: New Moon to Full Moon, light increasing from the right (frac 0..1)
+            # (from the left in the Southern Hemisphere).
             self!moon-waxing: $cx, $cy, $radius, $frac, :$angle, :$hemi;
         }
         else {
-            # waning, full moon to new moon, darkness increasing from the right (frac 1..0)
-            # (from the left in the southern hemisphere)
+            # Waning, Full Moon to New moon, darkness increasing from the right (frac 1..0)
+            # (from the left in the Southern Hemisphere).
             self!moon-waning: $cx, $cy, $radius, $frac, :$angle, :$hemi;
         }
     }

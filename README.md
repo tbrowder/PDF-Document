@@ -1,62 +1,100 @@
 [![Actions Status](https://github.com/tbrowder/PDF-Document/workflows/test/badge.svg)](https://github.com/tbrowder/PDF-Document/actions)
 
+WARNING - A WORK IN PROGRESS - EXPECT CHANGES
+=============================================
+
 NAME
 ====
 
-`PDF::Document` - Provides high-level classes and routines to create original documents in Portable Document Format (PDF)
+**PDF::Document** - Provides high-level classes and routines to create original documents in Portable Document Format (PDF)
+
+This module is currently functioning as a laboratory to create routines and classes to support other PDF modules. As such, its API is subject to change until version 1.0.0+.
+
+In the meantime, users are encouraged to use it, report issues, and submit feature requests.
+
+See the `dev` directory in the source repository for examples of use. The example in the **SYNOPSIS** is program `./dev/make-example-doc.raku`.
 
 SYNOPSIS
 ========
 
 ```raku
-use PDF::Document;
-my \d = Doc.new; 
+# We change only three of the many defaults for this
+# example: (1) output file name, (2) force option to
+# allow overwriting that file if it exists, and (3)
+# turn page numbering on:
+my \d = Doc.new: :pdf-name<example-letter>, :force, :page-numbering, :$debug;
 
-# this sets the following defaults:
-#   :paper<Letter>, :font<t11d5> (Times-Roman 11.5)
-#   line spacing (:leading) 1.3 * font size
-#   margins :lm<1in>, :rm<1in>, :tm<1in>, :bm<1in>
-#   origin now at the botton-left corner of the desired print area:
-#     x=0 at the left margin, increases to the right
-#     y=0 at the bottom margin, increases upward
-#   current position top left corner, one line down
-#   long lines are wrapped with left justification (ragged right)
-#   text is kerned
-# begin writing...
-
+# use the 'with' block to ease typing by one character
+# per command
 with d {
+# but you'll crash if you forget to close the block!
+#=========== THE LETTER =================
+# starts with a new page, current position top baseline, left margin
 
-.text: "2021-03-04";
-.nl: 1; # set currentpoint x=0,y one line down from top-left corner
-.text: "Dear Mom,";
-.nl: 2; # resets x=0
-.text: "I am fine.";
+# put the date at the top-right corner
+.print: "2021-03-04", :tr, :align<right>, :valign<top>;
+.nl; # adds the newline, resets x to left margin
 
-# end the page
-.mvto: :br; # bottom-right corner
-.rmvto: :y(-2 * d.leading); 
-.text: "Page 1", :rj; # right justified
+.say: "Dear Mom,"; # SHOULD automatically add a newline
+.nl: 1; # moves y down one line, resets x=0 (left margin)
+.say: "I am fine.";
+.nl: 1;
+.say: "How are you?";
 
-.np # start a new page
+# simple graphics: circle, etc.
+.nl: 30;
+.say: "circle: radius = 36 pts, linewidth = 4 points";
+.save; # save the current position and graphics state
+.setlinewidth: 4; # points
+.circle: :x<5in>, :y<3in>, :radius(36); # default points (or in, cm)
+.restore; # don't forget to go back to normal!
 
-.mvto: :tl; # top-left corner
-
-.text: q:to/PARA/;
-A VERY long para
+.np; # new page, current position top baseline, left margin
+.say: q:to/PARA/;
+Pretend this is a VERY long para
+that extends at least more than one line length in the
+current font so we can observe the effect of  paragraph
+wrapping. Isn't this swell!
 PARA
 
+.nl: 3;
+
+.say: "Thats all, folks, but see following pages for other bells and whistles!";
 .nl: 2;
-.text: "Love,";
-.nl: 2; 
-.text: "Isaiah";
+.say: "Love,";
+.nl: 2;
+.say: "Isaiah";
 
-# end the page
-.mvto: :br; # bottom-right corner
-.rmvto: :y(-2 * $leading); 
-.text: "Page 2 of 2", :rj; # right justified
-.save: "letter.pdf";
+.np; # for some graphics examples
 
-}
+.say: "ellipse: a = 1 in, b = 0.5 in", :y<8in>;
+.ellipse: :x<5in>, :y<8in>, :a<1in>, :b<.5in>;
+
+.say: "ellipse: a = 0.3 in, b = 2 cm", :y<6in>;
+.ellipse: :x<5in>, :y<6in>, :a<.3in>, :b<2cm>;
+
+.say: "circle: radius = 24 mm", :y<4in>;
+.circle: :x<5in>, :y<4in>, :radius<24mm>;
+
+.say: "rectangle: width = 2 in, height = 2 cm", :y<2in>;
+.rectangle: :llx<5in>, :lly<2in>, :width<2in>, :height<2cm>;
+
+.np; # for some more graphics examples
+
+.say: "polyline:", :y<7.5in>;
+my @pts = 1*i2p, 7*i2p, 4*i2p, 6.5*i2p, 3*i2p, 5*i2p;
+.polyline: @pts;
+
+
+.say: "blue polygon:", :y<4.5in>;
+@pts = 1*i2p, 4*i2p, 4*i2p, 3.5*i2p, 3*i2p, 2*i2p;
+.polygon: @pts, :fill, :color[0,0,1]; # rgb, 0-1 values
+
+
+.end-doc; # renders the pdf and saves the output
+          # also numbers the pages if you requested it
+#=========== END THE LETTER =================
+} # don't forget to close the 'given...' block
 ```
 
 DESCRIPTION
@@ -167,12 +205,18 @@ $page.text: {
 Summary
 -------
 
-As you can see the document steps are equivalent, but the steps in PDF page creation are much easier because common low-level code required in PS creation is available behind the covers in `PDF::Lite` and accessed more easily by this module.
+As you can see the document steps are equivalent, but the steps in PDF page creation are much easier because common low-level code required in PS creation is available under the covers in `PDF::Lite` and accessed more easily by this module.
 
 CURRENT CAPABILITY
 ==================
 
-Currently the only thing the module provides are routines and data to ease acces to PDF core fonts (those shown in the listing above) in a using module.
+Currently the the module provides routines and constants as used in the example program shown in the **SYNOPSIS**. Much more work is planned including:
+
+  * font underlining
+
+  * font strikethrough
+
+  * more graphics objects (e.g., Moon phases)
 
 FUTURE CAPABILITY
 =================
@@ -191,7 +235,7 @@ This module is being used during the development of the author's other PDF modul
 
 This module will be updated with more items as the user modules are updated and published.
 
-NOTE: The asterisk (`*`) indicates the module has been published. Two asterisks means the published module is not even minimally useful, but it is exposed to issues or feature requests from interested parties.
+NOTE: The asterisk (`*`) indicates the module has been published, albeit of minimal use. Two asterisks means the published module is not even minimally useful, but it is exposed to issues or feature requests from interested parties.
 
 REFERENCES
 ==========

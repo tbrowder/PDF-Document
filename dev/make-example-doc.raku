@@ -8,7 +8,7 @@ if not @*ARGS {
     say qq:to/HERE/;
     Usage:  {$*PROGRAM.IO.basename} go [debug]
 
-    Executes the example program in the docs.
+    Executes the example letter program in the docs.
     HERE
     exit;
 }
@@ -43,8 +43,7 @@ with d {
 .nl: 30;
 .say: "circle: radius = 36 pts, linewidth = 4 points";
 .save; # save the current position and graphics state
-.setlinewidth: 4; # points
-.circle: :x<5in>, :y<3in>, :radius(36); # default points (or in, cm)
+.circle: :x<5in>, :y<3in>, :radius(36), :linewidth(4); # default points (or in, cm)
 .restore; # don't forget to go back to normal!
 
 .np; # new page, current position top baseline, left margin

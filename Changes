@@ -1,6 +1,7 @@
 Revision history for PDF-Document
 
 {{$NEXT}}
+    - Many updates, but still a work-in-progress.
 
 0.0.2  2021-01-08T07:09:31-06:00
     - correct syntax to invert the %CoreFonts hash to use aliases as keys
