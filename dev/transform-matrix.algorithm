@@ -1,0 +1,71 @@
+use v6;
+
+module PDF::Content::Matrix {
+
+    # Designed to work on PDF text and graphics transformation matrices of the form:
+    #
+    # [ a b 0 ]
+    # [ c d 0 ]
+    # [ e f 1 ]
+    #
+    # where a b c d e f are stored in a six digit array and the third column is implied.
+
+    subset TransformMatrix is export(:TransformMatrix) of List where {.elems == 6}
+    my Int enum TransformMatrixElem « :a(0) :b(1) :c(2) :d(3) :e(4) :f(5) »;
+
+    our sub identity returns TransformMatrix is export(:identity) {
+    # [ a b 0 ]    [ 1 0 0 ]    [ a b ]    
+    # [ c d 0 ] => [ 0 1 0 ] => [ c d ] => [ a b c d 0 0 ]
+    # [ e f 1 ]    [ 0 0 1 ]
+    #� :a(0) :b(1) :c(2) :d(3) :e(4) :f(5) »;
+        [1, 0, 0, 1, 0, 0];
+    }
+
+    We want to compose a reflection about the y axis (x => -x) followed by a rotation about the origin.
+    We represent the reflection angle as phi = 90 degrees (90 * deg2rad) and the rotation
+    angle as theta. Using the notation in the Wikipedia article we use the following 2x2 matrices
+    from the article:
+
+    Ref(P) = 
+
+
+    our sub translate(Numeric $x!, Numeric $y = $x --> TransformMatrix) is export(:translate) {
+        [1, 0, 0, 1, $x, $y];
+    }
+
+
+    our sub rotate( Numeric \r --> TransformMatrix) is export(:rotate) {
+        my Numeric \cos-r = cos(r);
+        my Numeric \sin-r = sin(r);
+
+        [cos-r, sin-r, -sin-r, cos-r, 0, 0];
+    }
+
+    our sub scale(Numeric $x!, Numeric $y = $x --> TransformMatrix) is export(:scale)  {
+        [$x, 0, 0, $y, 0, 0];
+    }
+
+    our sub skew(Numeric $x, Numeric $y = $x --> TransformMatrix) is export(:skew) {
+        [1, tan($x), tan($y), 1, 0, 0];
+    }
+
+    #| 3 [PDF 1.7 Section 4.2.2 Common Transforms]
+    #| order of transforms is: 1. Translate  2. Rotate 3. Scale/Skew
+
+    our sub transform(
+	:$matrix = identity(),
+	:$translate,
+	:$rotate,
+	:$scale,
+	:$skew,
+	--> TransformMatrix
+	) is export(:transform) {
+	my TransformMatrix $t = $matrix.Array;
+	apply($t, translate( |$_ )) with $translate;
+	apply($t, rotate( $_ ))     with $rotate;
+	apply($t, scale( |$_ ))     with $scale;
+	apply($t, skew( |$_ ))      with $skew;
+	[ $t.map: { round($_) } ];
+    }
+
+}
