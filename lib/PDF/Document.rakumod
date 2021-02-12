@@ -1,4 +1,4 @@
-unit module PDF::Document:ver<0.0.2>:auth<cpan:TBROWDER>;
+unit module PDF::Document:ver<0.0.3>:auth<cpan:TBROWDER>;
 
 use PDF::Lite;
 
