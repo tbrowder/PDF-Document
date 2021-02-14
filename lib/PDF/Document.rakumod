@@ -1155,73 +1155,6 @@ class Doc does PDF-role is export {
         self.polyline: @pts, :$fill, :closepath(True), :$linewidth, :$color;
     }
 
-    method !moon-waning(
-        # waning, Full Moon to New moon, darkness increasing from the right (frac 1..0)
-        Real $cx,
-        Real $cy,
-        Real $radius where {$_ >= 0},
-        Real $frac where {0 <= $_ <= 1},
-        :$angle,
-        :$hemi where {/:i n|s/ } = 'n',
-        ) {
-        self.Save;
-        self.page.gfx.transform: :translate[$cx,$cy];
-
-        my ($rotate, $reflect) = (0,0);
-        if $hemi.defined and $hemi ~~ /:i s/ {
-            ++$reflect;
-        }
-        if $angle.defined {
-            ++$rotate;
-        }
-        given * {
-            when $rotate and $reflect {
-                self.page.gfx.transform: :reflect(pi/2);
-                self.page.gfx.transform: :rotate($angle);
-            }
-            when $reflect {
-                self.page.gfx.transform: :reflect(pi/2);
-            }
-            when $rotate {
-                self.page.gfx.transform: :rotate($angle);
-            }
-        }
-
-        if $frac >= 0.5 {
-            # Full Moon to Third Quarter
-            # 1. right semicircle is white to begin with
-            #    make black circle
-            self!draw-circle: 0, 0, $radius, :fill(True);
-            #    make white-filled square covering left semicircle
-            self.setgray: 1; # white
-            self.rectangle: :cx(-$radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
-            self.setgray: 0; # black
-            # 2. white on right semicircle is frac - 0.5
-            #    make white-filled ellipse with a = (2 * radius * frac) - radius
-            self.setgray: 1; # white
-            my $dfa = 2 * $radius * $frac;
-            self!draw-ellipse: 0, 0, $dfa - $radius, $radius, :fill(True);
-            self.setgray: 0; # black
-        }
-        elsif $frac < 0.5 {
-            # Third Quarter to New Moon
-            # 1. left semicircle is white to begin with
-            #    make black-filled circle
-            self!draw-circle: 0, 0, $radius, :fill(True);
-            #    make white square covering left semicircle
-            self.setgray: 1; # white
-            self.rectangle: :cx(-$radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
-            self.setgray: 0; # black
-            # 2. black on left semicircle is 0.5 - frac
-            #    make black-filled ellipse with a = radius - (2 * radius * frac)
-            my $dfa = 2 * $radius * $frac;
-            self!draw-ellipse: 0, 0, $radius - $dfa, $radius, :fill(True);
-        }
-        # 3. stroke the circle's circumference
-        self!draw-circle: 0, 0, $radius;
-        self.Restore;
-    }
-
     method !moon-waxing(
         # waxing, New Moon to Full Moon, light increasing from the right (frac 0..1)
         Real $cx,
@@ -1235,24 +1168,11 @@ class Doc does PDF-role is export {
         self.Save;
         self.page.gfx.transform: :translate[$cx,$cy];
 
-        my ($rotate, $reflect) = (0,0);
         if $hemi.defined and $hemi ~~ /:i s/ {
-            ++$reflect;
+            self.page.gfx.transform: :reflect(pi/2);
         }
         if $angle.defined {
-            ++$rotate;
-        }
-        given * {
-            when $rotate and $reflect {
-                self.page.gfx.transform: :reflect(pi/2);
-                self.page.gfx.transform: :rotate($angle);
-            }
-            when $reflect {
-                self.page.gfx.transform: :reflect(pi/2);
-            }
-            when $rotate {
-                self.page.gfx.transform: :rotate($angle);
-            }
+            self.page.gfx.transform: :rotate($angle);
         }
 
         if $frac < 0.5 {
@@ -1261,9 +1181,7 @@ class Doc does PDF-role is export {
             #    make black-filled circle
             self!draw-circle: 0, 0, $radius, :fill(True);
             #    make white square covering right semicircle
-            self.setgray: 1; # white
-            self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
-            self.setgray: 0; # black
+            self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True), :color(1);
             # 2. black on right semicircle
             #    when frac = 0.0, a = radius
             #    when frac = 0.5, a = 0
@@ -1277,17 +1195,61 @@ class Doc does PDF-role is export {
             #    make black circle
             self!draw-circle: 0, 0, $radius, :fill(True);
             #    make white-filled square covering right semicircle
-            self.setgray: 1; # white
-            self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True);
-            self.setgray: 0; # black
+            self.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True), :color(1);
             # 2. white on left semicircle
             #    when frac = 1.0, a = radius
             #    when frac = 0.5, a = 0
             #    make white-filled ellipse with a = (2 * radius * frac) - radius
             my $dfa = 2 * $radius * $frac;
-            self.setgray: 1; # white
-            self!draw-ellipse: 0, 0, $dfa - $radius, $radius, :fill(True);
-            self.setgray: 0; # black
+            self!draw-ellipse: 0, 0, $dfa - $radius, $radius, :fill(True), :color(1);
+        }
+        # 3. stroke the circle's circumference
+        self!draw-circle: 0, 0, $radius;
+        self.Restore;
+    }
+
+    method !moon-waning(
+        # waning, Full Moon to New moon, darkness increasing from the right (frac 1..0)
+        Real $cx,
+        Real $cy,
+        Real $radius where {$_ >= 0},
+        Real $frac where {0 <= $_ <= 1},
+        :$angle,
+        :$hemi where {/:i n|s/ } = 'n',
+        ) {
+        self.Save;
+        self.page.gfx.transform: :translate[$cx,$cy];
+
+        if $hemi.defined and $hemi ~~ /:i s/ {
+            self.page.gfx.transform: :reflect(pi/2);
+        }
+        if $angle.defined {
+            self.page.gfx.transform: :rotate($angle);
+        }
+
+        if $frac >= 0.5 {
+            # Full Moon to Third Quarter
+            # 1. right semicircle is white to begin with
+            #    make black circle
+            self!draw-circle: 0, 0, $radius, :fill(True);
+            #    make white-filled square covering left semicircle
+            self.rectangle: :cx(-$radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True), :color(1);
+            # 2. white on right semicircle is frac - 0.5
+            #    make white-filled ellipse with a = (2 * radius * frac) - radius
+            my $dfa = 2 * $radius * $frac;
+            self!draw-ellipse: 0, 0, $dfa - $radius, $radius, :fill(True), :color(1);
+        }
+        elsif $frac < 0.5 {
+            # Third Quarter to New Moon
+            # 1. left semicircle is white to begin with
+            #    make black-filled circle
+            self!draw-circle: 0, 0, $radius, :fill(True);
+            #    make white square covering left semicircle
+            self.rectangle: :cx(-$radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True), :color(1);
+            # 2. black on left semicircle is 0.5 - frac
+            #    make black-filled ellipse with a = radius - (2 * radius * frac)
+            my $dfa = 2 * $radius * $frac;
+            self!draw-ellipse: 0, 0, $radius - $dfa, $radius, :fill(True);
         }
         # 3. stroke the circle's circumference
         self!draw-circle: 0, 0, $radius;
