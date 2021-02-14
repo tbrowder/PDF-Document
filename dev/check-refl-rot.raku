@@ -4,9 +4,15 @@ use lib <./lib ../lib>;
 use PDF::Document;
 
 my $debug = 0;
+my $m1  = 0;
+my $m2  = 0;
+my $a1  = 0;
+my $a2  = 0;
+sub z{$m1,$m2,$a1,$a2=0}
+
 if not @*ARGS {
     say qq:to/HERE/;
-    Usage:  {$*PROGRAM.IO.basename} go [debug]
+    Usage:  {$*PROGRAM.IO.basename} go [debug][ref]
 
     Executes the example reflect/rotate program in the docs.
     HERE
@@ -14,6 +20,10 @@ if not @*ARGS {
 }
 for @*ARGS {
     when /d/ { $debug = 1 }
+    when /m1/ { z; $m1 = 1; }
+    when /m2/ { z; $m2 = 1; }
+    when /a1/ { z; $a1 = 1; }
+    when /a2/ { z; $a2 = 1; }
 }
 
 # We change only three of the many defaults for this
@@ -66,13 +76,39 @@ my $angle = 30 * deg2rad;
 .say: "same circle with reflection:", :y<2in>;
 .save;
 .page.gfx.transform: :translate[6*72,2*72];
-.page.gfx.transform: :reflect(pi/2);
-.page.gfx.transform: :rotate($angle);
+if $m1 {
+    my $matrix = ref-rot-matrix :theta($angle);
+    .page.gfx.transform: :$matrix;
+}
+elsif $m2 {
+    my $matrix = rot-ref-matrix :theta($angle);
+    .page.gfx.transform: :$matrix;
+}
+elsif $a1 {
+    my $rho = ref-rot-angle :theta($angle);
+    .page.gfx.transform: :reflect($rho);
+}
+elsif $a2 {
+    my $rho = rot-ref-angle :theta($angle);
+    .page.gfx.transform: :reflect($rho);
+}
+else {
+    .page.gfx.transform: :reflect(pi/2);
+    .page.gfx.transform: :rotate($angle);
+}
 .circle: :x<0>, :y<0>, :$radius, :fill;
 #.line: [0,0], :$length, :angle<90d>, :linewidth(2), :color[1,0,0];
 .setgray: 1;
 .rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill;
 .restore;
+
+=begin comment
+# this is the most meaningful to me for debugging:
+say "========= content-dump";
+my @lines  = .page.gfx.content-dump;
+.say for @lines;
+#say @lines.raku;
+=end comment
 
 =begin comment
 say "========= graphics-state";
@@ -95,14 +131,6 @@ say $gd.raku;
 =end comment
 
 =begin comment
-say "========= content-dump";
-my @lines  = .page.gfx.content-dump;
-.say for @lines;
-#say @lines.raku;
-=end comment
-
-
-=begin comment
 my $gs2 = .page.gfx.ops;
 my $gs2 = .page.gfx.open-tags;
 my $gs2 = .page.gfx.tags;
@@ -113,11 +141,21 @@ my $gs2 = .page.gfx.tags;
 #=========== END THE LETTER =================
 } # don't forget to close the 'given...' block
 
-sub rot-ref(:$theta, :$phi = pi/2, :$convert,
+sub rot-ref-angle(:$theta, :$phi = pi/2) {
+    my $rho = 2 * ($phi + 1/2 * $theta);
+    return $rho;
+}
+
+sub ref-rot-angle(:$theta, :$phi = pi/2) {
+    my $rho = 2 * ($phi - 1/2 * $theta);
+    return $rho;
+}
+
+sub rot-ref-matrix(:$theta, :$phi = pi/2, :$convert,
     :$x = 0, :$y = 0 --> List) {
     # Returns the result of the matrix multiplication of the
-    # rotation angle theta and
-    # the reflection angle phi (pi/2 is default).
+    # rotation angle, theta, and
+    # the reflection angle, phi (pi/2 is the default).
 
     # The output format is the 6-element row vector (List) used by
     # PDF::Content::Matrix.
@@ -132,13 +170,12 @@ sub rot-ref(:$theta, :$phi = pi/2, :$convert,
     # wikipedia article in the row-matrix format used by
     # PDF::Content::Matrix: [a b c d e f]
     #
-    #   where its square matrix is [ a b 0 ]
-    #                              [ c d 0 ]
-    #                              [ e f 1 ]
-    #
-    #   and the reference matrix is [ a b 0 ]
+    #   where its square matrix is  [ a b 0 ]
     #                               [ c d 0 ]
     #                               [ e f 1 ]
+    #
+    #   and the reference matrix is [ a c ]
+    #                               [ b d ]
     if $convert {
         ; # TBD
     }
@@ -146,14 +183,13 @@ sub rot-ref(:$theta, :$phi = pi/2, :$convert,
         # the default Matrix format
         [$a, $b, $c, $d, $e, $f];
     }
-
 }
 
-sub ref-rot(:$phi = pi/2, :$theta, :$convert,
+sub ref-rot-matrix(:$phi = pi/2, :$theta, :$convert,
     :$x = 0, :$y = 0 --> List) {
     # Returns the result of the matrix multiplication of the
-    # the reflection angle phi (pi/2 is default) and the
-    # rotation angle theta.
+    # the reflection angle, phi (pi/2 is default), and the
+    # rotation angle, theta.
     # The output format is the 6-element row vector (List) used by
     # PDF::Content::Matrix.
     my $rho = 2 * ($phi - 1/2 * $theta);
