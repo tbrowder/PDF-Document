@@ -47,8 +47,7 @@ my $length = $radius + 8;
 .save;
 .circle: :x<6in>, :y<8in>, :$radius, :fill;
 #.line: [6*72,8*72], :$length, :angle<90d>, :linewidth(2), :color[1,0,0];
-.setgray: 1;
-.rectangle: :cx<6.5in>, :cy<8in>, :width(2*$radius), :height(2*$radius), :fill;
+.rectangle: :cx<6.5in>, :cy<8in>, :width(2*$radius), :height(2*$radius), :fill, :color(1);
 .restore;
 
 .say: "same circle with reflection:", :y<6in>;
@@ -57,8 +56,7 @@ my $length = $radius + 8;
 .page.gfx.transform: :reflect(pi/2);
 .circle: :x<0>, :y<0>, :$radius, :fill;
 #.line: [0,0], :$length, :angle<90d>, :linewidth(2), :color[1,0,0];
-.setgray: 1;
-.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill;
+.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill, :color(1);
 .restore;
 
 my $angle = 30 * deg2rad;
@@ -68,8 +66,7 @@ my $angle = 30 * deg2rad;
 .page.gfx.transform: :rotate($angle);
 .circle: :x<0>, :y<0>, :$radius, :fill;
 #.line: [0,0], :$length, :angle<90d>, :linewidth(2), :color[1,0,0];
-.setgray: 1;
-.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill;
+.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill, :color(1);
 .restore;
 
 
@@ -98,8 +95,7 @@ else {
 }
 .circle: :x<0>, :y<0>, :$radius, :fill;
 #.line: [0,0], :$length, :angle<90d>, :linewidth(2), :color[1,0,0];
-.setgray: 1;
-.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill;
+.rectangle: :cx($radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill, :color(1);
 .restore;
 
 =begin comment
@@ -164,8 +160,8 @@ sub rot-ref-matrix(:$theta, :$phi = pi/2, :$convert,
     # the square matrix
     $a = $rho.cos;  $b =  $rho.sin;
     $c = $rho.sin;  $d = -$rho.cos;
-    $e = $x.defined ?? $x !! 0; 
-    $f = $y.defined ?? $y !! 0; 
+    $e = $x.defined ?? $x !! 0;
+    $f = $y.defined ?? $y !! 0;
     # The problem is how to represent the square matrix from the
     # wikipedia article in the row-matrix format used by
     # PDF::Content::Matrix: [a b c d e f]
@@ -197,8 +193,8 @@ sub ref-rot-matrix(:$phi = pi/2, :$theta, :$convert,
     my ($a, $b, $c, $d, $e, $f);
     $a = $rho.cos;  $b =  $rho.sin;
     $c = $rho.sin;  $d = -$rho.cos;
-    $e = $x.defined ?? $x !! 0; 
-    $f = $y.defined ?? $y !! 0; 
+    $e = $x.defined ?? $x !! 0;
+    $f = $y.defined ?? $y !! 0;
 
     if $convert {
         ; # TBD
@@ -208,4 +204,3 @@ sub ref-rot-matrix(:$phi = pi/2, :$theta, :$convert,
         [$a, $b, $c, $d, $e, $f];
     }
 }
-

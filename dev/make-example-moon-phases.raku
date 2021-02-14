@@ -74,7 +74,7 @@ my $sywane-s = $sywax-s - 1 * $dy;
 $type = 'wax';
 get-points @x, @y, :startx($sx), :starty($sywax), :$dx, :$dy, :$ncols, :$nrows;
 $frac = 0;
-$angle = Nil; #45 * deg2rad;
+$angle = Nil; #30 * deg2rad;
 for @y -> $cy {
     for @x -> $cx {
         note "DEBUG: moon-phase: cx = $cx, cy = $cy, radius = $radius, frac = $frac, type = $type" if $debug;
@@ -88,7 +88,7 @@ for @y -> $cy {
 $type = 'wane';
 get-points @x, @y, :startx($sx), :starty($sywane), :$dx, :$dy, :$ncols, :$nrows;
 $frac = 1;
-$angle = Nil; #45 * deg2rad;
+$angle = Nil; #30 * deg2rad;
 for @y -> $cy {
     for @x -> $cx {
         note "DEBUG: moon-phase: cx = $cx, cy = $cy, radius = $radius, frac = $frac, type = $type" if $debug;
@@ -98,9 +98,9 @@ for @y -> $cy {
 }
 
 # waxing, southern hemisphere
-# for demo make crescent angle 45 degrees
+# for demo make crescent angle 30 degrees
 .say: "Moon phases: waxing, frac 0..1, Southern Hemisphere (left-to-right)", :x($sx-0.5*$dx), :y($sywax-s+0.5*$dy);
-$angle = Nil; #45 * deg2rad;
+$angle = Nil; #30 * deg2rad;
 $type = 'wax';
 get-points @x, @y, :startx($sx), :starty($sywax-s), :$dx, :$dy, :$ncols, :$nrows;
 $frac = 0;
@@ -117,7 +117,7 @@ for @y -> $cy {
 $type = 'wane';
 get-points @x, @y, :startx($sx), :starty($sywane-s), :$dx, :$dy, :$ncols, :$nrows;
 $frac = 1;
-$angle = Nil; #45 * deg2rad;
+$angle = Nil; #30 * deg2rad;
 for @y -> $cy {
     for @x -> $cx {
         note "DEBUG: moon-phase: cx = $cx, cy = $cy, radius = $radius, frac = $frac, type = $type, angle = $angle" if $debug;
@@ -132,11 +132,11 @@ for @y -> $cy {
 
 
 # waxing, northern hemisphere
-.say: "Moon phases: waxing, frac 0..1, Northern Hemisphere (right-to-left), crescent angle 45 degrees", :x($sx-0.5*$dx), :y($sywax+0.5*$dy);
+.say: "Moon phases: waxing, frac 0..1, Northern Hemisphere (right-to-left), crescent angle 30 degrees", :x($sx-0.5*$dx), :y($sywax+0.5*$dy);
 $type = 'wax';
 get-points @x, @y, :startx($sx), :starty($sywax), :$dx, :$dy, :$ncols, :$nrows;
 $frac = 0;
-$angle = 45 * deg2rad;
+$angle = 30 * deg2rad;
 for @y -> $cy {
     for @x -> $cx {
         note "DEBUG: moon-phase: cx = $cx, cy = $cy, radius = $radius, frac = $frac, type = $type" if $debug;
@@ -146,11 +146,11 @@ for @y -> $cy {
 }
 
 # waning, northern hemisphere
-.say: "Moon phases: waning, frac 1..0, Northern Hemisphere (right-to-left), crescent angle 45 degrees", :x($sx-0.5*$dx), :y($sywane+0.5*$dy);
+.say: "Moon phases: waning, frac 1..0, Northern Hemisphere (right-to-left), crescent angle 30 degrees", :x($sx-0.5*$dx), :y($sywane+0.5*$dy);
 $type = 'wane';
 get-points @x, @y, :startx($sx), :starty($sywane), :$dx, :$dy, :$ncols, :$nrows;
 $frac = 1;
-$angle = 45 * deg2rad;
+$angle = 30 * deg2rad;
 for @y -> $cy {
     for @x -> $cx {
         note "DEBUG: moon-phase: cx = $cx, cy = $cy, radius = $radius, frac = $frac, type = $type" if $debug;
@@ -160,9 +160,9 @@ for @y -> $cy {
 }
 
 # waxing, southern hemisphere
-# for demo make crescent angle 45 degrees
-.say: "Moon phases: waxing, frac 0..1, Southern Hemisphere (left-to-right), crescent angle 45 degrees", :x($sx-0.5*$dx), :y($sywax-s+0.5*$dy);
-$angle = 45 * deg2rad;
+# for demo make crescent angle 30 degrees
+.say: "Moon phases: waxing, frac 0..1, Southern Hemisphere (left-to-right), crescent angle 30 degrees", :x($sx-0.5*$dx), :y($sywax-s+0.5*$dy);
+$angle = 30 * deg2rad;
 $type = 'wax';
 get-points @x, @y, :startx($sx), :starty($sywax-s), :$dx, :$dy, :$ncols, :$nrows;
 $frac = 0;
@@ -175,11 +175,11 @@ for @y -> $cy {
 }
 
 # waning, southern hemisphere
-.say: "Moon phases: waning, frac 1..0, Southern Hemisphere (left-to-right), crescent angle 45 degrees", :x($sx-0.5*$dx), :y($sywane-s+0.5*$dy);
+.say: "Moon phases: waning, frac 1..0, Southern Hemisphere (left-to-right), crescent angle 30 degrees", :x($sx-0.5*$dx), :y($sywane-s+0.5*$dy);
 $type = 'wane';
 get-points @x, @y, :startx($sx), :starty($sywane-s), :$dx, :$dy, :$ncols, :$nrows;
 $frac = 1;
-$angle = 45 * deg2rad;
+$angle = 30 * deg2rad;
 for @y -> $cy {
     for @x -> $cx {
         note "DEBUG: moon-phase: cx = $cx, cy = $cy, radius = $radius, frac = $frac, type = $type, angle = $angle" if $debug;
