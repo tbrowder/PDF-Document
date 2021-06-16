@@ -1,5 +1,9 @@
+COLOR
+=====
+
 Need to handle color generally, particularly for geometric
-  objects
+  objects 
+
 Maybe a color class with r,g,b attrs:
   if only r is defined it's a gray value, but r,g,b defined is color
   that should work for rgb color (could add cmyk)
@@ -9,5 +13,14 @@ Make all geom objects classes with color role
 Need to have a private introspection method to determine
 what existing color state is so the methods that depend
 on color masking (e,g., moon-phase) work properly.
+
+[started, mostly done]
+
+MOON CRESCENT ANGLE
+===================
+
+Caclulate the Moon crescent angle using formulas in the book "Celestial Calculations"
+on p. 89 (converting equatorial coordinates to the horizon coordinate system).
+
 
 
