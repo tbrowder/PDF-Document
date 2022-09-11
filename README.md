@@ -245,9 +245,9 @@ REFERENCES
 
 
 
-  * 1. *PostScript Language Reference Manual*, 2nd Edition, Adobe Systems Inc., 1990
+  * *PostScript Language Reference Manual*, 2nd Edition, Adobe Systems Inc., 1990
 
-  * 2. *PostScript Language Tutorial and Cookbook*, Adobe Systems Inc., 1986
+  * *PostScript Language Tutorial and Cookbook*, Adobe Systems Inc., 1986
 
 AUTHOR
 ======
@@ -257,7 +257,7 @@ Tom Browder <tbrowder@cpan.org>
 COPYRIGHT and LICENSE
 =====================
 
-Copyright © 2021 Tom Browder
+Copyright © 2021-2022 Tom Browder
 
-This library is free software; you can redistribute it or modify it under the Artistic License 2.0.
+This library is free software; you may redistribute it or modify it under the Artistic License 2.0.
 

@@ -244,8 +244,8 @@ from interested parties.
 
 =REFERENCES
 
-=item 1. I<PostScript Language Reference Manual>, 2nd Edition, Adobe Systems Inc., 1990
-=item 2. I<PostScript Language Tutorial and Cookbook>, Adobe Systems Inc., 1986
+=item I<PostScript Language Reference Manual>, 2nd Edition, Adobe Systems Inc., 1990
+=item I<PostScript Language Tutorial and Cookbook>, Adobe Systems Inc., 1986
 
 =head1 AUTHOR
 
@@ -253,9 +253,9 @@ Tom Browder <tbrowder@cpan.org>
 
 =head1 COPYRIGHT and LICENSE
 
-Copyright E<0x00a9> 2021 Tom Browder
+Copyright E<0x00a9> 2021-2022 Tom Browder
 
-This library is free software; you can redistribute it or modify it
+This library is free software; you may redistribute it or modify it
 under the Artistic License 2.0.
 
 =end pod
