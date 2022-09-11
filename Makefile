@@ -1,4 +1,4 @@
 all: details
 
 details:
-	raku -e 'shell "raku --doc=Markdown docs/details.pod > DETAILS.md";';
+	raku -e 'shell "raku --doc=Markdown docs/DETAILS.rakudoc > DETAILS.md";';

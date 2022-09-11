@@ -1,5 +1,5 @@
-Some details
-============
+Some developer details
+======================
 
 Fonts
 -----

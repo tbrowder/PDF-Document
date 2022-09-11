@@ -1,6 +1,9 @@
 Revision history for PDF-Document
 
 {{$NEXT}}
+    - Use more Raku standard file extensions
+    - Add an example check for a single US Letter paper
+      (from Office Depot)
 
 0.0.3  2021-02-12T14:52:07-06:00
     - Many updates, but still a work-in-progress.

@@ -220,9 +220,9 @@ more easily by this module.
 Currently the the module provides routines and constants as used in the example
 program shown in the B<SYNOPSIS>. Much more work is planned including:
 
-=item1 font underlining
-=item1 font strikethrough
-=item1 more graphics objects (e.g., Moon phases)
+=item font underlining
+=item font strikethrough
+=item more graphics objects (e.g., Moon phases)
 
 =head1 FUTURE CAPABILITY
 
