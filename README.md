@@ -245,9 +245,21 @@ REFERENCES
 
 
 
-  * *PostScript Language Reference Manual*, 2nd Edition, Adobe Systems Inc., 1990
+###### 1. *PostScript Language Reference Manual*, 2nd Edition, Adobe Systems Inc., 1990
 
-  * *PostScript Language Tutorial and Cookbook*, Adobe Systems Inc., 1986
+###### 2. *PostScript Language Tutorial and Cookbook*, Adobe Systems Inc., 1986
+
+### 3. *PostScript Language Tutorial and Cookbook*, Adobe Systems Inc., 1986
+
+#### 4. *PostScript Language Tutorial and Cookbook*, Adobe Systems Inc., 1986
+
+##### 5. *PostScript Language Tutorial and Cookbook*, Adobe Systems Inc., 1986
+
+###### 6. *PostScript Language Tutorial and Cookbook*, Adobe Systems Inc., 1986
+
+###### 7. *PostScript Language Tutorial and Cookbook*, Adobe Systems Inc., 1986
+
+###### 8. *PostScript Language Tutorial and Cookbook*, Adobe Systems Inc., 1986
 
 AUTHOR
 ======
