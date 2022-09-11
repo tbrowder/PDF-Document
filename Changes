@@ -1,6 +1,7 @@
 Revision history for PDF-Document
 
 {{$NEXT}}
+    - Use new mi6 capability for creating more docs
     - Use more Raku standard file extensions
     - Add an example check for a single US Letter paper
       (from Office Depot)

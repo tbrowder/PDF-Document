@@ -244,16 +244,8 @@ from interested parties.
 
 =REFERENCES
 
-=head7 1. I<PostScript Language Reference Manual>, 2nd Edition, Adobe Systems Inc., 1990
-=head7 2. I<PostScript Language Tutorial and Cookbook>, Adobe Systems Inc., 1986
-
-
-=head3 3. I<PostScript Language Tutorial and Cookbook>, Adobe Systems Inc., 1986
-=head4 4. I<PostScript Language Tutorial and Cookbook>, Adobe Systems Inc., 1986
-=head5 5. I<PostScript Language Tutorial and Cookbook>, Adobe Systems Inc., 1986
-=head6 6. I<PostScript Language Tutorial and Cookbook>, Adobe Systems Inc., 1986
-=head7 7. I<PostScript Language Tutorial and Cookbook>, Adobe Systems Inc., 1986
-=head8 8. I<PostScript Language Tutorial and Cookbook>, Adobe Systems Inc., 1986
+=head5 1. I<PostScript Language Reference Manual> (the "Red Book"), 2nd Edition, Adobe Systems Inc., 1990
+=head5 2. I<PostScript Language Tutorial and Cookbook> (the "Blue Book"), Adobe Systems Inc., 1986
 
 
 =head1 AUTHOR
