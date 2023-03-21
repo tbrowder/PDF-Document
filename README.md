@@ -1,4 +1,4 @@
-[![Actions Status](https://github.com/tbrowder/PDF-Document/workflows/test/badge.svg)](https://github.com/tbrowder/PDF-Document/actions)
+[![Actions Status](https://github.com/tbrowder/PDF-Document/actions/workflows/linux.yml/badge.svg)](https://github.com/tbrowder/PDF-Document/actions) [![Actions Status](https://github.com/tbrowder/PDF-Document/actions/workflows/macos.yml/badge.svg)](https://github.com/tbrowder/PDF-Document/actions) [![Actions Status](https://github.com/tbrowder/PDF-Document/actions/workflows/windows.yml/badge.svg)](https://github.com/tbrowder/PDF-Document/actions)
 
 WARNING - A WORK IN PROGRESS - EXPECT CHANGES
 =============================================
