@@ -242,6 +242,14 @@ albeit of minimal use. Two asterisks means the published module is not
 even minimally useful, but it is exposed to issues or feature requests
 from interested parties.
 
+=CREDITS
+
+The author is indebted to the tremendous amount of work done
+by his Raku friend, David Warring. David's voluminous project,
+hosted at L<https://github.com/PDF-Raku>, provides all the
+tools needed to manipulate PDF files using our wonderful
+Raku language. Thank you David!
+
 =REFERENCES
 
 =head5 1. I<PostScript Language Reference Manual> (the "Red Book"), 2nd Edition, Adobe Systems Inc., 1990
