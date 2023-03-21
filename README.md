@@ -240,6 +240,13 @@ This module will be updated with more items as the user modules are updated and 
 
 NOTE: The asterisk (`*`) indicates the module has been published, albeit of minimal use. Two asterisks means the published module is not even minimally useful, but it is exposed to issues or feature requests from interested parties.
 
+CREDITS
+=======
+
+
+
+The author is indebted to the tremendous amount of work done by his Raku friend, David Warring. David's voluminous project, hosted at [https://github.com/PDF-Raku](https://github.com/PDF-Raku), provides all the tools needed to manipulate PDF files using our wonderful Raku language. Thank you David!
+
 REFERENCES
 ==========
 

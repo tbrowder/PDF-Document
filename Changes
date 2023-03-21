@@ -1,6 +1,7 @@
 Revision history for PDF-Document
 
 {{$NEXT}}
+    - Add CREDITS section
     - Use separate Github workflow OS test files for Linux, MacOS, Windows
     - Use new mi6 capability for creating more docs
     - Use more Raku standard file extensions
