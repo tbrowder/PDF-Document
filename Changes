@@ -5,8 +5,7 @@ Revision history for PDF-Document
     - Use separate Github workflow OS test files for Linux, MacOS, Windows
     - Use new mi6 capability for creating more docs
     - Use more Raku standard file extensions
-    - Add an example check for a single US Letter paper
-      (from Office Depot)
+    - Move to Zef archive
 
 0.0.3  2021-02-12T14:52:07-06:00
     - Many updates, but still a work-in-progress.
