@@ -28,6 +28,7 @@
   ],
   "source-url": "https://github.com/tbrowder/PDF-Document.git",
   "tags": [
+    "PDF doc text font PS"
   ],
   "test-depends": [
     "App::Prove6"
