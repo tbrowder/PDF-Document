@@ -36,7 +36,7 @@ with d {
 
 # put the date at the top-right corner
 .print: "2021-03-04", :tr, :align<right>, :valign<top>;
-.nl; # adds the newline, resets x to left margin
+.nl; # adds the newline, resets x to left margin, moves y down one line
 
 .say: "Dear Mom,"; # SHOULD automatically add a newline
 .nl: 1; # moves y down one line, resets x=0 (left margin)
