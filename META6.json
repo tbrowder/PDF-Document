@@ -25,16 +25,6 @@
     "PDF::PDF-role": "lib/PDF/PDF-role.rakumod"
   },
   "resources": [
-    "elliptical-arc.pdf",
-    "EllipticalArc.java",
-    "README",
-    "CommandLine.java",
-    "cc/Makefille",
-    "cc/main.cc",
-    "cc/elliptical-arc.cc",
-    "cc/Makefile",
-    "orig/EllipticalArc.java",
-    "orig/CommandLine.java"
   ],
   "source-url": "https://github.com/tbrowder/PDF-Document.git",
   "tags": [

@@ -1209,7 +1209,8 @@ class Doc does PDF-role is export {
     }
 
     method !moon-waning(
-        # waning, Full Moon to New moon, darkness increasing from the right (frac 1..0)
+        # waning, Full Moon to New moon, darkness increasing from the
+        # right (frac 1..0)
         Real $cx,
         Real $cy,
         Real $radius where {$_ >= 0},
