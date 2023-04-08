@@ -43,27 +43,6 @@ for @*ARGS {
     }
 }
 
-# Do we need to specify 'media-box' on the whole document?
-# No, it can be set per page.
-my $pdf = PDF::Lite.new;
-$pdf.media-box = $A4 ?? 'A4' !!'Letter';
-my $font  = $pdf.core-font(:family<Times-RomanBold>);
-my $font2 = $pdf.core-font(:family<Times-Roman>);
-
-# write the desired pages
-# ...
-# start the document with the first page
-make-page :$pdf;
-make-page :$pdf;
-
-my $pages = $pdf.Pages.page-count;
-# save the whole thing with name as desired
-$pdf.save-as: $ofile;
-say "See outout pdf: $ofile";
-say "Total pages: $pages";
-
-sub deg2rad($d) { $d * pi / 180 }
-
 my ($PW, $PH); # paper width, height (portrait)
 my ($LM, $TM, $RM, $BM); # margins (in final orientation)
 $LM = 0.5  * 72;
@@ -77,12 +56,34 @@ else {
     $PH = 11.0  * 72;
 }
 
+# Do we need to specify 'media-box' on the whole document?
+# No, it can be set per page.
+my $pdf = PDF::Lite.new;
+$pdf.media-box = $A4 ?? 'A4' !!'Letter';
+my $font  = $pdf.core-font(:family<Times-RomanBold>);
+my $font2 = $pdf.core-font(:family<Times-Roman>);
+
+# write the desired pages
+# ...
+# start the document with the first page
+make-page :$pdf, :$PW;
+make-page :$pdf, :$PW;
+
+my $pages = $pdf.Pages.page-count;
+# save the whole thing with name as desired
+$pdf.save-as: $ofile;
+say "See outout pdf: $ofile";
+say "Total pages: $pages";
+
+sub deg2rad($d) { $d * pi / 180 }
+
 sub make-page(
     PDF::Lite :$pdf!,
 
     # payload
     #Calendar :$cal,
     #UInt :$month, # month number
+    :$PW,
 
     :$debug,
     

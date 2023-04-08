@@ -134,17 +134,13 @@ The PS font selection process needs a little more detail to help explain how it 
 
   * **selectfont **[Level 2]**** - *key scale* **scalefont** - "obtains a font whose name is *key*, transforms is according to *scale*, and establishes it as the current font dictionary in the graphics state.", p. 490
 
-The PS Level 1 method for defining a usable font is shown in this example:
-
-    /Times-Roman findfont 10 scalefont setfont
-
 The PS Level 2 method for defining a usable font is shown in this example:
 
     /Times-Roman 10 selectfont
 
 (Note the the Level 2 method is "almost always more efficient.", Ref. 1, p. 490)
 
-In either case, we usually save desired combinations of font prototypes and scale by defining them by another name for easy recall. For example:
+We usually save desired combinations of font prototypes and scale by defining them by another name for easy recall. For example:
 
     /h12 /Helvetica 10 selectfont def
     /hb12 /Hevetica-Bold 12 selectfont def
@@ -200,7 +196,7 @@ As opposed to PS, the font selection process using `PDF::Lite` is a bit differen
 ```raku
 $page.text: {
     .text-position = $x, $y;
-    .font = $setfont.font, $setfont.size;
+    .font = $c10.font, $c10.size;
     .say("Howdy, podnuh!");
 }
 ```
@@ -213,13 +209,13 @@ As you can see the document steps are equivalent, but the steps in PDF page crea
 CURRENT CAPABILITY
 ==================
 
-Currently the the module provides routines and constants as used in the example program shown in the **SYNOPSIS**. Much more work is planned including:
+Currently the the module provides routines and constants as used in the example program shown in the **SYNOPSIS**. In addition, other graphics and text examples are shown in the `/dev` directory including showing phases of the Moon, creating grids, using landscape orientation, and using A4 paper.
+
+More work is planned including:
 
   * font underlining
 
   * font strikethrough
-
-  * more graphics objects (e.g., Moon phases)
 
 FUTURE CAPABILITY
 =================
@@ -264,7 +260,7 @@ Tom Browder <tbrowder@acm.org>
 COPYRIGHT and LICENSE
 =====================
 
-Copyright © 2021-2022 Tom Browder
+Copyright © 2021-2023 Tom Browder
 
 This library is free software; you may redistribute it or modify it under the Artistic License 2.0.
 
