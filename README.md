@@ -27,77 +27,72 @@ use PDF::Document;
 # turn page numbering on:
 my \d = Doc.new: :pdf-name<example-letter>, :force, :page-numbering, :$debug;
 
-# use the 'with' block to ease typing by one character
-# per command
-with d {
-# but you'll crash if you forget to close the block!
 #=========== THE LETTER =================
 # starts with a new page, current position top baseline, left margin
 
 # put the date at the top-right corner
-.print: "2021-03-04", :tr, :align<right>, :valign<top>;
-.nl; # adds the newline, resets x to left margin, moves y down one line
+d.print: "2021-03-04", :tr, :align<right>, :valign<top>;
+d.nl; # adds the newline, resets x to left margin, moves y down one line
 
-.say: "Dear Mom,"; # SHOULD automatically add a newline
-.nl: 1; # moves y down one line, resets x=0 (left margin)
-.say: "I am fine.";
-.nl: 1;
-.say: "How are you?";
+d.say: "Dear Mom,"; # SHOULD automatically add a newline
+d.nl: 1; # moves y down one line, resets x=0 (left margin)
+d.say: "I am fine.";
+d.nl: 1;
+d.say: "How are you?";
 
 # simple graphics: circle, etc.
-.nl: 30;
-.say: "circle: radius = 36 pts, linewidth = 4 points";
-.save; # save the current position and graphics state
-.setlinewidth: 4; # points
-.circle: :x<5in>, :y<3in>, :radius(36); # default points (or in, cm)
-.restore; # don't forget to go back to normal!
+d.nl: 30;
+d.say: "circle: radius = 36 pts, linewidth = 4 points";
+d.save; # save the current position and graphics state
+d.setlinewidth: 4; # points
+d.circle: :x<5in>, :y<3in>, :radius(36); # default points (or in, cm)
+d.restore; # don't forget to go back to normal!
 
-.np; # new page, current position top baseline, left margin
-.say: q:to/PARA/;
+d.np; # new page, current position top baseline, left margin
+d.say: q:to/PARA/;
 Pretend this is a VERY long para
 that extends at least more than one line length in the
 current font so we can observe the effect of  paragraph
 wrapping. Isn't this swell!
 PARA
 
-.nl: 3;
+d.nl: 3;
 
-.say: "Thats all, folks, but see following pages for other bells and whistles!";
-.nl: 2;
-.say: "Love,";
-.nl: 2;
-.say: "Isaiah";
+d.say: "Thats all, folks, but see following pages for other bells and whistles!";
+d.nl: 2;
+d.say: "Love,";
+d.nl: 2;
+d.say: "Isaiah";
 
-.np; # for some graphics examples
+d.np; # for some graphics examples
 
-.say: "ellipse: a = 1 in, b = 0.5 in", :y<8in>;
-.ellipse: :x<5in>, :y<8in>, :a<1in>, :b<.5in>;
+d.say: "ellipse: a = 1 in, b = 0.5 in", :y<8in>;
+d.ellipse: :x<5in>, :y<8in>, :a<1in>, :b<.5in>;
 
-.say: "ellipse: a = 0.3 in, b = 2 cm", :y<6in>;
-.ellipse: :x<5in>, :y<6in>, :a<.3in>, :b<2cm>;
+d.say: "ellipse: a = 0.3 in, b = 2 cm", :y<6in>;
+d.ellipse: :x<5in>, :y<6in>, :a<.3in>, :b<2cm>;
 
-.say: "circle: radius = 24 mm", :y<4in>;
-.circle: :x<5in>, :y<4in>, :radius<24mm>;
+d.say: "circle: radius = 24 mm", :y<4in>;
+d.circle: :x<5in>, :y<4in>, :radius<24mm>;
 
-.say: "rectangle: width = 2 in, height = 2 cm", :y<2in>;
-.rectangle: :llx<5in>, :lly<2in>, :width<2in>, :height<2cm>;
+d.say: "rectangle: width = 2 in, height = 2 cm", :y<2in>;
+d.rectangle: :llx<5in>, :lly<2in>, :width<2in>, :height<2cm>;
 
-.np; # for some more graphics examples
+d.np; # for some more graphics examples
 
-.say: "polyline:", :y<7.5in>;
+d.say: "polyline:", :y<7.5in>;
 my @pts = 1*i2p, 7*i2p, 4*i2p, 6.5*i2p, 3*i2p, 5*i2p;
-.polyline: @pts;
+d.polyline: @pts;
 
 
-.say: "blue polygon:", :y<4.5in>;
+d.say: "blue polygon:", :y<4.5in>;
 @pts = 1*i2p, 4*i2p, 4*i2p, 3.5*i2p, 3*i2p, 2*i2p;
-.polygon: @pts, :fill, :color[0,0,1]; # rgb, 0-1 values
+d.polygon: @pts, :fill, :color[0,0,1]; # rgb, 0-1 values
 
 
-.end-doc; # renders the pdf and saves the output
+d.end-doc; # renders the pdf and saves the output
           # also numbers the pages if you requested it
 #=========== END THE LETTER =================
-} # don't forget to close the 'given...' block
 ```
 
 DESCRIPTION
@@ -126,17 +121,7 @@ The module is designed around the document generation process used by those who 
 
 The PS font selection process needs a little more detail to help explain how it is done in this module. First some terminology. From Ref. 1 we get some pertinent function names and definitions:
 
-  * **findfont** - *key* **findfont** *font* - "obtains a font dictionary defined by the *key* and pushes it on the operand stack...", p. 418
-
-  * **scalefont** - *font scale* **scalefont** *font'* - "applies the scale factor *scale* to *font*, producing a new *font'* whose characters are scaled by *scale* (in both *x* and *y*) when they are shown.", p. 488
-
-  * **setfont** - *font* **setfont** *-* - "establishes the font dictionary parameter in the graphics state.", p. 503
-
   * **selectfont **[Level 2]**** - *key scale* **scalefont** - "obtains a font whose name is *key*, transforms is according to *scale*, and establishes it as the current font dictionary in the graphics state.", p. 490
-
-The PS Level 1 method for defining a usable font is shown in this example:
-
-    /Times-Roman findfont 10 scalefont setfont
 
 The PS Level 2 method for defining a usable font is shown in this example:
 
@@ -144,7 +129,7 @@ The PS Level 2 method for defining a usable font is shown in this example:
 
 (Note the the Level 2 method is "almost always more efficient.", Ref. 1, p. 490)
 
-In either case, we usually save desired combinations of font prototypes and scale by defining them by another name for easy recall. For example:
+We usually save desired combinations of font prototypes and scale by defining them by another name for easy recall. For example:
 
     /h12 /Helvetica 10 selectfont def
     /hb12 /Hevetica-Bold 12 selectfont def
@@ -195,12 +180,12 @@ That sequence is also followed in the PDF document creation process:
 
 ### PDF font selection
 
-As opposed to PS, the font selection process using `PDF::Lite` is a bit different since, with the given low-level routines, we keep the font "prototype" separate from the desired font size when we use the font in a text block. For example, here is a text block being rendered on a PDF page instance:
+As opposed to PS, the font selection process using `PDF::Lite` is a bit different since, with the given low-level routines, we keep the font "prototype" separate from the desired font size when we use the font in a text block. For example, here is a text block being rendered on a PDF page instance with the fonts defined previously:
 
 ```raku
 $page.text: {
     .text-position = $x, $y;
-    .font = $setfont.font, $setfont.size;
+    .font = $c10.font, $c10.size;
     .say("Howdy, podnuh!");
 }
 ```
@@ -213,13 +198,13 @@ As you can see the document steps are equivalent, but the steps in PDF page crea
 CURRENT CAPABILITY
 ==================
 
-Currently the the module provides routines and constants as used in the example program shown in the **SYNOPSIS**. Much more work is planned including:
+Currently the the module provides routines and constants as used in the example program shown in the **SYNOPSIS**. In addition, other graphics and text examples are shown in the `/dev` directory including showing phases of the Moon, creating grids, using landscape orientation, and using A4 paper.
+
+More work is planned including:
 
   * font underlining
 
   * font strikethrough
-
-  * more graphics objects (e.g., Moon phases)
 
 FUTURE CAPABILITY
 =================
@@ -264,7 +249,7 @@ Tom Browder <tbrowder@acm.org>
 COPYRIGHT and LICENSE
 =====================
 
-Copyright © 2021-2022 Tom Browder
+Copyright © 2021-2023 Tom Browder
 
 This library is free software; you may redistribute it or modify it under the Artistic License 2.0.
 

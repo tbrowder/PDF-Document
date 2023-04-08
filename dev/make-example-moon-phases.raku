@@ -12,6 +12,7 @@ if not @*ARGS {
     HERE
     exit;
 }
+
 for @*ARGS {
     when /d/ { $debug = 1 }
 }

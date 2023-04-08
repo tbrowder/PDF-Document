@@ -6,12 +6,13 @@ use PDF::Document;
 my $debug = 0;
 if not @*ARGS {
     say qq:to/HERE/;
-    Usage:  {$*PROGRAM.IO.basename} go [debug]
+    Usage:  {$*PROGRAM.basename} go [debug]
 
     Executes the example letter program in the docs.
     HERE
     exit;
 }
+
 for @*ARGS {
     when /d/ { $debug = 1 }
 }

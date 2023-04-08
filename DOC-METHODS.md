@@ -1,6 +1,6 @@
 ### method TextLeading
 
-```perl6
+```raku
 method TextLeading() returns Mu
 ```
 
@@ -8,7 +8,7 @@ Text line height
 
 ### method SetStrokeGray
 
-```perl6
+```raku
 method SetStrokeGray(
     $level
 ) returns Mu
@@ -18,7 +18,7 @@ Set the stroking colour space to DeviceGray and set the gray level to use for st
 
 ### method SetFillGray
 
-```perl6
+```raku
 method SetFillGray(
     $level
 ) returns Mu
@@ -28,7 +28,7 @@ Same as G but used for non-stroking operations.
 
 ### method SetStrokeRGB
 
-```perl6
+```raku
 method SetStrokeRGB(
     $r,
     $g,
@@ -40,7 +40,7 @@ Set the stroking colour space to DeviceRGB and set the colour to use for strokin
 
 ### method SetFillRGB
 
-```perl6
+```raku
 method SetFillRGB(
     $r,
     $g,
@@ -52,7 +52,7 @@ Same as RG but used for non-stroking operations.
 
 ### method Save
 
-```perl6
+```raku
 method Save() returns Mu
 ```
 
@@ -60,7 +60,7 @@ Save the current graphics state on the graphics state stack
 
 ### method Restore
 
-```perl6
+```raku
 method Restore() returns Mu
 ```
 
@@ -68,7 +68,7 @@ Restore the graphics state by removing the most recently saved state from the st
 
 ### method SetLineWidth
 
-```perl6
+```raku
 method SetLineWidth(
     $width
 ) returns Mu
@@ -78,7 +78,7 @@ Set the line width in the graphics state
 
 ### method SetLineCap
 
-```perl6
+```raku
 method SetLineCap(
     $cap-style
 ) returns Mu
@@ -88,7 +88,7 @@ Set the line cap style in the graphics state (see LineCap enum)
 
 ### method SetLineJoin
 
-```perl6
+```raku
 method SetLineJoin(
     $join-style
 ) returns Mu
@@ -98,7 +98,7 @@ Set the line join style in the graphics state (see LineJoin enum)
 
 ### method SetMiterLimit
 
-```perl6
+```raku
 method SetMiterLimit(
     $ratio
 ) returns Mu
@@ -108,7 +108,7 @@ Set the miter limit in the graphics state
 
 ### method BeginText
 
-```perl6
+```raku
 method BeginText() returns Mu
 ```
 
@@ -116,7 +116,7 @@ Begin a text object, initializing $.TextMatrix, to the identity matrix. Text obj
 
 ### method EndText
 
-```perl6
+```raku
 method EndText() returns Mu
 ```
 
@@ -124,7 +124,7 @@ End a text object, discarding the text matrix.
 
 ### method TextMove
 
-```perl6
+```raku
 method TextMove(
     $tx,
     $ty
@@ -135,7 +135,7 @@ Move to the start of the next line, offset from the start of the current line by
 
 ### method TextMoveSet
 
-```perl6
+```raku
 method TextMoveSet(
     $tx,
     $ty
@@ -146,7 +146,7 @@ Move to the start of the next line, offset from the start of the current line by
 
 ### method TextNextLine
 
-```perl6
+```raku
 method TextNextLine() returns Mu
 ```
 
@@ -154,7 +154,7 @@ Move to the start of the next line
 
 ### method ShowText
 
-```perl6
+```raku
 method ShowText(
     $string
 ) returns Mu
@@ -164,7 +164,7 @@ Show a text string
 
 ### method MoveShowText
 
-```perl6
+```raku
 method MoveShowText(
     $string
 ) returns Mu
@@ -174,7 +174,7 @@ Move to the next line and show a text string.
 
 ### method MoveSetShowText
 
-```perl6
+```raku
 method MoveSetShowText(
     $aw,
     $ac,
@@ -186,7 +186,7 @@ Move to the next line and show a text string, after setting $.WordSpacing to aw 
 
 ### method MoveTo
 
-```perl6
+```raku
 method MoveTo(
     $x,
     $y
@@ -197,7 +197,7 @@ Begin a new sub-path by moving the current point to coordinates (x, y), omitting
 
 ### method LineTo
 
-```perl6
+```raku
 method LineTo(
     $x,
     $y
@@ -208,7 +208,7 @@ Append a straight line segment from the current point to the point (x, y). The n
 
 ### method CurveTo
 
-```perl6
+```raku
 method CurveTo(
     $x1,
     $y1,
@@ -223,7 +223,7 @@ Append a cubic Bézier curve to the current path. The curve extends from the cur
 
 ### method ClosePath
 
-```perl6
+```raku
 method ClosePath() returns Mu
 ```
 
@@ -231,7 +231,7 @@ Close the current sub-path by appending a straight line segment from the current
 
 ### method Rectangle
 
-```perl6
+```raku
 method Rectangle(
     $x,
     $y,
@@ -244,7 +244,7 @@ Append a rectangle to the current path as a complete sub-path, with lower-left c
 
 ### method Stroke
 
-```perl6
+```raku
 method Stroke() returns Mu
 ```
 
@@ -252,7 +252,7 @@ Stroke the path.
 
 ### method CloseStroke
 
-```perl6
+```raku
 method CloseStroke() returns Mu
 ```
 
@@ -260,7 +260,7 @@ Close and stroke the path. Same as: $.Close; $.Stroke
 
 ### method Fill
 
-```perl6
+```raku
 method Fill() returns Mu
 ```
 
@@ -268,7 +268,7 @@ Fill the path, using the nonzero winding number rule to determine the region. An
 
 ### method FillStroke
 
-```perl6
+```raku
 method FillStroke() returns Mu
 ```
 
@@ -276,7 +276,7 @@ Fill and then stroke the path, using the nonzero winding number rule to determin
 
 ### method CloseFillStroke
 
-```perl6
+```raku
 method CloseFillStroke() returns Mu
 ```
 
@@ -284,7 +284,7 @@ Close, fill, and then stroke the path, using the nonzero winding number rule to 
 
 ### method Clip
 
-```perl6
+```raku
 method Clip() returns Mu
 ```
 
