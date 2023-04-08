@@ -3,35 +3,37 @@ use PDF::Content;
 use PDF::Document;
 use PDF::Lite;
 use Font::AFM;
+use Proc::Easier;
 
-#plan 6;
+plan 6;
 
-my $doc;
+my ($args, $cmd, $doc);
 lives-ok {
     $doc = Doc.new: :media-box('Letter');
 }, "checking new Doc object";
 
 lives-ok {
-    shell "./dev/make-example-doc.raku";
+    $args = "./dev/make-example-doc.raku";
+    $cmd  = cmd $args, :die;
 }, "testing the example doc with no args";
 
 lives-ok {
-    shell "./dev/make-example-doc.raku g";
+    $args = "./dev/make-example-doc.raku g";
+    $cmd  = cmd $args, :die;
 }, "testing the example doc with arg of 'g'";
 
-done-testing;
-=finish
-
 lives-ok {
-    shell "./dev/make-grid.raku";
+    $args = "./dev/make-grid.raku";
+    $cmd  = cmd $args, :die;
 }, "testing the example doc with no args";
 
 lives-ok {
-    shell "./dev/make-grid.raku g";
+    $args = "./dev/make-grid.raku g";
+    $cmd  = cmd $args, :die;
 }, "testing the example doc with args";
 
 lives-ok {
-    shell "./dev/make-grid.raku g a";
+    $args = "./dev/make-grid.raku g a";
+    $cmd  = cmd $args, :die;
 }, "testing the example doc with args";
 
-done-testing;

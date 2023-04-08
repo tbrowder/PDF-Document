@@ -31,6 +31,7 @@
     "PDF doc text font PS"
   ],
   "test-depends": [
+    "Proc::Easier",
     "App::Prove6"
   ],
   "version": "0.0.4"
