@@ -9,6 +9,6 @@ plan 1;
 
 lives-ok {
     my $args = "./dev/check-fonts.raku";
-    my $cmd = cmd $args, :die;
+    my $cmd  = cmd $args, :die;
 }, "checking bulk font setting";
 
