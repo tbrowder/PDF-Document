@@ -7,6 +7,7 @@
   "build-depends": [
   ],
   "depends": [
+    "Proc::Easier",
     "Pod::To::Markdown",
     "PDF::Content:ver<0.4.11+>",
     "File::Temp",
@@ -31,7 +32,6 @@
     "PDF doc text font PS"
   ],
   "test-depends": [
-    "Proc::Easier",
     "App::Prove6"
   ],
   "version": "0.0.4"
