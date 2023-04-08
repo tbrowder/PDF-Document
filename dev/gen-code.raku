@@ -56,6 +56,7 @@ my $of4 = "AFM-role.rakumod";
 # Some alias methods will not work due to syntax
 # conflicts with Raku identifiers
 my %no-alias = set < MoveShowText MoveSetShowText TextNextLine >;
+
 # These tests are used with other tests so we don't 
 # test them individually:
 my %no-test = set < 
@@ -74,6 +75,7 @@ my %no-test = set <
 # Some methods need special handling (context) in tests
 # Outside of a text block, these need to between BeginText/EndText pairs 
 my %need-BT-ET = set < TextMove TextMoveSet TextNextLine ShowText MoveShowText MoveSetShowText >;
+
 # These need to be between Save/Restore pairs
 my %need-q-Q = set < SetDashPattern SetStrokeGray SetFillGray SetStrokeRGB SetFillRGB SetLineWidth SetLineCap SetLineJoin SetMiterLimit >;
 
