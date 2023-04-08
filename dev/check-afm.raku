@@ -22,7 +22,7 @@ my $afm = Font::AFM.new: :name<Times-Italic>;
 # can be used to scale the width according to the font size.
 #
 # $afm.stringwidth($string, $fontsize?, :kern, :%glyphs);
-say $afm.stringwidth("Gisle", 10);;
+say $afm.stringwidth("Gisle", 10);
 
 # Kern the string. Returns an array of string segments, separated by
 # numeric kerning distances, and the overall width of the string.
