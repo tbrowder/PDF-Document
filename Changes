@@ -1,6 +1,8 @@
 Revision history for PDF-Document
 
 {{$NEXT}}
+
+0.0.5  2023-04-08T15:14:02-05:00
     - Add example of landscape orientation and creating grids
     - Add more tests
     - Improve docs a bit
