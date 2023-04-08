@@ -3,7 +3,7 @@ use PDF::Content;
 use PDF::Document;
 use PDF::Lite;
 use Font::AFM;
-use Proc::Easier
+use Proc::Easier;
 
 plan 1;
 
