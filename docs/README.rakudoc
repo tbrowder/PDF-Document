@@ -146,18 +146,13 @@ some pertinent function names and definitions:
     - "obtains a font whose name is I<key>, transforms is according to I<scale>, and establishes it as the current font dictionary
       in the graphics state.", p. 490
 
-
-The PS Level 1 method for defining a usable font is shown in this example:
-=code
-/Times-Roman findfont 10 scalefont setfont
-
 The PS Level 2 method for defining a usable font is shown in this example:
 =code
 /Times-Roman 10 selectfont
 
 (Note the the Level 2 method is "almost always more efficient.", Ref. 1, p. 490)
 
-In either case, we usually save desired combinations of font prototypes and scale by
+We usually save desired combinations of font prototypes and scale by
 defining them by another name for easy recall. For example:
 =code
 /h12 /Helvetica 10 selectfont def
@@ -203,7 +198,7 @@ on a PDF page instance:
 =begin code :lang<raku>
 $page.text: {
     .text-position = $x, $y;
-    .font = $setfont.font, $setfont.size;
+    .font = $c10.font, $c10.size;
     .say("Howdy, podnuh!");
 }
 =end code
@@ -218,11 +213,14 @@ more easily by this module.
 =head1 CURRENT CAPABILITY
 
 Currently the the module provides routines and constants as used in the example
-program shown in the B<SYNOPSIS>. Much more work is planned including:
+program shown in the B<SYNOPSIS>. In addition, other graphics and text
+examples are shown in the C</dev> directory including showing phases of the Moon,
+creating grids, using landscape orientation, and using A4 paper.
+
+More work is planned including:
 
 =item font underlining
 =item font strikethrough
-=item more graphics objects (e.g., Moon phases)
 
 =head1 FUTURE CAPABILITY
 
@@ -255,14 +253,13 @@ Raku language. Thank you David!
 =head5 1. I<PostScript Language Reference Manual> (the "Red Book"), 2nd Edition, Adobe Systems Inc., 1990
 =head5 2. I<PostScript Language Tutorial and Cookbook> (the "Blue Book"), Adobe Systems Inc., 1986
 
-
 =head1 AUTHOR
 
 Tom Browder <tbrowder@acm.org>
 
 =head1 COPYRIGHT and LICENSE
 
-Copyright E<0x00a9> 2021-2022 Tom Browder
+Copyright E<0x00a9> 2021-2023 Tom Browder
 
 This library is free software; you may redistribute it or modify it
 under the Artistic License 2.0.
