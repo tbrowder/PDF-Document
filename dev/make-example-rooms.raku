@@ -103,7 +103,6 @@ PARA
 my @pts = 1*i2p, 7*i2p, 4*i2p, 6.5*i2p, 3*i2p, 5*i2p;
 .polyline: @pts;
 
-
 .say: "blue polygon:", :y<4.5in>;
 @pts = 1*i2p, 4*i2p, 4*i2p, 3.5*i2p, 3*i2p, 2*i2p;
 .polygon: @pts, :fill, :color[0,0,1]; # rgb, 0-1 values

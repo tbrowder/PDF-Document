@@ -289,7 +289,7 @@ class Doc does PDF-role is export {
     has $.page-numbering = False;
 
     has $.paper;
-    has $.media-box = 'Letter'; # = is required;
+    has $.media-box = 'Letter'; #= is required;
 
     has $.leading; #= linespacing
     has $.linespacing;
