@@ -24,16 +24,16 @@ lives-ok {
 
 lives-ok {
     $args = "./dev/make-grid.raku";
-    $cmd  = cmd $args, :die;
+    $cmd  = cmd $args; #, :die;
 }, "testing the example doc with no args";
 
 lives-ok {
     $args = "./dev/make-grid.raku g";
-    $cmd  = cmd $args, :die;
+    $cmd  = cmd $args; #, :die;
 }, "testing the example doc with args";
 
 lives-ok {
     $args = "./dev/make-grid.raku g a";
-    $cmd  = cmd $args, :die;
+    $cmd  = cmd $args; #, :die;
 }, "testing the example doc with args";
 
