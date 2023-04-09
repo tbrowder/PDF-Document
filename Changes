@@ -1,6 +1,7 @@
 Revision history for PDF-Document
 
 {{$NEXT}}
+    - Fix a test that was failing on Github but not on a local host
 
 0.0.5  2023-04-08T15:14:02-05:00
     - Add example of landscape orientation and creating grids
