@@ -18,17 +18,26 @@ my $afm = Font::AFM.new: :name<Times-Italic>;
 
 
 # Returns the width of the string passed as argument. The string is
-# assumed to contains only characters from %glyphs A second argument
+# assumed to contains only characters from %glyphs. A second argument
 # can be used to scale the width according to the font size.
 #
 # $afm.stringwidth($string, $fontsize?, :kern, :%glyphs);
-say $afm.stringwidth("Gisle", 10);
+say "width of Gisle at 10 pts: ", $afm.stringwidth("Gisle", 10);
 
 # Kern the string. Returns an array of string segments, separated by
 # numeric kerning distances, and the overall width of the string.
 #
 # ($kerned, $width) = $afm.kern($string, $fontsize?, :%glyphs?)
-my ($kerned, $width) = $afm.kern("Blah", 10);
+my $txt = "You know soap foam is bubbly and bad tasting.";
+
+my ($kerned, $width) = $afm.kern($txt, 10);
+say "Kerning '$txt'";
+for ($kerned, $width) -> $k, $w {
+    say "chars: '$k', width: $w";
+}
+
+say "Early exit before afm data..."; exit;
+
 say $afm.FontName;
 say $afm.FullName;
 say $afm.FamilyName;
@@ -47,6 +56,8 @@ say $afm.XHeight;
 say $afm.Ascender;
 say $afm.Descender;
 say $afm.Wx;
+
+say "Early exit before BBox hash..."; exit;
 
 # Returns a hash table that maps from glyph names to bounding box
 # information. The bounding box consist of four numbers: llx, lly,

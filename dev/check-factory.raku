@@ -15,3 +15,7 @@ my $ff = FontFactory.new: :$pdf;
 my $f = $ff.get-font: 't12d1';
 $f = $ff.get-font: 't12';
 
+say "  name: {$f.name}";
+say "  size: {$f.size}";
+say "  underline position: {$f.UnderlinePosition}";
+
