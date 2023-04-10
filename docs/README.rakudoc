@@ -116,8 +116,13 @@ REFERENCES).
 
 The same sequence is also followed in the PDF document creation process:
 
-=item Define the C<PDF> class instance (a heavy-weight instantiation, only one per document)
-    =item2 C<my $pdf = PDF::Lite;>
+=begin item
+Define the C<PDF> class instance (a heavy-weight instantiation, only one per document)
+
+=begin code
+my $pdf = PDF::Lite;
+=end code
+=end item
 
 =begin item
 Select the fonts (with size) to be used with the C<FontFactory>

@@ -109,7 +109,7 @@ The same sequence is also followed in the PDF document creation process:
 
   * Define the `PDF` class instance (a heavy-weight instantiation, only one per document)
 
-    * `my $pdf = PDF::Lite;`
+        my $pdf = PDF::Lite;
 
   * Select the fonts (with size) to be used with the `FontFactory`
 
