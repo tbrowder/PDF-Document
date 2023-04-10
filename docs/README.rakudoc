@@ -171,7 +171,7 @@ orientation, and using A4 paper.
 
 There is also a font factory which eases selection and use of multiple
 fonts. Fonts included are all the standard PostScript fonts plus a
-font used to create bank checks: B<MICREncoding> The PS fonts are free
+font used to create bank checks: B<MICREncoding>. The PS fonts are free
 for any use, but the MICR font is only free for non-commercial
 use. See its B<license.txt> file in the
 C</resources/fonts/micr/unzipped> directory.

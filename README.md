@@ -139,7 +139,7 @@ CURRENT CAPABILITY
 
 Currently the the module provides routines and constants as used in the example program shown in the **SYNOPSIS**. In addition, other graphics and text examples are shown in the `/dev` directory including showing phases of the Moon, creating grids, using landscape orientation, and using A4 paper.
 
-There is also a font factory which eases selection and use of multiple fonts. Fonts included are all the standard PostScript fonts plus a font used to create bank checks: **MICREncoding** The PS fonts are free for any use, but the MICR font is only free for non-commercial use. See its **license.txt** file in the `/resources/fonts/micr/unzipped` directory.
+There is also a font factory which eases selection and use of multiple fonts. Fonts included are all the standard PostScript fonts plus a font used to create bank checks: **MICREncoding**. The PS fonts are free for any use, but the MICR font is only free for non-commercial use. See its **license.txt** file in the `/resources/fonts/micr/unzipped` directory.
 
 More work is planned including:
 
