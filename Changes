@@ -1,6 +1,7 @@
 Revision history for PDF-Document
 
 {{$NEXT}}
+    - Added a non-core font for creating bank checks (MICREncoding)
 
 0.0.6  2023-04-09T07:24:07-05:00
     - Fix a test that was failing on Github but not on a local host
