@@ -1,0 +1,56 @@
+=begin pod
+
+=head1 CheckWriter
+
+Using Hjson templates similar to the format of the check (*.chk) files of 
+L<GnuCash|https://gnucash.org>,
+this module and its binary allows the user to print checks on standard sizes of paper.
+
+The default is to print a single check on Office Depot's single-check
+paper (US Letter size) using the provided check template file. The
+font used is the B<E-13B, Common Machine Language font> in a free
+(for non-commercial use) implementation called the I<MICR Encoding
+Font> provided by
+B<L<1001 Fonts|https://www.1001fonts.com/micr-encoding-font.html#styles>>
+with reasonable
+L<terms of use|https://www.1001fonts.com/licenses/general-font-usage-terms.html>.
+That font is the standard expected for the US and is also used in some
+other countries.  See the L<TECHNICAL|./TECHNICAL.md> file for more
+information on banking standards and check specifications.
+
+=SYNOPSIS
+
+=begin code
+use CheckWriter;
+
+# write the resources data from the installed module
+checkwriter add-resources
+checkwriter write-check payee=jones.hjson [user=user.hjson] [bank=user-bank.hjson]
+=end code
+
+The data for the payee is in the C<jones.hjson> file. The user's default
+personal or business check information is in the C<user.hjson> file, and
+the user's default bank information is in the C<user-bank.hjson>
+file. All are shown as examples in the C<data> directory. All the hjson
+input files use the C<Hjson> format (see module C<JSON::Hjson> for more
+information).
+
+=head2 Planned features
+
+=item Ability to print multiple checks in one batch
+=item Ability to use other standard check papers
+=item Ability to use other fonts for other world regions
+
+=head2 Contributing
+
+Interested users are encouraged to contribute improvements and
+corrections to this module.  Pull requests (PRs), bug reports, feature
+requests, and suggestions are always welcome.
+
+=head1 LICENSE and COPYRIGHT
+
+Artistic 2.0. See L<LICENSE|./LICENSE>.
+
+E<0x00A9> 2020, Thomas M. Browder, Jr. <tbrowder@acm.org>
+
+=end pod
