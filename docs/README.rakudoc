@@ -106,88 +106,39 @@ C<PDF::Lite> and C<Font::AFM> and encapsulates some of its classes,
 routines, and variables into higher-level contructs to ease PDF
 document creation.
 
-=head2 PostScript document generation process
+=head2 PDF document generation process
 
-The module is designed around the document generation process used by
+This module is designed around the document generation process used by
 those who use PostScript (PS) code to create PS documents which are
 then transformed into PDF by the GNU program C<ps2pdf>. That process
 is described in great detail in the classic PS books by Adobe (see
-REFERENCES) and is divided into the following logical sequences:
+REFERENCES).
 
-=item Define the prologue which usually includes:
-    =item2 Finding the font faces to be used
-    =item2 Font selection (creating the actual font by scaling a face to the desired size)
-    =item2 Procedure definition
-=item Define and render each page
-=item End the document
-
-=head3 PostScript font selection
-
-The PS font selection process needs a little more detail to help explain
-how it is done in this module. First some terminology. From Ref. 1 we get
-some pertinent function names and definitions:
-
-=item B<selectfont B<[Level 2]>>
-    - I<key scale> B<scalefont>
-    - "obtains a font whose name is I<key>, transforms is according to I<scale>, and establishes it as the current font dictionary
-      in the graphics state.", p. 490
-
-The PS Level 2 method for defining a usable font is shown in this example:
-=code
-/Times-Roman 10 selectfont
-
-(Note the the Level 2 method is "almost always more efficient.", Ref. 1, p. 490)
-
-We usually save desired combinations of font prototypes and scale by
-defining them by another name for easy recall. For example:
-=code
-/h12 /Helvetica 10 selectfont def
-/hb12 /Hevetica-Bold 12 selectfont def
-
-Now we can use them like this:
-=code
-hb12 (Cowboy slang: ) show
-h10 (Howdy, podnuh!) show
-
-Which would generate something like this in the final document: "B<Cowboy slang:> Howdy, podnuh!"
-
-=head2 PDF document generation process
-
-That sequence is also followed in the PDF document creation process:
+The same sequence is also followed in the PDF document creation process:
 
 =item Define the C<PDF> class instance (a heavy-weight instantiation, only one per document)
     =item2 C<my $pdf = PDF::Lite;>
-=item Find the fonts to be used (also a heavy-weight instantiation)
-    =item2 C<my $courier = find-font :name<Courier>, :$pdf;>
-    =item2 C<my $helvetica> = find-font :name<h>, :$pdf; # use its alias>
-=item Select the fonts to be used by adding size to a copy of an existing font family
-(a light-weight instantiation)
-    =item2 C<my $c10 = select-font :fontfamily($courier), :size(10);>
-    =item2 C<my $h12h= select-font :fontfamily($helvetica>, :size(12.5);>
+
+=begin item
+Select the fonts (with size) to be used with the C<FontFactory>
+
+=begin code
+my $ff    = FontFactory.new: :$pdf;
+my $t12d1 = $ff.get-font: 't12d1'; # Times-Roman at 12.1 points
+my $c10   = $ff.get-font: 'c10';   # Courier at 10 points
+=end code
+
+=end item
+
 =item Define each page
     =item2 C<my $page = $pdf.add-page;>
     =item2 C<#...add text and graphics...>
     =item2 C<#...add a new page...>
     =item2 C<my $page = $pdf.add-page;>
     =item2 C<#...add text and graphics...>
+
 =item Create the document and exit
     =item2 C<$pdf.save-as<MyDoc.pdf>;>
-
-=head3 PDF font selection
-
-As opposed to PS, the font selection process using C<PDF::Lite> is a
-bit different since, with the given low-level routines, we keep the
-font "prototype" separate from the desired font size when we use the
-font in a text block. For example, here is a text block being rendered
-on a PDF page instance with the fonts defined previously:
-
-=begin code :lang<raku>
-$page.texdxt: {
-    .text-position = $x, $y;
-    .font = $c10.font, $c10.size;
-    .say("Howdy, podnuh!");
-}
-=end code
 
 =head2 Summary
 
