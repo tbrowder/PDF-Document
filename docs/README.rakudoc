@@ -127,18 +127,27 @@ my $ff    = FontFactory.new: :$pdf;
 my $t12d1 = $ff.get-font: 't12d1'; # Times-Roman at 12.1 points
 my $c10   = $ff.get-font: 'c10';   # Courier at 10 points
 =end code
-
 =end item
 
-=item Define each page
-    =item2 C<my $page = $pdf.add-page;>
-    =item2 C<#...add text and graphics...>
-    =item2 C<#...add a new page...>
-    =item2 C<my $page = $pdf.add-page;>
-    =item2 C<#...add text and graphics...>
+=begin item
+Define each page
 
-=item Create the document and exit
-    =item2 C<$pdf.save-as<MyDoc.pdf>;>
+=begin code
+my $page = $pdf.add-page;
+#...add text and graphics...
+#...add a new page...
+my $page = $pdf.add-page;
+#...add text and graphics...
+=end code
+=end item
+
+=begin item
+Create the document and exit
+
+=begin code
+$pdf.save-as<MyDoc.pdf>;
+=end code
+=end item
 
 =head2 Summary
 
