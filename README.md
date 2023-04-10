@@ -119,19 +119,15 @@ The same sequence is also followed in the PDF document creation process:
 
   * Define each page
 
-    * `my $page = $pdf.add-page;`
-
-    * `#...add text and graphics...`
-
-    * `#...add a new page...`
-
-    * `my $page = $pdf.add-page;`
-
-    * `#...add text and graphics...`
+        my $page = $pdf.add-page;
+        #...add text and graphics...
+        #...add a new page...
+        my $page = $pdf.add-page;
+        #...add text and graphics...
 
   * Create the document and exit
 
-    * `$pdf.save-as<MyDoc.pdf>;`
+        $pdf.save-as<MyDoc.pdf>;
 
 Summary
 -------
