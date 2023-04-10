@@ -111,7 +111,7 @@ The same sequence is also followed in the PDF document creation process:
 
         my $pdf = PDF::Lite;
 
-  * Select the fonts (with size) to be used with the `FontFactory`.( Note there are 72 PS points per inch.)
+  * Select the fonts (with size) to be used with the `FontFactory`. (There are 72 PS points per inch.)
 
         my $ff    = FontFactory.new: :$pdf;
         my $t12d1 = $ff.get-font: 't12d1'; # Times-Roman at 12.1 points
