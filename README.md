@@ -183,7 +183,7 @@ That sequence is also followed in the PDF document creation process:
 As opposed to PS, the font selection process using `PDF::Lite` is a bit different since, with the given low-level routines, we keep the font "prototype" separate from the desired font size when we use the font in a text block. For example, here is a text block being rendered on a PDF page instance with the fonts defined previously:
 
 ```raku
-$page.text: {
+$page.texdxt: {
     .text-position = $x, $y;
     .font = $c10.font, $c10.size;
     .say("Howdy, podnuh!");
@@ -199,6 +199,8 @@ CURRENT CAPABILITY
 ==================
 
 Currently the the module provides routines and constants as used in the example program shown in the **SYNOPSIS**. In addition, other graphics and text examples are shown in the `/dev` directory including showing phases of the Moon, creating grids, using landscape orientation, and using A4 paper.
+
+There is also a font factory which eases selection and use of multiple fonts. Fonts included are all the standard PostScript fonts plus a font used to create bank checks: **MICREncoding** The PS fonts are free for any use, but the MICR font is only free for non-commercial use. See its **license.txt** file in the `/resources/fonts/micr/unzipped` directory.
 
 More work is planned including:
 
@@ -220,6 +222,8 @@ This module is being used during the development of the author's other PDF modul
   * `PDF::ReWriter`
 
   * `PDF::Forms`
+
+  * `CheckWriter`
 
 This module will be updated with more items as the user modules are updated and published.
 

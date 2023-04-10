@@ -1,5 +1,4 @@
 .precomp/
-/PDF-Document-*
 *.log
 *.out
 *.pdf
