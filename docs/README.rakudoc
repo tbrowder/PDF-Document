@@ -125,7 +125,7 @@ my $pdf = PDF::Lite;
 =end item
 
 =begin item
-Select the fonts (with size) to be used with the C<FontFactory>
+Select the fonts (with size) to be used with the C<FontFactory>.( Note there are 72 PS points per inch.)
 
 =begin code
 my $ff    = FontFactory.new: :$pdf;
