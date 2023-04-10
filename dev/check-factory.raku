@@ -19,3 +19,6 @@ say "  name: {$f.name}";
 say "  size: {$f.size}";
 say "  underline position: {$f.UnderlinePosition}";
 
+$f = $ff.get-font: 'm10';
+say "  name: {$f.name}";
+say "  size: {$f.size}";
