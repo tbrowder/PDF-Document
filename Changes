@@ -1,6 +1,8 @@
 Revision history for PDF-Document
 
 {{$NEXT}}
+
+0.0.7  2023-04-10T16:59:07-05:00
     - Added a non-core font for creating bank checks (MICREncoding,
       free for non-commercial use)
     - Cleaned up the README
