@@ -13,19 +13,22 @@ Converting from TrueType (quadratic splines, ttf files) to PostScript
 
   0. File->Open
 
-       (the truetype font)
+       select (the truetype font)
+       select Force glyph names to: Adobe Glyph List
+       select [OK]
 
   1. Element->Font Info->General
 
-       Check <*> Em-Size = 1000
+       Check <*> Em Size = 1000
 
-       [OK]
+       select [OK]
 
   2. Element->Font Info->Layers
 
        Check <*> All layers cubic
 
-       [OK]
+       select [OK]
+       select [OK] (remove Truetype info)
 
   3. Edit ‣ Select ‣ Select All
 
@@ -34,3 +37,23 @@ Converting from TrueType (quadratic splines, ttf files) to PostScript
   5. Hints->Auto Hint
 
   6. File->Generate Fonts
+
+     select 'micrenc.ttf'
+     PS Type 1 (Ascii)
+     check 'Options'
+       check PostScript
+         X Round
+         x Output AFM
+         x Hints
+         x Flex Hints
+       accept SFNT settings
+       x Output FONTLOG.txt
+
+     ensure name is shown as 'MICREncoding.pfa'
+     msg "Encoding Too Large"
+     select Yes
+     msg "The font contains errors"
+     select 'Generate'
+
+  7. Move the two new .pfa and .afm file up into the /resources/fonts'
+     directory.

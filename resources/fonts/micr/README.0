@@ -1,0 +1,23 @@
+The MICR Encoding font for bank checks was optained from 1001fonts.com:
+  https://www.1001fonts.com/micr-encoding-font.html
+
+The downloaded file was named 'micr-encoding.zip' (which was deleted
+after unzipping it).
+
+When file 'micr-encoding.zip' was unzipped into the 'unzipped'
+directory, the following files were found:
+
+  '!DigitalGraphicLabs.html'
+  '!license.txt'
+  micrenc.ttf
+
+The two files in single quotes were renamed to:
+
+  DigitalGraphicLabs.html
+  license.txt
+
+The license basically says the font is free to use for non-commercial purposes.
+
+The font was transformed to an Adobe PostScript Type 1 font by creating
+'.pfa' and '.afm' files using program 'fontforge'. See the accompanying
+file 'README.fontforge' for the procedues used.
