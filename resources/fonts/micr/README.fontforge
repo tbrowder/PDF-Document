@@ -1,0 +1,36 @@
+Use fontforge to convert a ttf font to PS Type 1
+
+From fontforge
+==============
+
+How do I convert from one outline format to another?
+
+If you are converting between PostScript and TrueType, you can improve
+matters if you do a little more work.
+
+Converting from TrueType (quadratic splines, ttf files) to PostScript
+(cubic splines, otf and pfb files):
+
+  0. File->Open
+
+       (the truetype font)
+
+  1. Element->Font Info->General
+
+       Check <*> Em-Size = 1000
+
+       [OK]
+
+  2. Element->Font Info->Layers
+
+       Check <*> All layers cubic
+
+       [OK]
+
+  3. Edit ‣ Select ‣ Select All
+
+  4. Element->Simplify->Simplify
+
+  5. Hints->Auto Hint
+
+  6. File->Generate Fonts
