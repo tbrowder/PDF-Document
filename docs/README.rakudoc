@@ -174,7 +174,7 @@ fonts. Fonts included are all the standard PostScript fonts plus a
 font used to create bank checks: B<MICREncoding>. The PS fonts are free
 for any use, but the MICR font is only free for non-commercial
 use. See its B<license.txt> file in the
-C</resources/fonts/micr/unzipped> directory.
+C</dev/fonts/micr/unzipped> directory.
 
 More work is planned including:
 
