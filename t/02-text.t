@@ -25,7 +25,7 @@ lives-ok {
    $pdf = PDF::Lite.new;
 }, "checking pdf instantiation";
 
-for %CoreFonts.keys {
+for %MyFonts.keys {
     # distinguish between PDF::Lite font objects and higher-level composite ones
     lives-ok {
         $rawfont = $pdf.core-font(:family($_));
@@ -95,4 +95,3 @@ lives-ok {
 }, "getting a font from the -font factory";
 
 done-testing;
-

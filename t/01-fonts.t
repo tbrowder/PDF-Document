@@ -4,7 +4,7 @@ use PDF::Lite;
 use Font::AFM;
 use PDF::Document;
 
-plan 113;
+plan 119;
 
 my $pdf;
 my $rawfont;
@@ -23,19 +23,11 @@ lives-ok {
    $pdf = PDF::Lite.new;
 }, "checking pdf instantiation";
 
-for %CoreFonts.keys {
-    # rawfont
-    lives-ok {
-        $rawfont = $pdf.core-font(:family($_));
-    }, "checking raw font access, name: $_";
-    lives-ok {
-        $rawafm  = Font::AFM.core-font($_);
-    }, "checking raw Font afm access, name: $_";
-
+for %MyFonts.keys {
     # other classes
     lives-ok {
        $basefont = find-basefont :name($_), :$pdf;
-    }, "checking find-font , name: $_";
+    }, "checking find-font, name: $_";
     lives-ok {
         $docfont = select-docfont :$basefont, :size(10);
     }, "checking select-docfont, name: $_, size: $size";
@@ -45,9 +37,19 @@ for %CoreFonts.keys {
     lives-ok {
        $ut = $docfont.UnderlineThickness;
     }, "checking font afm use for UnderlineThickness";
+
+    next if not $basefont.is-corefont;
+
+    # core
+    lives-ok {
+        $rawfont = $pdf.core-font(:family($_));
+    }, "checking raw font access, name: $_";
+    lives-ok {
+        $rawafm  = Font::AFM.core-font($_);
+    }, "checking raw Font afm access, name: $_";
 }
 
-for %CoreFontAliases.keys {
+for %MyFontAliases.keys {
     my $A = $_.uc;
     lives-ok {
         $basefont = find-basefont :name($A), :$pdf;
