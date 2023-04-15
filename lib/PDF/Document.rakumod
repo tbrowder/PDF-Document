@@ -4,6 +4,7 @@ use PDF::Lite;
 
 use Text::Utils :wrap-text;
 use Font::AFM;
+
 # local roles
 use PDF::PDF-role;
 
@@ -308,7 +309,7 @@ class FontFactory is export {
 }
 
 # the big kahuna: it should have all major methods and attrs from lower levels at this level
-class Doc does PDF-role is export {
+class Doc does PDF::PDF-role is export {
     # output file attrs
     has $.pdf-name = "Doc-output-default.pdf";
     has $.is-saved = False;
@@ -346,8 +347,8 @@ class Doc does PDF-role is export {
     has $.height = 0;
 
     # set by TWEAK
-    # has $.pdf;  # in PDF-role
-    # has $.page; # in PDF-role
+    #has $.pdf;  # in PDF-role
+    #has $.page; # in PDF-role
     has FontFactory $.ff;
     has DocFont $.font;
 
@@ -393,10 +394,6 @@ class Doc does PDF-role is export {
         $!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
     }
 
-    method transform(*%opt) {
-        self.page.gfx.transform: %opt
-    }
-
     method set-font($alias) {
         $!font = $!ff.get-font($alias)
     }
@@ -428,6 +425,21 @@ class Doc does PDF-role is export {
             $size = $!font.size;
         }
         return ($font, $size);
+    }
+
+    method scale($sx, $sy) {
+        # Scaling: sx 0 0 sy 0 0
+        self.cm($sx, 0, 0, $sy, 0, 0);
+    }
+
+    method rotate($radians) {
+            self.page.gfx.transform: :rotate($radians);
+    }
+    #method translate($x, $y) {
+    method translate($x, $y) {
+        # Translation: 1 0 0 1 tx ty 
+        self.page.gfx.transform: :translate[$x,$y];
+        #self.cm(1, 0, 0, 1, $x, $y);
     }
 
     multi method line(List $from, :$length!, :$angle!,
@@ -955,7 +967,7 @@ class Doc does PDF-role is export {
 
     # This is the method that the other rectangle methods should resolve to
     # as it actually renders the figure.
-    method !draw-rectangle(Real $llx, Real $lly, Real $urx, Real $ury,
+    method !draw-rectangle(Numeric $llx, Numeric $lly, Numeric $urx, Numeric $ury,
         :$angle, # radians
         :$fill = False,
         :$color = [0], # black
@@ -975,6 +987,21 @@ class Doc does PDF-role is export {
         else { self.Stroke; }
         self.Restore;
     }
+    multi method rectangle($llx is copy, $lly is copy, $urx is copy, $ury is copy,
+        :$angle is copy,
+        :$fill = False,
+        :$color = [0], # black
+        :$linewidth = 0
+        ) {
+        $angle = self!value2radians($angle) if $angle.defined;
+        # from upper-left corner
+        $llx = self!value2points: $llx;
+        $lly = self!value2points: $lly;
+        $urx = self!value2points: $urx;
+        $ury = self!value2points: $ury;
+        self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle, :$color;
+    }
+
     multi method rectangle(:$llx! is copy, :$ury! is copy, :$width!, :$height!,
         :$angle is copy,
         :$fill = False,
@@ -1273,7 +1300,8 @@ class Doc does PDF-role is export {
             #    make black-filled circle
             self!draw-circle: 0, 0, $radius, :fill(True);
             #    make white square covering left semicircle
-            self.rectangle: :cx(-$radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True), :color(1);
+            self.rectangle: :cx(-$radius), :cy(0), :width(2*$radius), :height(2*$radius), 
+                            :fill(True), :color(1);
             # 2. black on left semicircle is 0.5 - frac
             #    make black-filled ellipse with a = radius - (2 * radius * frac)
             my $dfa = 2 * $radius * $frac;
