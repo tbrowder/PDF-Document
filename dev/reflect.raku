@@ -1,3 +1,5 @@
+#!/bin/env raku
+
 use PDF::Lite;
 use PDF::Content::Color :ColorName, :&color;
 

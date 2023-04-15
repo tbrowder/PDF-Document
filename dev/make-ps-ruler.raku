@@ -2,7 +2,6 @@
 
 use lib "../lib";
 
-require PDF::Document;
 use PDF::Document;
 
 # title of output pdf
