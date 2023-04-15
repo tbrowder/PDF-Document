@@ -136,7 +136,7 @@ sub find-basefont(PDF::Lite :$pdf!,
     }
 
     my $BF = BaseFont.new: :$pdf, :name($fnam), :$rawfont, :$rawafm, :$is-corefont;
-    return $BF;
+    $BF
 }
 
 class DocFont is export {
@@ -238,7 +238,7 @@ sub select-docfont(BaseFont :$basefont!,
                    --> DocFont) is export {
     my $df = DocFont.new: :$basefont, :name($basefont.name), :font($basefont.rawfont),
                           :afm($basefont.rawafm), :$size;
-    return $df;
+    $df
 }
 
 class FontFactory is export {
