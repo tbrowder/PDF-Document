@@ -7,7 +7,7 @@ if not @*ARGS {
     say qq:to/HERE/;
     Usage:  {$*PROGRAM.basename} go [debug]
 
-    Executes the example letter program in the docs.
+    A simple example of Doc use.
     HERE
     exit;
 }
@@ -20,7 +20,19 @@ for @*ARGS {
 # example: (1) output file name, (2) force option to
 # allow overwriting that file if it exists, and (3)
 # turn page numbering on:
-my \d = Doc.new: :pdf-name<example-letter>, :force, :page-numbering, :$debug;
+my $doc = Doc.new: :pdf-name<simple-doc>, :force, :page-numbering, :$debug;
+
+$doc.end-doc; # renders the pdf and saves the output
+              # also numbers the pages if you requested it
+
+sub make-page(Doc :$doc) {
+    # starts with a new page, current position top baseline, left margin
+    # put the date at the top-right corner
+    $doc.print: "2021-03-04", :tr, :align<right>, :valign<top>;
+    $doc.nl; # adds the newline, resets x to left margin
+}
+
+=finish
 
 #=========== THE LETTER =================
 # starts with a new page, current position top baseline, left margin

@@ -1,6 +1,11 @@
 Revision history for PDF-Document
 
 {{$NEXT}}
+    - Added $page.media-box handling to show and set desired paper 
+      for a page:
+      + Added method 'show-media'
+      + Added sub 'set-media-box'
+    - Added tests for paper handling
 
 0.0.7  2023-04-10T16:59:07-05:00
     - Added a non-core font for creating bank checks (MICREncoding,

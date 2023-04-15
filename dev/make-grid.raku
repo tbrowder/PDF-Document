@@ -47,6 +47,8 @@ my ($PW, $PH); # paper width, height (portrait)
 my ($LM, $TM, $RM, $BM); # margins (in final orientation)
 $LM = 0.5  * 72;
 $TM = 0.75 * 72;
+$BM = 0.5  * 72;
+$RM = 0.5  * 72;
 if $A4 {
     $PW =  8.3  * 72;
     $PH = 11.7  * 72;
@@ -72,7 +74,7 @@ make-page :$pdf, :$PW;
 my $pages = $pdf.Pages.page-count;
 # save the whole thing with name as desired
 $pdf.save-as: $ofile;
-say "See outout pdf: $ofile";
+say "See output pdf: $ofile";
 say "Total pages: $pages";
 
 sub deg2rad($d) { $d * pi / 180 }

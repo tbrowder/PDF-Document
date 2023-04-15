@@ -1,9 +1,11 @@
 unit module PDF::Document;
 
 use PDF::Lite;
+use PDF::Content;
 
 use Text::Utils :wrap-text;
 use Font::AFM;
+
 # local roles
 use PDF::PDF-role;
 
@@ -72,6 +74,48 @@ constant %MyFonts is export = [
 
 our %MyFontAliases is export = %MyFonts.invert;
 
+#| copied from PDF::Content
+my subset Box of List is export where {.elems == 4}
+#| e.g. $.to-landscape(PagesSizes::A4)
+sub to-landscape(Box $p --> Box) is export {
+	[ $p[1], $p[0], $p[3], $p[2] ]
+}
+# These are the standard paper names and sizes copied from PDF::Content
+my Array enum PageSizes is export <<
+	    :Letter[0,0,612,792]
+	    :Tabloid[0,0,792,1224]
+	    :Ledger[0,0,1224,792]
+	    :Legal[0,0,612,1008]
+	    :Statement[0,0,396,612]
+	    :Executive[0,0,540,720]
+	    :A0[0,0,2384,3371]
+	    :A1[0,0,1685,2384]
+	    :A2[0,0,1190,1684]
+	    :A3[0,0,842,1190]
+	    :A4[0,0,595,842]
+	    :A5[0,0,420,595]
+	    :B4[0,0,729,1032]
+	    :B5[0,0,516,729]
+	    :Folio[0,0,612,936]
+	    :Quarto[0,0,610,780]
+	>>;
+
+#| A new sub to ease $page.media-box handling
+sub set-media-box(
+    PDF::Content::Page :$page!, 
+    Str :$Media!, # name of desired media from PageSizes, e.g., 'Letter'
+    :$landscape = 0 # Set truthy to adjust for landscape orientation
+) is export {
+    die "FATAL: Media '' is not known in enum 'PageSizes'"
+        unless %(PageSizes.enums){$Media}:exists;
+    if $landscape {
+        $page.media-box[] = to-landscape(PageSizes.enums{$Media});
+    }
+    else {
+        $page.media-box[] = PageSizes.enums{$Media};
+    }
+}
+
 sub show-myfonts is export {
     my $max = 0;
     for %MyFonts.keys -> $k {
@@ -135,7 +179,7 @@ sub find-basefont(PDF::Lite :$pdf!,
     }
 
     my $BF = BaseFont.new: :$pdf, :name($fnam), :$rawfont, :$rawafm, :$is-corefont;
-    return $BF;
+    $BF
 }
 
 class DocFont is export {
@@ -237,7 +281,7 @@ sub select-docfont(BaseFont :$basefont!,
                    --> DocFont) is export {
     my $df = DocFont.new: :$basefont, :name($basefont.name), :font($basefont.rawfont),
                           :afm($basefont.rawafm), :$size;
-    return $df;
+    $df
 }
 
 class FontFactory is export {
@@ -308,7 +352,7 @@ class FontFactory is export {
 }
 
 # the big kahuna: it should have all major methods and attrs from lower levels at this level
-class Doc does PDF-role is export {
+class Doc does PDF::PDF-role is export {
     # output file attrs
     has $.pdf-name = "Doc-output-default.pdf";
     has $.is-saved = False;
@@ -346,8 +390,8 @@ class Doc does PDF-role is export {
     has $.height = 0;
 
     # set by TWEAK
-    # has $.pdf;  # in PDF-role
-    # has $.page; # in PDF-role
+    #has $.pdf;  # in PDF-role
+    #has $.page; # in PDF-role
     has FontFactory $.ff;
     has DocFont $.font;
 
@@ -393,10 +437,6 @@ class Doc does PDF-role is export {
         $!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
     }
 
-    method transform(*%opt) {
-        self.page.gfx.transform: %opt
-    }
-
     method set-font($alias) {
         $!font = $!ff.get-font($alias)
     }
@@ -428,6 +468,21 @@ class Doc does PDF-role is export {
             $size = $!font.size;
         }
         return ($font, $size);
+    }
+
+    method scale($sx, $sy) {
+        # Scaling: sx 0 0 sy 0 0
+        self.cm($sx, 0, 0, $sy, 0, 0);
+    }
+
+    method rotate($radians) {
+            self.page.gfx.transform: :rotate($radians);
+    }
+    #method translate($x, $y) {
+    method translate($x, $y) {
+        # Translation: 1 0 0 1 tx ty
+        self.page.gfx.transform: :translate[$x,$y];
+        #self.cm(1, 0, 0, 1, $x, $y);
     }
 
     multi method line(List $from, :$length!, :$angle!,
@@ -955,7 +1010,7 @@ class Doc does PDF-role is export {
 
     # This is the method that the other rectangle methods should resolve to
     # as it actually renders the figure.
-    method !draw-rectangle(Real $llx, Real $lly, Real $urx, Real $ury,
+    method !draw-rectangle(Numeric $llx, Numeric $lly, Numeric $urx, Numeric $ury,
         :$angle, # radians
         :$fill = False,
         :$color = [0], # black
@@ -975,6 +1030,21 @@ class Doc does PDF-role is export {
         else { self.Stroke; }
         self.Restore;
     }
+    multi method rectangle($llx is copy, $lly is copy, $urx is copy, $ury is copy,
+        :$angle is copy,
+        :$fill = False,
+        :$color = [0], # black
+        :$linewidth = 0
+        ) {
+        $angle = self!value2radians($angle) if $angle.defined;
+        # from upper-left corner
+        $llx = self!value2points: $llx;
+        $lly = self!value2points: $lly;
+        $urx = self!value2points: $urx;
+        $ury = self!value2points: $ury;
+        self!draw-rectangle: $llx, $lly, $urx, $ury, :$fill, :$linewidth, :$angle, :$color;
+    }
+
     multi method rectangle(:$llx! is copy, :$ury! is copy, :$width!, :$height!,
         :$angle is copy,
         :$fill = False,
@@ -1273,7 +1343,8 @@ class Doc does PDF-role is export {
             #    make black-filled circle
             self!draw-circle: 0, 0, $radius, :fill(True);
             #    make white square covering left semicircle
-            self.rectangle: :cx(-$radius), :cy(0), :width(2*$radius), :height(2*$radius), :fill(True), :color(1);
+            self.rectangle: :cx(-$radius), :cy(0), :width(2*$radius), :height(2*$radius),
+                            :fill(True), :color(1);
             # 2. black on left semicircle is 0.5 - frac
             #    make black-filled ellipse with a = radius - (2 * radius * frac)
             my $dfa = 2 * $radius * $frac;
@@ -1330,4 +1401,24 @@ class Doc does PDF-role is export {
     # and "AFM-role".
     # Note those roles are auto-generated by program
     # dev/generate-code.raku.
+
+    method show-media {
+        # see all the available media keys
+        my %e = PageSizes.enums;
+        #say %e;
+        say "Media names and sizes (in PS points)";
+        say "  Orientation: portrait";
+        say "  Size => [0 0 width height]";
+        my $nc = 0;
+        for %e.keys -> $k {
+            my $v = %e{$k};
+            my $n = $k.chars;
+            $nc = $n if $nc < $n;
+        }
+        for %e.keys.sort -> $k {
+            my $v = %e{$k};
+            my $nam = sprintf '%-*.*s', $nc, $nc, $k;
+            say "    $nam => [$v]";
+        }
+    }
 }
