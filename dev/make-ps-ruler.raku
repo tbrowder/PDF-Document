@@ -8,7 +8,7 @@ use PDF::Document;
 # title of output pdf
 my $npsh  = 6; # number of groups of 128 of PS points
 my $nps   = $npsh * 128;
-my $ofile = "ps-ruler-$nps.pdf";
+my $ofile = "ps-ruler-{$nps}-orientation.pdf";
 my $uofil; # for user-entered name
 
 my $debug = 0;
@@ -32,6 +32,9 @@ if not @*ARGS.elems {
 
 my $A4 = 0;
 my $landscape = 0;
+my $port = 'portrait';
+my $land = 'landscape';
+my $orient = $port;
 for @*ARGS {
     when /^ :i o[file]? '=' (\S+) / {
         $uofil = ~$0;
@@ -41,7 +44,7 @@ for @*ARGS {
     }
     when /^ :i d / { ++$debug     }
     when /^ :i a / { ++$A4        }
-    when /^ :i L / { ++$landscape }
+    when /^ :i L / { ++$landscape; $orient = $land }
     when /^ :i g / {
         ; # go
     }
@@ -51,36 +54,38 @@ for @*ARGS {
     }
 }
 
-$nps = $npsh * 128;
-if $uofil.defined  {
-    $ofile = $uofil;
-}
-else {
-    $ofile = "ps-ruler-$nps-{$landscape}.pdf";
-}
-
-my $doc = Doc.new: :pdf-name($ofile), :force, :$debug;
+my $media-box = 'Letter';
 my ($PW, $PH); # paper width, height (portrait)
 my ($LM, $TM, $RM, $BM); # margins (in final orientation)
 $LM = 0.5 * 72;
 $TM = 0.5 * 72;
 $BM = $LM;
 $RM = $LM;
-
 if $A4 {
     $PW =  8.3  * 72;
     $PH = 11.7  * 72;
+    $media-box = 'A4';
 }
 else {
     $PW =  8.5  * 72;
     $PH = 11.0  * 72;
 }
 
+$nps = $npsh * 128;
+if $uofil.defined  {
+    $ofile = $uofil;
+}
+else {
+    $ofile = "ps-ruler-$nps-{$orient}.pdf";
+}
+
+my $doc = Doc.new: :pdf-name($ofile), :$media-box, :force, :$debug;
+
 # write the desired pages
 # ...
 # start the document with the first page
-make-ps :$doc, :$PW, :$LM, :$BM, :$npsh, :$nps;
-#$doc.add-page;
+make-ps :$doc, :$PW, :$LM, :$BM, :$npsh, :$nps, :$landscape;
+#$doc.add-page(:$media-box);
 #make-ps :$doc, :$PW, :$LM, :$BM, :$npsh, :$nps;
 
 # save the doc with name as desired
@@ -104,17 +109,26 @@ sub make-ps(
     # always save the default CTM
     $doc.save;
 
+    my $cx = 0.5 * $PW;
+    my $cy = 0.5 * $PH;
+    my $orient = "Portrait";
     if $landscape {
         # transform coordinate system for landscape, origin
         # at lower-left corner of the page
         $doc.translate($PW, 0);
         $doc.rotate(90 * deg2rad);
+        #$doc.rotate(90);
+        $cx = 0.5 * $PH;
+        $cy = 0.5 * $PW;
+        $orient = "Landscape";
     }
 
     # outline the page
     # method !rectangle(Real $llx, Real $lly, Real $urx, Real $ury,
     #my @points = 72, 72, $PW-72, $PH-72;
     $doc.rectangle: 72, 72, $PW-72, $PH-72;
+    # text at the center
+    $doc.print: $orient, :x($cx), :y($cy);
 
     # hard horizontal dimensions:
     #   0 point (leave room for a pretty end
@@ -136,14 +150,10 @@ sub make-ps(
     my ($x, $y, @from, $angle, $length, $total);
     my $linewidth = 0;
     # sub deg2rad($d) { $d * pi / 180 }
-    #my @N = 0, 128 ... ^$nps;
-    #my @X = 0, 2 ... ^128;
-    loop (my $i = 0; $i < $nps; $i += 128) {
-        my $N = $i;
+    for 0, 128 ...^ $nps -> $N {
         # make block of 128 at a time (top and bottom scales)
         # make a mark every 2 points
-        loop (my $j = 0; $j < 128; $j += 2) {
-            my $X = $j;
+        for 0, 2 ...^ 128 -> $X {
             note "DEBUG: N = $N, X = $X, total points = {$N+$X}" if $debug;
             $x = $N + $X + $x0;
             $length = $h0;

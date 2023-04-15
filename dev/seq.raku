@@ -1,8 +1,13 @@
 #!/bin/env raku
 
-my @N = (0, 128 ... ^512).values;
-my @X = 0, 2 ... ^16;
-for @N -> $N {
+my @n = 0, 128...^512;
+say "sequence:", $_ for @n;
+.say for @n;
+
+=finish
+
+#my @X = 0, 2 ... ^16;
+for @n -> $n {
     say "N = $N";
 
     #for @X -> $X { 
