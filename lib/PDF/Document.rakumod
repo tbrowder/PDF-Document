@@ -1408,17 +1408,54 @@ class Doc does PDF::PDF-role is export {
         #say %e;
         say "Media names and sizes (in PS points)";
         say "  Orientation: portrait";
-        say "  Size => [0 0 width height]";
+        say "  Size => [width height]";
+        say();
+        say "                   Points       Inches";
         my $nc = 0;
+        my ($n2, $n3) = 0, 0;
+        my ($n2i, $n3i) = 0, 0;
         for %e.keys -> $k {
             my $v = %e{$k};
             my $n = $k.chars;
             $nc = $n if $nc < $n;
+
+            # also get size of width and height
+            my @n = $v.words;
+            my $nw = @n[2].chars;
+            my $nl = @n[3].chars;
+            $n2 = $nw if $n2 < $nw;
+            $n3 = $nl if $n3 < $nl;
+
+            # and in inches
+            my $wi = @n[2] / 72.0;
+            my $li = @n[3] / 72.0;
+            my $wis = sprintf '%5.2f', $wi;
+            my $lis = sprintf '%5.2f', $li;
+            my $nwi = $wis.chars;
+            my $nli = $lis.chars;
+            $n2i = $nwi if $n2i < $nwi;
+            $n3i = $nli if $n3i < $nli;
         }
         for %e.keys.sort -> $k {
             my $v = %e{$k};
             my $nam = sprintf '%-*.*s', $nc, $nc, $k;
-            say "    $nam => [$v]";
+
+            my @n = $v.words;
+            my $w = @n[2];
+            my $l = @n[3];
+            my $val = sprintf '%*.*s %*.*s', 
+                          $n2, $n2, $w,
+                          $n3, $n3, $l;
+
+            my $wi = @n[2] / 72.0;
+            my $li = @n[3] / 72.0;
+            my $wis = sprintf '%5.2f', $wi;
+            my $lis = sprintf '%5.2f', $li;
+            my $val2 = sprintf '%*.*s %*.*s', 
+                          $n2i, $n2i, $wis,
+                          $n3i, $n3i, $lis;
+
+            say "    $nam => [$val] [$val2]";
         }
     }
 }
