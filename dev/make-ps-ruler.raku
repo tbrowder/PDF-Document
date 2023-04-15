@@ -56,7 +56,7 @@ if $uofil.defined  {
     $ofile = $uofil;
 }
 else {
-    $ofile = "ps-ruler-$nps.pdf";
+    $ofile = "ps-ruler-$nps-{$landscape}.pdf";
 }
 
 my $doc = Doc.new: :pdf-name($ofile), :force, :$debug;
@@ -95,7 +95,7 @@ sub make-ps(
     :$landscape = 0,
 
     :$debug,
-    
+
 ) is export {
     # media-box - width and height of the printed page
     # crop-box  - region of the PDF that is displayed or printed
@@ -108,14 +108,14 @@ sub make-ps(
         # transform coordinate system for landscape, origin
         # at lower-left corner of the page
         $doc.translate($PW, 0);
-        $doc.rotate(90 * deg2rad); 
+        $doc.rotate(90 * deg2rad);
     }
 
     # outline the page
     # method !rectangle(Real $llx, Real $lly, Real $urx, Real $ury,
     #my @points = 72, 72, $PW-72, $PH-72;
     $doc.rectangle: 72, 72, $PW-72, $PH-72;
- 
+
     # hard horizontal dimensions:
     #   0 point (leave room for a pretty end
         my $x0 = $LM + 1 * 72;
@@ -149,12 +149,12 @@ sub make-ps(
             $length = $h0;
 
             # top: vertical lines pointing down, names at bottom
-            @from = $x, $yt; 
+            @from = $x, $yt;
             $angle = 270 * deg2rad;
             $doc.line: @from, :$length, :$angle;
 
             # bottom: vertical lines pointing up, names at top
-            @from = $x, $yb; 
+            @from = $x, $yb;
             $angle = 90 * deg2rad;
             $doc.line: @from, :$length, :$angle;
         }
@@ -165,7 +165,7 @@ sub make-ps(
 }
 
 sub put-text(
-    PDF::Lite::Page :$page!, 
+    PDF::Lite::Page :$page!,
     DocFont :$font!,
     :$debug) is export {
 
