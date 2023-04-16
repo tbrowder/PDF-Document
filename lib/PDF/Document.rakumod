@@ -1461,7 +1461,9 @@ class Doc does PDF::PDF-role is export {
     # convenience method for the page media-box
     method mb(
             :$llx, :$lly, :$urx, :$ury,
-            :$cx, :$cy, :$w, :$h,
+            :$cx, :$cy, 
+            :$w, :$h,
+            :$width, :$height,
             :$fracx, :$fracy,
             :$fx, :$fy,
         ) {
@@ -1497,6 +1499,18 @@ class Doc does PDF::PDF-role is export {
         }
         elsif $fy.defined {
             $r = $fy * (b[ury] - b[lly]);
+        }
+        elsif $w.defined {
+            $r = b[urx] - b[llx];
+        }
+        elsif $width.defined {
+            $r = b[urx] - b[llx];
+        }
+        elsif $h.defined {
+            $r = b[ury] - b[lly];
+        }
+        elsif $height.defined {
+            $r = b[ury] - b[lly];
         }
         else {
             die "FATAL: No arg defined in Doc method 'mb'";
