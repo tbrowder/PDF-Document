@@ -359,8 +359,7 @@ class Doc does PDF::PDF-role is export {
     has $.force    = False;
     has $.page-numbering = False;
 
-    has $.paper;
-    has $.media-box = 'Letter'; #= is required;
+    has $.media = 'Letter'; # default 
 
     has $.leading; #= linespacing
     has $.linespacing;
@@ -1457,5 +1456,51 @@ class Doc does PDF::PDF-role is export {
 
             say "    $nam => [$val] [$val2]";
         }
+    }
+
+    # convenience method for the page media-box
+    method mb(
+            :$llx, :$lly, :$urx, :$ury,
+            :$cx, :$cy, :$w, :$h,
+            :$fracx, :$fracy,
+            :$fx, :$fy,
+        ) {
+        my \b = self.pdf.page.media-box;
+        my $r;
+        my (\llx, \lly, \urx, \ury) = 0, 1, 2, 3;
+        if $llx.defined {
+            $r = b[llx];
+        }
+        elsif $lly.defined {
+            $r = b[lly];
+        }
+        elsif $urx.defined {
+            $r = b[urx];
+        }
+        elsif $ury.defined {
+            $r = b[ury];
+        }
+        elsif $cx.defined {
+            $r = 0.5 * (b[urx] - b[llx]);
+        }
+        elsif $cy.defined {
+            $r = 0.5 * (b[ury] - b[lly]);
+        }
+        elsif $fracx.defined {
+            $r = $fracx * (b[urx] - b[llx]);
+        }
+        elsif $fx.defined {
+            $r = $fx * (b[urx] - b[llx]);
+        }
+        elsif $fracy.defined {
+            $r = $fracy * (b[ury] - b[lly]);
+        }
+        elsif $fy.defined {
+            $r = $fy * (b[ury] - b[lly]);
+        }
+        else {
+            die "FATAL: No arg defined in Doc method 'mb'";
+        }
+        $r
     }
 }
