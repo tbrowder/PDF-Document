@@ -9,6 +9,8 @@ use Font::AFM;
 my $debug  = 0;
 my $debug2 = 1;
 
+class DocBox is export {...}
+
 # for angle conversions
 #--------------------------------
 # 2 pi rad = 360 degrees
@@ -48,7 +50,7 @@ constant dm2p is export = dm2pt;
 constant  m2p is export =  m2pt;
 
 constant %MyFonts is export = [
-    # These are the "core" fonts from PostScript
+    # These are the "core" fonts from PostScript (Type 1)
     # and have short names as keys
     Courier               => "c",
     Courier-Oblique       => "co",
@@ -66,7 +68,7 @@ constant %MyFonts is export = [
     Zapfdingbats          => "z",
 
     # Additional fonts:
-    MICREncoding          => "m",
+    MICREncoding          => "m", # converted from .ttf via fontforge
 ];
 
 our %MyFontAliases is export = %MyFonts.invert;
@@ -77,6 +79,65 @@ my subset Box of List is export where {.elems == 4}
 sub to-landscape(Box $p --> Box) is export {
 	[ $p[1], $p[0], $p[3], $p[2] ]
 }
+
+# convenience methods for the page media-box
+# changing to a class
+class DocBox {
+    has $.llx = 0; 
+    has $.lly = 0; 
+    has $.urx is required; 
+    has $.ury is required;
+
+    multi method new($urx, $ury) {
+        return self.bless(:$urx, :$ury)
+    }
+
+    multi method new($llx, $lly, $urx, $ury) {
+        return self.bless(:$llx, :$llx, :$urx, :$ury)
+    }
+
+    multi method new(Box $p) {
+        return self.bless(:llx($p[0]), :llx($p[1]), :urx($p[2]), :ury($p[3]))
+	#[ $p[1], $p[0], $p[3], $p[2] ]
+    }
+
+    method lx { self.llx }
+    method ly { self.lly }
+    method uy { self.ury }
+    method rx { self.urx }
+
+    method cx {
+        0.5 * ($!urx - $!llx)
+    }
+    method ctrx { self.cx }
+
+    method cy {
+        0.5 * ($!ury - $!lly)
+    }
+    method ctry { self.cy }
+
+    method w {
+        $!urx - $!llx
+    }
+    method width { self.w }
+
+    method h {
+        $!ury - $!lly
+    }
+    method height { self.h }
+
+    # other fracs
+    method fx($f where {0 <= $_ <= 1}) {
+        self.width * $f
+    }
+    method fracx($f) { self.fx: $f }
+
+    method fy($f where {0 <= $_ <= 1}) {
+        self.height * $f
+    }
+    method fracy($f) { self.fy: $f }
+}
+
 # These are the standard paper names and sizes copied from PDF::Content
 my Array enum PageSizes is export <<
 	    :Letter[0,0,612,792]
@@ -1466,93 +1527,3 @@ class Doc does PDF::PDF-role is export {
     }
 } # end of class Doc 
 
-# convenience methods for the page media-box
-# changing to a class
-class DocBox (
-    has $.llx = 0; 
-    has $.lly = 0; 
-    has $.urx is required; 
-    has $.ury is required;
-
-    method cx {
-        0.5 * ($!urx - $!llx)
-    }
-    method cy {
-        0.5 * ($!ury - $!lly)
-    }
-    method w {
-        $!urx - $!llx
-    }
-    method h {
-        $!ury - $!lly
-    }
-    method width {
-        $!urx - $!llx
-    }
-    method height {
-        $!ury - $!lly
-    }
-
-    # other fracs
-    method fx($f where { $_ <= 1.0}) {
-    }
-    method fracx($f where { $_ <= 1.0}) {
-    }
-    method fy($f where { $_ <= 1.0}) {
-    }
-    method fracy($f where { $_ <= 1.0}) {
-    }
-    
-    submethod TWEAK {
-    }
-
-    my \b = self.page.media-box;
-    my $r;
-    my (\llx, \lly, \urx, \ury) = 0, 1, 2, 3;
-    if $llx.defined {
-        $r = b[llx];
-    }
-    elsif $lly.defined {
-        $r = b[lly];
-    }
-    elsif $urx.defined {
-        $r = b[urx];
-    }
-    elsif $ury.defined {
-        $r = b[ury];
-    }
-    elsif $cx.defined {
-        $r = 0.5 * (b[urx] - b[llx]);
-    }
-    elsif $cy.defined {
-        $r = 0.5 * (b[ury] - b[lly]);
-    }
-    elsif $fracx.defined {
-        $r = $fracx * (b[urx] - b[llx]);
-    }
-    elsif $fx.defined {
-        $r = $fx * (b[urx] - b[llx]);
-    }
-    elsif $fracy.defined {
-        $r = $fracy * (b[ury] - b[lly]);
-    }
-    elsif $fy.defined {
-        $r = $fy * (b[ury] - b[lly]);
-    }
-    elsif $w.defined {
-        $r = b[urx] - b[llx];
-    }
-    elsif $width.defined {
-        $r = b[urx] - b[llx];
-    }
-    elsif $h.defined {
-        $r = b[ury] - b[lly];
-    }
-    elsif $height.defined {
-        $r = b[ury] - b[lly];
-    }
-    else {
-        die "FATAL: No arg defined in Doc method 'mb'";
-    }
-    $r
-}
