@@ -3,38 +3,37 @@
 use lib "../lib";
 
 use PDF::Document;
-
-# title of output pdf
-my $ofile = "rotate-2page-port-land-test.pdf";
-my $uofil; # for user-entered name
+my %m = PageSizes.enums;
+my @m = %m.keys.sort;
 
 my $debug = 0;
 if not @*ARGS.elems {
     print qq:to/HERE/;
-    Usage: {$*PROGRAM.basename} go [...options...]
+    Usage: {$*PROGRAM.basename} <media>
 
-    Produces two pages, portrait and landscape (with rotation. no media change).
+    Produces a single page of the selected media from
+      the following list:
+
+    HERE
+    say "    $_" for @m;
+
+    print qq:to/HERE/;
 
     Options
-        o[file]=X - Output file name [default: $ofile]
-        d[ebug]   - Debug
+        d[ebug]   - debug
     HERE
     exit
 }
 
-my $A4  = 0;
-my $one = 0;
-my $landscape = False;
-my $reverse   = False;
+my $Media = @*ARGS.shift;
+unless %m{$Media}:exists {
+    die "FATAL: Unknown media named '$Media'";
+}
+# title of output pdf
+my $ofile = "doc-media-test-{$Media}.pdf";
+
 for @*ARGS {
-    when /^ :i o[file]? '=' (\S+) / {
-        $uofil = ~$0;
-    }
     when /^ :i d / { ++$debug          }
-    when /^ :i 1 / { ++$one            }
-    when /^ :i a / { ++$A4             }
-    when /^ :i L / { $landscape = True }
-    when /^ :i R / { $reverse   = True }
     when /^ :i g / {
         ; # go
     }
@@ -44,38 +43,25 @@ for @*ARGS {
     }
 }
 
-my $Media;
-if $A4 {
-    $Media = 'A4';
-}
-else {
-    $Media = 'Letter';
-}
-
-if $uofil.defined  {
-    $ofile = $uofil;
-}
 my $doc = Doc.new: :pdf-name($ofile), :$Media, :force, :$debug;
 
 # write the desired pages
-# ...
-# start the document with the first page
-if 1 { #$reverse {
-    make-pg-with-rotate-landscape :$doc, :$Media, :landscape(True);
+make-pg :$doc, :$Media; #, :landscape(True);
+$doc.add-page;
+make-pg :$doc, :$Media, :landscape(True);
+
+=begin comment
+for @m -> $Media {
     $doc.add-page;
-    make-pg-with-rotate-landscape :$doc, :$Media, :landscape(False);
+    $doc.media-box = $Media;
+    make-pg :$doc, :$Media; #, :landscape(True);
 }
-else {
-    make-pg-with-rotate-landscape :$doc, :$Media, :$landscape;
-    if not $one {
-        $doc.add-page;
-        make-pg-with-rotate-landscape :$doc, :$Media, :landscape(True);
-    }
-}
+=end comment
+
 # save the doc with name as desired
 $doc.end-doc;
 
-sub make-pg-with-rotate-landscape(
+sub make-pg(
     Doc :$doc!,
     # payload
     :$Media!,     # paper name (e.g., Letter, A4)
@@ -90,7 +76,7 @@ sub make-pg-with-rotate-landscape(
     # always save the default CTM
     $doc.save;
 
-    # set the media box the same for every page
+    ## set the media box the same for every page
     my $page = $doc.page;
     set-media-box :$page, :$Media;
 
@@ -116,7 +102,8 @@ sub make-pg-with-rotate-landscape(
 
     $doc.rectangle: 72, 72, $urx-72, $ury-72;
     # text at the center
-    $doc.print: $orient, :x($cx), :y($cy), :align<center>, :valign<center>;
+    $doc.print: "Media: $Media, Orientation: $orient",
+                :x($cx), :y($cy), :align<center>, :valign<center>;
 
     # always restore the CTM
     $doc.restore;
