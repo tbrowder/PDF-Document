@@ -4,7 +4,7 @@ use PDF::Document;
 use PDF::Lite;
 use Font::AFM;
 
-#plan 113;
+plan 15;
 
 my $title = 'text.pdf';
 my $pdf;
@@ -94,4 +94,3 @@ lives-ok {
     my $f = $ffact.get-font: 't12';
 }, "getting a font from the -font factory";
 
-done-testing;
