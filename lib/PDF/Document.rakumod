@@ -6,10 +6,11 @@ use PDF::Content;
 use Text::Utils :wrap-text;
 use Font::AFM;
 
+# local roles
+use PDF::PDF-role;
+
 my $debug  = 0;
 my $debug2 = 1;
-
-class DocBox is export {...}
 
 # for angle conversions
 #--------------------------------
@@ -81,30 +82,50 @@ sub to-landscape(Box $p --> Box) is export {
 }
 
 # convenience methods for the page media-box
+class Point is export {
+    has $.x is required;
+    has $.y is required;
+
+    multi method new($x, $y) {
+        return self.bless(:$x, :$y)
+    }
+}
+
 # changing to a class
-class DocBox {
-    has $.llx = 0; 
-    has $.lly = 0; 
-    has $.urx is required; 
+class DocBox is export {
+    has $.llx = 0;
+    has $.lly = 0;
+    has $.urx is required;
     has $.ury is required;
+
+    submethod TWEAK {
+        die "DocBox: llx must be >= 0" unless $!llx >= 0;
+        die "DocBox: lly must be >= 0" unless $!lly >= 0;
+        die "DocBox: llx must be < urx" unless $!urx > $!llx;
+        die "DocBox: lly must be < ury" unless $!ury > $!lly;
+    }
+
+    multi method new(Point $ll, Point $ur) {
+        return self.bless(:llx($ll.x), :lly($ll.y), :urx($ur.x), :ury($ur.y))
+    }
 
     multi method new($urx, $ury) {
         return self.bless(:$urx, :$ury)
     }
 
     multi method new($llx, $lly, $urx, $ury) {
-        return self.bless(:$llx, :$llx, :$urx, :$ury)
+        return self.bless(:$llx, :$lly, :$urx, :$ury)
     }
 
     multi method new(Box $p) {
-        return self.bless(:llx($p[0]), :llx($p[1]), :urx($p[2]), :ury($p[3]))
+        return self.bless(:llx($p[0]), :lly($p[1]), :urx($p[2]), :ury($p[3]))
 	#[ $p[1], $p[0], $p[3], $p[2] ]
     }
 
     method lx { self.llx }
     method ly { self.lly }
+    method ux { self.urx }
     method uy { self.ury }
-    method rx { self.urx }
 
     method cx {
         0.5 * ($!urx - $!llx)
@@ -136,6 +157,46 @@ class DocBox {
         self.height * $f
     }
     method fracy($f) { self.fy: $f }
+
+    # fancier methods
+    method shrink($v where { 0 < $_ }) {
+        # new llx and lly cannot be < 0
+        # new width and height cannot be < 0
+        my ($llx, $lly, $urx, $ury) = $!llx, $!lly, $!urx, $!ury;
+        my $nw = self.w - 2*$v;
+        my $nh = self.h - 2*$v;
+        die "DocBox shrink: width must be > 0" unless $nw > 0;
+        die "DocBox shrink: height must be > 0" unless $nh > 0;
+
+        $llx += $v;
+        $lly += $v;
+        $urx -= $v;
+        $ury -= $v;
+        die "DocBox shrink: llx must be >= 0" unless $llx >= 0;
+        die "DocBox shrink: lly must be >= 0" unless $lly >= 0;
+
+        ($!llx, $!lly, $!urx, $!ury) = $llx, $lly, $urx, $ury;
+    }
+    method expand($v where { 0 < $_ }) {
+        # new llx and lly cannot be < 0
+        # new llx and lly cannot be < 0
+        # new width and height cannot be < 0
+        my ($llx, $lly, $urx, $ury) = $!llx, $!lly, $!urx, $!ury;
+        my $nw = self.w - 2*$v;
+        my $nh = self.h - 2*$v;
+        die "DocBox shrink: width must be > 0" unless $nw > 0;
+        die "DocBox shrink: height must be > 0" unless $nh > 0;
+
+        $llx -= $v;
+        $lly -= $v;
+        $urx += $v;
+        $ury += $v;
+
+        die "DocBox shrink: llx must be >= 0" unless $llx >= 0;
+        die "DocBox shrink: lly must be >= 0" unless $lly >= 0;
+
+        ($!llx, $!lly, $!urx, $!ury) = $llx, $lly, $urx, $ury;
+    }
 }
 
 # These are the standard paper names and sizes copied from PDF::Content
@@ -161,18 +222,11 @@ my Array enum PageSizes is export <<
 #| A new sub to ease $page.media-box handling
 sub set-media-box(
     PDF::Content::Page :$page!, # current page
-    Str :$Media!,               # name of desired media from PageSizes, e.g., 'Letter'
-    Bool :$landscape = False         # Set true to adjust for landscape orientation
+    Str :$media!,               # name of desired media from PageSizes, e.g., 'Letter'
 ) is export {
-    die "FATAL: Media '' is not known in enum 'PageSizes'"
-        unless %(PageSizes.enums){$Media}:exists;
-    if $landscape {
-        $page.media-box[] = to-landscape(PageSizes.enums{$Media});
-    }
-    else {
-        $page.trim-box[]  = PageSizes.enums{$Media};
-        $page.media-box[] = PageSizes.enums{$Media};
-    }
+    die "FATAL: Media '$media' is not known in enum 'PageSizes'"
+        unless %(PageSizes.enums){$media}:exists;
+    $page.media-box[] = %(PageSizes.enums){$media};
 }
 
 sub show-myfonts is export {
@@ -410,9 +464,8 @@ class FontFactory is export {
     }
 }
 
-# local roles
-use PDF::PDF-role;
-# The big kahuna: it should have all major methods and attrs from lower levels at this level
+# The big kahuna: it should have all major methods and attrs from
+# lower levels at this level
 class Doc does PDF::PDF-role is export {
     # output file attrs
     has $.pdf-name = "Doc-output-default.pdf";
@@ -420,7 +473,8 @@ class Doc does PDF::PDF-role is export {
     has $.force    = False;
     has $.page-numbering = False;
 
-    has $.media = 'Letter'; # default
+    has $.media     = 'Letter'; # default
+    has $.media-box; # = [0, 0, 500, 500] = 'Letter'; # default
 
     has $.leading; #= linespacing
     has $.linespacing;
@@ -475,8 +529,11 @@ class Doc does PDF::PDF-role is export {
             }
         }
         $!pdf = PDF::Lite.new;
-        $!pdf.media-box = 'Letter'; #$!paper;
-        $!page = $!pdf.add-page;
+
+        #$!pdf.media-box = $!media-box; # default: 'Letter'; #$!paper;
+        # DON'T START WITH A CURRENT PAGE
+        #$!page = $!pdf.add-page;
+
         $!ff  = FontFactory.new: :pdf($!pdf);
         $!font = $!ff.get-font: 't12'; # Times-Roman 12
         $!leading = $!font.size * $!leading-ratio;
@@ -503,6 +560,8 @@ class Doc does PDF::PDF-role is export {
     }
     method add-page() {
         $!page = $!pdf.add-page;
+        # DO NOT SET MEDIA BOX HERE YET
+        #$!page.media-box = 'A4'; []; #$!pdf.media-box;
         # set my current point
         $!cpx = $!x0;
         $!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
@@ -1525,5 +1584,47 @@ class Doc does PDF::PDF-role is export {
             say "    $nam => [$val] [$val2]";
         }
     }
-} # end of class Doc 
+} # end of class Doc
 
+
+sub make-page(Doc :$doc!,
+              :$media     = <Letter>, # default
+              :$landscape = False,
+              :$debug,
+             ) is export {
+    my $page = $doc.pdf.page;
+    # always save the CTM
+    $doc.save;
+
+    #set-media-box :$page, :$media;
+    note $page.media-box if $debug;
+
+    my $orient = "Portrait";
+    my ($llx, $lly, $urx, $ury) = $page.media-box;
+    note "media-box before translation: $llx, $lly, $urx, $ury" if $debug;
+    my $pw = $urx - $llx;
+    if $landscape {
+        # just rotate the page
+        ($llx, $lly, $urx, $ury) = to-landscape $page.media-box;
+        $orient = "Landscape";
+        $doc.translate: $pw, 0;
+        $doc.rotate(90 * deg2rad);
+        note "media-box after translation: $llx, $lly, $urx, $ury" if $debug;
+    }
+    $pw = $urx - $llx;
+
+    my $cx = 0.5 * ($urx-$llx);
+    my $cy = 0.5 * ($ury-$lly);
+
+    # outline the page
+    # method !rectangle(Real $llx, Real $lly, Real $urx, Real $ury,
+
+    $doc.rectangle: 72, 72, $urx-72, $ury-72;
+    # text at the center
+    $doc.print: $orient, :x($cx), :y($cy), :align<center>, :valign<center>;
+
+    # always restore the CTM
+    $doc.restore;
+
+
+}
