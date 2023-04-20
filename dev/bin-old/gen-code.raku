@@ -48,7 +48,7 @@ for @*ARGS {
 }
 
 my $of1 = "pdf-methods.auto-generated";
-my $of2 = "00-pdf-methods.t";
+my $of2 = "88-pdf-methods.t";
 my $of3 = "PDF-role.rakumod";
 
 my $of4 = "AFM-role.rakumod";
@@ -73,7 +73,7 @@ my %no-test = set <
 >;
 
 # Some methods need special handling (context) in tests
-# Outside of a text block, these need to between BeginText/EndText pairs 
+# Outside of a text block, these need to be between BeginText/EndText pairs 
 my %need-BT-ET = set < TextMove TextMoveSet TextNextLine ShowText MoveShowText MoveSetShowText >;
 
 # These need to be between Save/Restore pairs
@@ -343,6 +343,8 @@ sub write-pdf-method-tests($ofil, @pmethods, :$debug) {
     #================================================================
     #
     # THIS FILE IS AUTO-GENERATED - EDITS MAY BE LOST WITHOUT WARNING
+    #
+    # See program 'gen-code.raku'
     #
     #================================================================
     use Test;
