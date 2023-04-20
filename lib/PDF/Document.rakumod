@@ -201,33 +201,23 @@ class DocBox is export {
 
 # These are the standard paper names and sizes copied from PDF::Content
 my Array enum PageSizes is export <<
-	    :Letter[0,0,612,792]
-	    :Tabloid[0,0,792,1224]
-	    :Ledger[0,0,1224,792]
-	    :Legal[0,0,612,1008]
-	    :Statement[0,0,396,612]
-	    :Executive[0,0,540,720]
-	    :A0[0,0,2384,3371]
-	    :A1[0,0,1685,2384]
-	    :A2[0,0,1190,1684]
-	    :A3[0,0,842,1190]
-	    :A4[0,0,595,842]
-	    :A5[0,0,420,595]
-	    :B4[0,0,729,1032]
-	    :B5[0,0,516,729]
-	    :Folio[0,0,612,936]
-	    :Quarto[0,0,610,780]
-	>>;
-
-#| A new sub to ease $page.media-box handling
-sub set-media-box(
-    PDF::Content::Page :$page!, # current page
-    Str :$media!,               # name of desired media from PageSizes, e.g., 'Letter'
-) is export {
-    die "FATAL: Media '$media' is not known in enum 'PageSizes'"
-        unless %(PageSizes.enums){$media}:exists;
-    $page.media-box[] = %(PageSizes.enums){$media};
-}
+    :Letter[0,0,612,792]
+    :Tabloid[0,0,792,1224]
+    :Ledger[0,0,1224,792]
+    :Legal[0,0,612,1008]
+    :Statement[0,0,396,612]
+    :Executive[0,0,540,720]
+    :A0[0,0,2384,3371]
+    :A1[0,0,1685,2384]
+    :A2[0,0,1190,1684]
+    :A3[0,0,842,1190]
+    :A4[0,0,595,842]
+    :A5[0,0,420,595]
+    :B4[0,0,729,1032]
+    :B5[0,0,516,729]
+    :Folio[0,0,612,936]
+    :Quarto[0,0,610,780]
+>>;
 
 sub show-myfonts is export {
     my $max = 0;
@@ -366,21 +356,52 @@ class DocFont is export {
     method FontName {  # usually with no spaces
         $!afm.FontName
     }
-    method FullName {}
-    method FamilyName {}
-    method Weight {}
-    method ItalicAngle {}
-    method FontBBox {}
-    method Version {}
-    method Notice {}
-    method Comment {}
-    method EncodingScheme {}
-    method CapHeight {}
-    method XHeight {}
-    method Ascender {}
-    method Descender {}
-    method Wx {}
-    method BBox {}
+    method FullName {
+        $!afm.FullName
+    }
+    method FamilyName {
+        $!afm.FamilyName
+    }
+    method Weight {
+        $!afm.Weight
+    }
+    method ItalicAngle {
+        $!afm.ItalicAngle
+    }
+    method FontBBox {
+        $!afm.FontBBox
+    }
+    method Version {
+        $!afm.Version
+    }
+    method Notice {
+        $!afm.Notice
+    }
+    method Comment {
+        $!afm.Comment
+    }
+    method EncodingScheme {
+        $!afm.EncodingScheme
+    }
+    method CapHeight {
+        $!afm.CapHeight
+    }
+    method XHeight {
+        $!afm.XHeight
+    }
+    method Ascender {
+        $!afm.Ascender
+    }
+    method Descender {
+        $!afm.Descender
+    }
+    method Wx {
+        $!afm.Wx
+    }
+    method BBox {
+        $!afm.BBox
+    }
+
     =begin comment
     method ? {}
     method ? {}
