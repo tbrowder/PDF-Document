@@ -1,0 +1,26 @@
+=begin pod
+
+=head1 Notes from development
+
+=head2 media-box
+
+How do the doc.media-box and the page.media-box inter-operate?
+
+I don't know for sure yet, but, so far, it's best to set each page's
+media-box explicitly, rotate if desired to landscape, and adjust page
+coordinates as necessary to write on the rotated page.
+
+=head2 TODO
+
+=item Incorporate Unicode font handling (use Google Noto fonts) into FontFactory
+
+=begin item
+Split following classes and their associated subs into new files: B<PDF::X>:
+
+=item2 FontFactory
+=item2 DocFont
+
+Consider creating separate modules for them.
+=end item
+
+=end pod
