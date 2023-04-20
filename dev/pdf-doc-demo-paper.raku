@@ -16,7 +16,7 @@ if not @*ARGS.elems {
       in portrait as well as landscape orientation.
 
     Options
-        s[How]    - Show all known media and exit
+        s[how]    - Show all known media and exit
         d[ebug]   - Debug
     HERE
     exit
