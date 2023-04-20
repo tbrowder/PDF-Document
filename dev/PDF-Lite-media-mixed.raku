@@ -3,7 +3,7 @@
 use PDF::Lite;
 
 # preview of title of output pdf
-my $ofile = "PDF-Lite-media-mixed-<media>.pdf";
+my $ofile = "PDF-Lite-media-mixed-<doc number>.pdf";
 
 #| copied from PDF::Content
 my subset Box of List is export where {.elems == 4}
@@ -26,14 +26,19 @@ if not @*ARGS.elems {
     print qq:to/HERE/;
     Usage: {$*PROGRAM.basename} <media> [...options...]
 
-    Produces a two-page pdf for a selected paper size
-      in portrait as well as landscape orientation.
+    Produces several two-page PDF docs illustrating different ways
+    to produce pages of differing orientation and media size:
+
+    1. 1st page: Letter, portrait 
+       2nd page: Letter, landscape (with rotation)
+    2. 1st page: Letter, portrait 
+       2nd page: Letter, landscape (with media landscape change)
+    3. 1st page: Letter, portrait 
+       2nd page: A4,     portrait
+    4. 1st page: Letter, portrait 
+       2nd page: A4,     portrait
 
     Options
-        j[how] - Show all known media and exit
-        f=X    - Select font family X is one of: Times Helvetica
-        w=X    - Select font weight X is one of: Bold Italic BoldItalic
-        s=X    - Select font size (points) X
         d      - Debug
     HERE
     exit
@@ -51,7 +56,7 @@ for @*ARGS {
     when /^ :i 's=' (\S+) / {
         $size = +$0;
     }
-    
+
     when /^ :i s / { # <= special exit from arg list
         ++$show;
         last
@@ -77,16 +82,18 @@ unless %m{$media}:exists {
 # final title of output pdf
 $ofile = "PDF-Lite-media-mixed-{$media}.pdf";
 
-my $pdf = PDF::Lite.new;
-$pdf.media-box = %(PageSizes.enums){$media};
 
 my $font = $pdf.core-font(:family<Helvetica>, :weight<bold>);
 
 my ($text, $page);
 
+for 1..4 -> $num {
+my $pdf = PDF::Lite.new;
+$pdf.media-box = %(PageSizes.enums){$media};
+
 # first page
 $page = $pdf.add-page;
-# sub make-page(:$page!, :$text!, :$media!, :$font, :$landscape, 
+# sub make-page(:$page!, :$text!, :$media!, :$font, :$landscape,
 $text = "First page";
 make-page :$page, :$text, :$media, :$font, :landscape(False);
 
@@ -99,13 +106,15 @@ make-page :$page, :$text, :$media, :$font, :landscape(True);
 $pdf.save-as: $ofile;
 
 say "See output file: $ofile";
+}
+
 
 # subroutines
-sub make-page(PDF::Lite::Page :$page!, 
-             :$text!, 
+sub make-page(PDF::Lite::Page :$page!,
+             :$text!,
              :$media! is copy,
              :$font!,
-             :$landscape, 
+             :$landscape,
 ) is export {
     $page.media-box = %(PageSizes.enums){$media};
 
@@ -113,7 +122,6 @@ sub make-page(PDF::Lite::Page :$page!,
     my $cy = 0.5 * ($pdf.media-box[3] - $pdf.media-box[1]);
     $page.graphics: {
         #my @box = .say: "Second page", :@position, :$font, :align<center>, :valign<center>;
-        .say: $text, :position[$cx, $cy], :$font, :align<center>, :valign<center>;
+        .print: $text, :position[$cx, $cy], :$font, :align<center>, :valign<center>;
     }
 }
-
