@@ -11,6 +11,7 @@ plan 39;
 my ($of, $fh) = tempfile;
 my ($doc, $x, $y);
 $doc = Doc.new;
+$doc.add-page;
 
 # test 1
 lives-ok {
