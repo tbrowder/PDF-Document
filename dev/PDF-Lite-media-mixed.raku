@@ -24,102 +24,86 @@ my @m = %m.keys.sort;
 my $debug = 0;
 if not @*ARGS.elems {
     print qq:to/HERE/;
-    Usage: {$*PROGRAM.basename} <media> [...options...]
+    Usage: {$*PROGRAM.basename} go 
 
     Produces several two-page PDF docs illustrating different ways
     to produce pages of differing orientation and media size:
 
-    1. 1st page: Letter, portrait 
-       2nd page: Letter, landscape (with rotation)
-    2. 1st page: Letter, portrait 
-       2nd page: Letter, landscape (with media landscape change)
-    3. 1st page: Letter, portrait 
-       2nd page: A4,     portrait
-    4. 1st page: Letter, portrait 
-       2nd page: A4,     portrait
+      1. 1st page: Letter, portrait 
+         2nd page: Letter, landscape (with rotation)
+      2. 1st page: Letter, portrait 
+         2nd page: Letter, landscape (with media landscape change)
+      3. 1st page: Letter, portrait 
+         2nd page: A4,     portrait
+      4. 1st page: Letter, portrait 
+         2nd page: A4,     portrait
 
-    Options
-        d      - Debug
     HERE
     exit
 }
 
-my $media;
-my $show = 0;
-for @*ARGS {
-    when /^ :i 'f=' (\S+) / {
-        $font = ~$0;
-    }
-    when /^ :i 'w=' (\S+) / {
-        $weight = ~$0;
-    }
-    when /^ :i 's=' (\S+) / {
-        $size = +$0;
-    }
-
-    when /^ :i s / { # <= special exit from arg list
-        ++$show;
-        last
-    }
-    when /^ :i d / { ++$debug        }
-    default {
-        # the media selection
-        $media = $_.tc;
-    }
-}
-
-if $show {
-    say "Media:\n";
-    say "  $_" for @m;
-    say "\nThat's all for now, folks!";
-    exit;
-}
-
-unless %m{$media}:exists {
-    die "FATAL: Unknown media named '$media'";
-}
-
-# final title of output pdf
-$ofile = "PDF-Lite-media-mixed-{$media}.pdf";
-
-
-my $font = $pdf.core-font(:family<Helvetica>, :weight<bold>);
 
 my ($text, $page);
 
+my $media1 = 'Letter';
+my $media2 = 'Letter';
 for 1..4 -> $num {
-my $pdf = PDF::Lite.new;
-$pdf.media-box = %(PageSizes.enums){$media};
+    if $num == 1 {
+        ; #
+    }
+    elsif $num == 2 {
+        ; #
+    }
+    elsif $num == 3 {
+        $media2 = 'A4';
+    }
+    elsif $num == 4 {
+        $media2 = 'A4';
+    }
 
-# first page
-$page = $pdf.add-page;
-# sub make-page(:$page!, :$text!, :$media!, :$font, :$landscape,
-$text = "First page";
-make-page :$page, :$text, :$media, :$font, :landscape(False);
+    my $pdf = PDF::Lite.new;
+    my $font = $pdf.core-font(:family<Times>, :weight<bold>);
 
-# second page
-$page = $pdf.add-page;
-$text = "Second page";
-make-page :$page, :$text, :$media, :$font, :landscape(True);
 
-# finish the document
-$pdf.save-as: $ofile;
+    # first page
+    $pdf.media-box = %(PageSizes.enums){$media1};
+    $page = $pdf.add-page;
+    $text = "First page";
+    make-page :$pdf, :$page, :$text, :$font, :landscape(False);
 
-say "See output file: $ofile";
+    # second page
+    $page = $pdf.add-page;
+    $text = "Second page";
+    make-page :$pdf, :$page, :$text, :$media2, :$font, :landscape(True);
+
+    # finish the document
+    # final title of output pdf
+    my $ofile = "PDF-Lite-media-mixed-{$num}.pdf";
+    $pdf.save-as: $ofile;
+    say "See output file: $ofile";
 }
 
-
 # subroutines
-sub make-page(PDF::Lite::Page :$page!,
-             :$text!,
-             :$media! is copy,
-             :$font!,
-             :$landscape,
+sub make-page(
+              PDF::Lite :$pdf!,
+              PDF::Lite::Page :$page!,
+              :$text!,
+              :$font!,
+              :$media, #! is copy,
+              :$landscape,
 ) is export {
-    $page.media-box = %(PageSizes.enums){$media};
+    my ($cx, $cy);
+    if $media {
+        # use the page media-box
+        $page.media-box = %(PageSizes.enums){$media};
+        $cx = 0.5 * ($page.media-box[2] - $page.media-box[0]);
+        $cy = 0.5 * ($page.media-box[3] - $page.media-box[1]);
+    }
+    else {
+        $cx = 0.5 * ($pdf.media-box[2] - $pdf.media-box[0]);
+        $cy = 0.5 * ($pdf.media-box[3] - $pdf.media-box[1]);
+    }
 
-    my $cx = 0.5 * ($pdf.media-box[2] - $pdf.media-box[0]);
-    my $cy = 0.5 * ($pdf.media-box[3] - $pdf.media-box[1]);
     $page.graphics: {
         #my @box = .say: "Second page", :@position, :$font, :align<center>, :valign<center>;
         .print: $text, :position[$cx, $cy], :$font, :align<center>, :valign<center>;
