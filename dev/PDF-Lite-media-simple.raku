@@ -60,21 +60,27 @@ my $pdf = PDF::Lite.new;
 $pdf.media-box = %(PageSizes.enums){$media};
 my $font = $pdf.core-font(:family<Times>, :weight<bold>);
 my $font-size = 30;
+
 my $cx = 0.5 * ($pdf.media-box[2] - $pdf.media-box[0]);
 my $cy = 0.5 * ($pdf.media-box[3] - $pdf.media-box[1]);
-
 my @position = [$cx, $cy];
 
 # first page
 my $page = $pdf.add-page;
 $page.graphics: {
-    my @box = .print: "First page", :@position, :$font, :$font-size, :align<center>, :valign<center>;
+    my @box = .print: "First page", :@position, :$font, :$font-size, 
+                      :align<center>, :valign<center>;
 }
 
 # second page
 $page = $pdf.add-page;
+$page.media-box .= to-landscape %(PageSizes.enums){$media};
+$cx = 0.5 * ($page.media-box[2] - $page.media-box[0]);
+$cy = 0.5 * ($page.media-box[3] - $page.media-box[1]);
+@position = [$cx, $cy];
 $page.graphics: {
-    my @box = .print: "Second page", :@position, :$font, :align<center>, :valign<center>;
+    my @box = .print: "Second page", :@position, :$font, 
+                      :align<center>, :valign<center>;
 }
 
 # finish the document
