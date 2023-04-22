@@ -1,23 +1,11 @@
 #!/bin/env raku
 
 use PDF::Lite;
+use PDF::Content::Page :PageSizes, :&to-landscape;
 
 # preview of title of output pdf
 my $ofile = "PDF-Lite-media-mixed-<doc number>.pdf";
 
-#| copied from PDF::Content
-my subset Box of List is export where {.elems == 4}
-#| e.g. $.to-landscape(PagesSizes::A4)
-sub to-landscape(Box $p --> Box) is export {
-    [ $p[1], $p[0], $p[3], $p[2] ]
-}
-
-# These are three of the standard paper names and sizes copied from PDF::Content
-my Array enum PageSizes is export <<
-    :Letter[0,0,612,792]
-    :Legal[0,0,612,1008]
-    :A4[0,0,595,842]
->>;
 my %m = %(PageSizes.enums);
 my @m = %m.keys.sort;
 
@@ -42,7 +30,6 @@ if not @*ARGS.elems {
     exit
 }
 
-
 my ($text, $page);
 
 my $media1 = 'Letter';
@@ -63,7 +50,6 @@ for 1..4 -> $num {
 
     my $pdf = PDF::Lite.new;
     my $font = $pdf.core-font(:family<Times>, :weight<bold>);
-
 
     # first page
     $pdf.media-box = %(PageSizes.enums){$media1};
@@ -90,6 +76,7 @@ sub make-page(
               :$text!,
               :$font!,
               :$media, #! is copy,
+              :$media2, #! is copy,
               :$landscape,
 ) is export {
     my ($cx, $cy);
