@@ -25,6 +25,7 @@
   "perl": "6.d",
   "provides": {
     "PDF::Document": "lib/PDF/Document.rakumod",
+    "PDF::FontFactory": "lib/PDF/FontFactory.rakumod",
     "PDF::PDF-role": "lib/PDF/PDF-role.rakumod"
   },
   "resources": [

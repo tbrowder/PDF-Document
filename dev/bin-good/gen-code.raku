@@ -2,8 +2,8 @@
 
 use Text::Utils :strip-comment, :wrap-paragraph;
 
-my $ifil1 = 'pdf-methods-of-interest.from-pod';
-my $ifil2 = 'afm-methods-of-interest.from-pod';
+my $ifil1 = '../pdf-methods-of-interest.from-pod';
+my $ifil2 = '../afm-methods-of-interest.from-pod';
 
 constant EMPTY = '';
 constant SPACE = ' ';
@@ -350,11 +350,13 @@ sub write-pdf-method-tests($ofil, @pmethods, :$debug) {
     use Test;
     use File::Temp;
     use PDF::Document;
+    use PDF::FontFactory;
     plan 39;
     # global vars
     my ($of, $fh) = tempfile;
     my ($doc, $x, $y);
     $doc = Doc.new;
+    $doc.add-page;
     HERE
 
     for @pmethods -> $m {

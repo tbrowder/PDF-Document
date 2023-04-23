@@ -1,9 +1,10 @@
 #!/usr/bin/env raku
 
 use lib <./lib ../lib>;
-use PDF::Document;
 use PDF::Lite;
 use Font::AFM;
+use PDF::Document;
+use PDF::FontFactory;
 
 # test with a pdf doc
 my $pdf = PDF::Lite.new;
