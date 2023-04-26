@@ -6,9 +6,6 @@ use PDF::Content::Page :PageSizes, :&to-landscape;
 # preview of title of output pdf
 my $ofile = "PDF-Lite-media-mixed-<doc number>.pdf";
 
-#| copied from PDF::Content
-#my subset Box of List is export where {.elems == 4}
-
 my %m = %(PageSizes.enums);
 my @m = %m.keys.sort;
 
