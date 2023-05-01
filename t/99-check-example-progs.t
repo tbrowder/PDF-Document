@@ -6,8 +6,6 @@ use Font::AFM;
 use Proc::Easier;
 use File::Find;
 
-plan 33;
-
 my $debug = 0;
 
 my ($args, $cmd, $doc);
