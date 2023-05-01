@@ -6,8 +6,6 @@ use PDF::Document;
 use FontFactory::Type1;
 use FontFactory::Type1::Utils;
 
-plan 15;
-
 my $title = 'text.pdf';
 my $pdf;
 my $basefont;
@@ -28,13 +26,6 @@ lives-ok {
 }, "checking pdf instantiation";
 
 for %MyFonts.keys {
-    # distinguish between PDF::Lite font objects and higher-level composite ones
-    lives-ok {
-        $rawfont = $pdf.core-font(:family($_));
-    }, "checking raw font access, name: $_";
-    lives-ok {
-        $rawafm  = Font::AFM.core-font($_);
-    }, "checking raw Font afm access, name: $_";
 
     lives-ok {
        $basefont = find-basefont :name($_), :$pdf;
@@ -48,7 +39,15 @@ for %MyFonts.keys {
     lives-ok {
        $ut = $docfont.UnderlineThickness;
     }, "checking font afm use for UnderlineThickness";
-    last;
+
+    last if $_ ~~ /:i micr /;;
+
+    lives-ok {
+        $rawfont = $pdf.core-font(:family($_));
+    }, "checking raw font access, name: $_";
+    lives-ok {
+        $rawafm  = Font::AFM.core-font($_);
+    }, "checking raw Font afm access, name: $_";
 }
 
 lives-ok {
@@ -96,3 +95,4 @@ lives-ok {
     my $f = $ffact.get-font: 't12';
 }, "getting a font from the -font factory";
 
+done-testing;
