@@ -3,7 +3,7 @@ use PDF::Content;
 use PDF::Lite;
 use Font::AFM;
 use PDF::Document;
-use PDF::FontFactory;
+use FontFactory::Type1;
 
 plan 119;
 

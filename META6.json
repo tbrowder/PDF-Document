@@ -17,6 +17,7 @@
     "Text::Utils",
     "Font::AFM:ver<1.24.4+>",
     "PDF:ver<0.4.5+>",
+    "FontFactory::Type1",
     "PDF::Lite"
   ],
   "description": "Provides higher level classes and routines to create PDF documents",

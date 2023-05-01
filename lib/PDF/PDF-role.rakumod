@@ -2,32 +2,7 @@ unit role PDF::PDF-role is export;
 use PDF::Lite;
 
 has $.pdf;
-has $.page; # current pdf.page
-
-# Operators from PDF::API6
-
-=begin comment
-
-The Concatenation Matrix (CTM)
-  From Adobe PDF Specification (and Stack Overflow)
-
-Angles are in radians, positive rotation is counter-clockwise (right-hand rule)
-
-Translation: 1     0     0      1     tx ty
-Scaling:     sx    0     0      sy    0  0
-Rotation:    cos t sin t -sin t cos t 0  0   # rotate by angle t
-Skew:        1     tan a tan b  1     0  0   # skews x axis by a, y axis by b
-
-=end comment
-
-#| Modify the current transformation matrix (CTM) by
-#| concatenating the specified matrix
-method ConcatMatrix($a, $b, $c, $d, $e, $f) {
-    $!page.gfx.ConcatMatrix($a, $b, $c, $d, $e, $f)
-}
-method cm($a, $b, $c, $d, $e, $f) {
-    $!page.gfx.ConcatMatrix($a, $b, $c, $d, $e, $f)
-}
+has $.page;
 
 #| Text line height
 method TextLeading {
@@ -288,3 +263,4 @@ method Clip() {
 method W() {
     $!page.gfx.Clip();
 }
+

@@ -8,7 +8,7 @@
 use Test;
 use File::Temp;
 use PDF::Document;
-use PDF::FontFactory;
+use FontFactory::Type1;
 plan 39;
 # global vars
 my ($of, $fh) = tempfile;
