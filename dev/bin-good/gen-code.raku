@@ -22,8 +22,7 @@ if !@*ARGS {
     print qq:to/HERE/;
     Usage: {$*PROGRAM.IO.basename} meth | test | role | doc | all [debug]
 
-    Parses files '$ifil1
-    and '$ifil2' to
+    Parses files '$ifil1' and '$ifil2' to
     extract methods and their aliases and builds
     various Raku code products that use them.
 
@@ -50,7 +49,6 @@ for @*ARGS {
 my $of1 = "pdf-methods.auto-generated";
 my $of2 = "88-pdf-methods.t";
 my $of3 = "PDF-role.rakumod";
-
 my $of4 = "AFM-role.rakumod";
 
 # Some alias methods will not work due to syntax
