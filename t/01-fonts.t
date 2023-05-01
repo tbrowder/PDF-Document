@@ -4,6 +4,7 @@ use PDF::Lite;
 use Font::AFM;
 use PDF::Document;
 use FontFactory::Type1;
+use FontFactory::Type1::Utils;
 
 plan 119;
 
