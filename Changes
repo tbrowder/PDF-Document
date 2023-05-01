@@ -1,6 +1,8 @@
 Revision history for PDF-Document
 
 {{$NEXT}}
+    - Remove Fontfactory into its own module (FontFactory::Type1)
+      - Use the newly published module
     - Add class Point to hold an x,y coordinate
     - Add class DocBox to hold a rectangular set of points for
       describing Page media dimensions
