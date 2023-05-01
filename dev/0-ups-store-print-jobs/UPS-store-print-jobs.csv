@@ -1,0 +1,7 @@
+ups-name, pdf-name,last-submission,color (y/N),job type, notes
+d1, gbumc-directory-test.pdf,2023-04-22,yes,Quick print, doc created from GBUMC-directory as a proof of concept for Pam
+d2,PDF-Lite-media-simple-Letter.pdf,2023-04-22,,Quick print,b&w to test page orientation and blank ages
+d3,,2023-04-26,Quick print, b&w to test book style (portrait, 2-sided to emulate printed and blank pages
+d4,,2023-04-26,Quick print, b&w to test calendar (landscape, 2-sided to emulate printed and blank pages
+
+

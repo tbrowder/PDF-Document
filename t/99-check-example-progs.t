@@ -4,32 +4,15 @@ use PDF::Document;
 use PDF::Lite;
 use Font::AFM;
 use Proc::Easier;
+use File::Find;
 
 my $debug = 0;
 
 my ($args, $cmd, $doc);
-my @args = <
-    capture.raku
-    check-afm.raku
-    check-factory.raku
-    check-fonts.raku
-    check-moon-phase-frac.raku
-    check-refl-rot.raku
-    demo-paper.raku
-    example-doc.raku
-    example2.raku
-    gen-code.raku
-    make-example-doc.raku
-    make-example-moon-phases.raku
-    make-example-rooms.raku
-    make-grid.raku
-    make-ps-ruler.raku
-    make-single-moon.raku
-    reflect.raku
-    seq.raku
->;
+my @args = find :dir("dev"), :name(/'.' raku $/), :keep-going(False);
 
-for @args -> $prog {
+for @args -> $path {
+    my $prog = $path.basename;
     lives-ok {
         $args = "./dev/$prog";
         $cmd  = cmd $args;
@@ -37,6 +20,9 @@ for @args -> $prog {
     }, "testing example doc '$prog' with no args";
 }
 
+done-testing;
+
+=finish
 lives-ok {
     $doc = Doc.new: :media-box('Letter');
 }, "checking new Doc object";
@@ -73,4 +59,3 @@ lives-ok {
     say "results: exit '{$cmd.exit}' err '{$cmd.err}', out '{$cmd.out}'" if $debug;
 }, "testing the example doc with args";
 
-done-testing;

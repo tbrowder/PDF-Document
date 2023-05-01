@@ -1,0 +1,58 @@
+2023-04-17
+----------
+
+Email from me to David Warring:
+==============================
+
+David, up to now I have been using PostScript Type 1 fonts and
+Font::AFM for Raku. Now I want to use TrueType fonts in order to have
+multi-lingual capability as well as Unicode in general. Thus my
+questions:
+
+1. Which module do I need to use?
+
+2. Would you accept a PR which will an extension to the module(s) in
+   question 1 so it (they) has (have) an API like the existing Font::AFM?
+
+David's response (edited):
+=========================
+
+No there isn't anything doing a Font::AFM interface, but for TrueType
+fonts.
+
+What comes closest is PDF::Font::Loader::FontObj objects that are
+created by the PDF::Font::Loader load-font() method.
+
+   my PDF::Font::Loader::FontObj $font-obj =
+   PDF::Font::Loader.load-font(:file<myfont.ttf>);
+
+The stringwidth method is the same. Some other methods map directly to
+Font::AFM methods, including font-name(FontName), family(FontFamily),
+underline-thickness(UnderlineThickness),
+underline-position(UnderlinePosition).
+
+Also, there's a font-descriptor method which builds a PDF dictionary
+that has some other Font::AFM properties.
+
+    my %desc = $font-obj.font-descriptor;
+
+Then %desc<FontBBOx>, %desc<CapHeight>, %desc<XHeight>,
+%desc<ItalicAngle>, %desc<FontName>, %desc<FamilyName> are the same
+and %desc<Ascent> is the same as AFM Ascender and %desc<Descent> is
+the same as AFM Descender.
+
+So my initial thought is that PDF::Font::Loader::FontObj seems like a
+good starting point.
+
+Not sure at the moment whether it'd be best just to extend it to
+provide a Font::AFM like interface or create a new class.
+
+LATER...
+========
+
+Some more thoughts. about the structure.  There could be a new class
+PDF::Font::Loader::Metrics, and PDF::Font::Loader::FontObj objects
+could have a metrics method that returns the metrics object.
+
+This will then make it similar to PDF::Content::Font::CoreFont which
+also has a metrics method.

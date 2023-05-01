@@ -1,10 +1,10 @@
 use Test;
 use PDF::Content;
-use PDF::Document;
 use PDF::Lite;
 use Font::AFM;
-
-#plan 113;
+use PDF::Document;
+use FontFactory::Type1;
+use FontFactory::Type1::Utils;
 
 my $title = 'text.pdf';
 my $pdf;
@@ -26,13 +26,6 @@ lives-ok {
 }, "checking pdf instantiation";
 
 for %MyFonts.keys {
-    # distinguish between PDF::Lite font objects and higher-level composite ones
-    lives-ok {
-        $rawfont = $pdf.core-font(:family($_));
-    }, "checking raw font access, name: $_";
-    lives-ok {
-        $rawafm  = Font::AFM.core-font($_);
-    }, "checking raw Font afm access, name: $_";
 
     lives-ok {
        $basefont = find-basefont :name($_), :$pdf;
@@ -46,7 +39,15 @@ for %MyFonts.keys {
     lives-ok {
        $ut = $docfont.UnderlineThickness;
     }, "checking font afm use for UnderlineThickness";
-    last;
+
+    last if $_ ~~ /:i micr /;;
+
+    lives-ok {
+        $rawfont = $pdf.core-font(:family($_));
+    }, "checking raw font access, name: $_";
+    lives-ok {
+        $rawafm  = Font::AFM.core-font($_);
+    }, "checking raw Font afm access, name: $_";
 }
 
 lives-ok {
@@ -82,7 +83,7 @@ lives-ok {
 
 # quickie font factory checks
 lives-ok {
-    $ffact = FontFactory.new: :$pdf;
+    $ffact = FontFactory::Type1.new: :$pdf;
 }, "getting a font factory";
 lives-ok {
     my $f = $ffact.get-font: 't12d1';

@@ -2,6 +2,8 @@
 #
 # THIS FILE IS AUTO-GENERATED - EDITS MAY BE LOST WITHOUT WARNING
 #
+# See program 'gen-code.raku'
+#
 #================================================================
 use Test;
 use File::Temp;

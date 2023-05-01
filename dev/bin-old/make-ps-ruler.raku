@@ -53,21 +53,12 @@ for @*ARGS {
     }
 }
 
-my $media-box = 'Letter';
-my ($PW, $PH); # paper width, height (portrait)
-my ($LM, $TM, $RM, $BM); # margins (in final orientation)
-$LM = 0.5 * 72;
-$TM = 0.5 * 72;
-$BM = $LM;
-$RM = $LM;
+my $media;
 if $A4 {
-    $PW =  8.3  * 72;
-    $PH = 11.7  * 72;
-    $media-box = 'A4';
+    $media = 'A4';
 }
 else {
-    $PW =  8.5  * 72;
-    $PH = 11.0  * 72;
+    $media = 'Letter';
 }
 
 $nps = $npsh * 128;
@@ -78,12 +69,13 @@ else {
     $ofile = "ps-ruler-$nps-{$orient}.pdf";
 }
 
-my $doc = Doc.new: :pdf-name($ofile), :$media-box, :force, :$debug;
+my $doc = Doc.new: :pdf-name($ofile), :$media, :force, :$debug;
 
 # write the desired pages
 # ...
 # start the document with the first page
-make-ps :$doc, :$PW, :$LM, :$BM, :$npsh, :$nps, :$landscape;
+make-ps :$doc, :$npsh, :$nps, :$landscape;
+
 #$doc.add-page(:$media-box);
 #make-ps :$doc, :$PW, :$LM, :$BM, :$npsh, :$nps;
 
@@ -95,9 +87,8 @@ sub make-ps(
     # payload
     :$npsh!,
     :$nps!,
-    :$PW!, :$LM!, :$BM!,
-    :$landscape = 0,
 
+    :$landscape = 0,
     :$debug,
 
 ) is export {
@@ -108,24 +99,25 @@ sub make-ps(
     # always save the default CTM
     $doc.save;
 
-    my $cx = 0.5 * $PW;
-    my $cy = 0.5 * $PH;
+    my $cx = $doc.mb.cx; #0.5 * $PW;
+    my $cy = $doc.mb.cy; #0.5 * $PH;
     my $orient = "Portrait";
     if $landscape {
         # transform coordinate system for landscape, origin
         # at lower-left corner of the page
-        $doc.translate($PW, 0);
+        $doc.translate($doc.mb(:w), 0);
         $doc.rotate(90 * deg2rad);
         #$doc.rotate(90);
-        $cx = 0.5 * $PH;
-        $cy = 0.5 * $PW;
+        $cx = $doc.mb(:cx); #0.5 * $PH;
+        $cy = $doc.mb(:cy); #0.5 * $PW;
         $orient = "Landscape";
     }
 
     # outline the page
     # method !rectangle(Real $llx, Real $lly, Real $urx, Real $ury,
+    
     #my @points = 72, 72, $PW-72, $PH-72;
-    $doc.rectangle: 72, 72, $PW-72, $PH-72;
+    $doc.rectangle: 72, 72, $doc.mb(:w)-72, $doc.mb(:h)-72;
     # text at the center
     $doc.print: $orient, :x($cx), :y($cy);
 

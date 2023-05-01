@@ -1,11 +1,12 @@
 unit module PDF::Document;
 
 use PDF::Lite;
-use PDF::Content;
+use PDF::Content::Page :PageSizes, :&to-landscape;
 
 use Text::Utils :wrap-text;
 use Font::AFM;
 
+use PDF::FontFactory;
 # local roles
 use PDF::PDF-role;
 
@@ -50,308 +51,153 @@ constant  d2p is export = dm2pt;
 constant dm2p is export = dm2pt;
 constant  m2p is export =  m2pt;
 
-constant %MyFonts is export = [
-    # These are the "core" fonts from PostScript
-    # and have short names as keys
-    Courier               => "c",
-    Courier-Oblique       => "co",
-    Courier-Bold          => "ch",
-    Courier-BoldOblique   => "cbo",
-    Helvetica             => "h",
-    Helvetica-Oblique     => "ho",
-    Helvetica-Bold        => "hb",
-    Helvetica-BoldOblique => "hbo",
-    Times-Roman           => "t",
-    Times-Italic          => "ti",
-    Times-Bold            => "tb",
-    Times-BoldItalic      => "tbi",
-    Symbol                => "s",
-    Zapfdingbats          => "z",
-
-    # Additional fonts:
-    MICREncoding          => "m",
-];
-
-our %MyFontAliases is export = %MyFonts.invert;
-
 #| copied from PDF::Content
 my subset Box of List is export where {.elems == 4}
 #| e.g. $.to-landscape(PagesSizes::A4)
-sub to-landscape(Box $p --> Box) is export {
-	[ $p[1], $p[0], $p[3], $p[2] ]
-}
-# These are the standard paper names and sizes copied from PDF::Content
-my Array enum PageSizes is export <<
-	    :Letter[0,0,612,792]
-	    :Tabloid[0,0,792,1224]
-	    :Ledger[0,0,1224,792]
-	    :Legal[0,0,612,1008]
-	    :Statement[0,0,396,612]
-	    :Executive[0,0,540,720]
-	    :A0[0,0,2384,3371]
-	    :A1[0,0,1685,2384]
-	    :A2[0,0,1190,1684]
-	    :A3[0,0,842,1190]
-	    :A4[0,0,595,842]
-	    :A5[0,0,420,595]
-	    :B4[0,0,729,1032]
-	    :B5[0,0,516,729]
-	    :Folio[0,0,612,936]
-	    :Quarto[0,0,610,780]
-	>>;
+#sub to-landscape(Box $p --> Box) is export {
+#    [ $p[1], $p[0], $p[3], $p[2] ]
+#}
 
-#| A new sub to ease $page.media-box handling
-sub set-media-box(
-    PDF::Content::Page :$page!, 
-    Str :$Media!, # name of desired media from PageSizes, e.g., 'Letter'
-    :$landscape = 0 # Set truthy to adjust for landscape orientation
-) is export {
-    die "FATAL: Media '' is not known in enum 'PageSizes'"
-        unless %(PageSizes.enums){$Media}:exists;
-    if $landscape {
-        $page.media-box[] = to-landscape(PageSizes.enums{$Media});
-    }
-    else {
-        $page.media-box[] = PageSizes.enums{$Media};
+# convenience methods for the page media-box
+class Point is export {
+    has $.x is required;
+    has $.y is required;
+
+    multi method new($x, $y) {
+        return self.bless(:$x, :$y)
     }
 }
 
-sub show-myfonts is export {
-    my $max = 0;
-    for %MyFonts.keys -> $k {
-        my $n = $k.chars;
-        $max = $n if $n > $max;
-    }
-
-    ++$max; # make room for closing '
-    for %MyFonts.keys.sort -> $k {
-        my $v = %MyFonts{$k};
-        my $f = $k ~ "'";
-        say sprintf("Font family: '%-*.*s (alias: '$v')", $max, $max, $f);
-    }
-}
-
-class BaseFont is export {
-    has PDF::Lite $.pdf is required;
-    has $.name is required;    #= the recognized font name
-    has $.rawfont is required; #= the font object from PDF::Lite
-    has $.rawafm is required;  #= the afm object from Font::AFM
-    has $.is-corefont is required;
-}
-
-sub find-basefont(PDF::Lite :$pdf!,
-                  :$name!,  # full or alias
-                  --> BaseFont) is export {
-    my $fnam; # to hold the recognized font name
-    if %MyFonts{$name}:exists {
-        $fnam = $name;
-    }
-    elsif %MyFontAliases{$name.lc}:exists {
-        $fnam = %MyFontAliases{$name.lc};
-    }
-    else {
-        die "FATAL: Font name or alias '$name' is not recognized'";
-    }
-
-    # make provision for local fonts
-    my ($rawfont, $rawafm);
-    $rawfont = $pdf.core-font(:family($fnam));
-    my $is-corefont;
-    if not $rawfont  {
-        $is-corefont = False;
-        use PDF::Font::Loader :&load-font;
-        use PDF::Content::FontObj;
-
-        # the MICREncoding font is in resources:
-        #   /resources/fonts/MICREncoding.pfa
-        #   /resources/fonts/MICREncoding.afm
-        my $pfa = %?RESOURCES<fonts/MICREncoding.pfa>.absolute;
-        my $afm = %?RESOURCES<fonts/MICREncoding.afm>.absolute;
-
-        $rawfont = load-font :file($pfa); # use the .pfa for PostScript Type 1 fonts
-
-        # also get the afm file
-        $rawafm = Font::AFM.new: :name($afm);
-    }
-    else {
-        $is-corefont = True;
-        $rawafm = Font::AFM.core-font($fnam);
-    }
-
-    my $BF = BaseFont.new: :$pdf, :name($fnam), :$rawfont, :$rawafm, :$is-corefont;
-    $BF
-}
-
-class DocFont is export {
-    has BaseFont $.basefont is required;
-    has $.name is required; # font name
-    has Real $.size is required;
-    # convenience attrs
-    has $.afm;  #= the the Font::AFM object
-    has $.font; #= the PDF::Lite font object
-    has $!sf;   #= scale factor for the afm attrs vs the font size
+# changing to a class
+class DocBox is export {
+    has $.llx = 0;
+    has $.lly = 0;
+    has $.urx is required;
+    has $.ury is required;
+    has $.landscape = False;
 
     submethod TWEAK {
-        $!sf = $!size / 1000;
+        die "DocBox: llx must be >= 0" unless $!llx >= 0;
+        die "DocBox: lly must be >= 0" unless $!lly >= 0;
+        die "DocBox: llx must be < urx" unless $!urx > $!llx;
+        die "DocBox: lly must be < ury" unless $!ury > $!lly;
     }
 
-    # Convenience methods (and aliases) from the afm object and size.
-    # See Font::AFM for details.
-    method first-line-height {
-        # distance from baseline to top of highest char in the font,
-        # get from bbox ury
-        $!afm.FontBBox[3] * $!sf;
+    multi method new(Point $ll, Point $ur) {
+        return self.bless(:llx($ll.x), :lly($ll.y), :urx($ur.x), :ury($ur.y))
     }
 
-    #| UnderlinePosition
-    method UnderlinePosition {
-        $!afm.UnderlinePosition * $!sf
-    }
-    method upos { self.UnderlinePosition }
-
-    method spos {
-        # define the position of the strikethrough line
-        # as midheight of some character
-        constant \schar = 'm';
-        my ($llx, $lly, $urx, $ury) = $!afm.BBox{schar}  * $!sf;
-        0.5 * ($ury - $lly);
-    }
-    method sthk {
-        # without any other source, use same as underline
-        $!afm.UnderlineThickness * $!sf
+    multi method new($urx, $ury) {
+        return self.bless(:$urx, :$ury)
     }
 
-    #| UnderlineThickness
-    method UnderlineThickness {
-        $!afm.UnderlineThickness * $!sf
-    }
-    method uthk { self.UnderlineThickness() }
-
-    # ($kerned, $width) = $afm.kern($string, $fontsize?, :%glyphs?)
-    # Kern the string. Returns an array of string segments, separated
-    # by numeric kerning distances, and the overall width of the string.
-    method kern($string, $fontsize?, :%glyphs?) {
+    multi method new($llx, $lly, $urx, $ury) {
+        return self.bless(:$llx, :$lly, :$urx, :$ury)
     }
 
-    # A two dimensional hash containing from and to glyphs and kerning widths.
-    method KernData {
-        $!afm.KernData
+    multi method new(Box $p) {
+        return self.bless(:llx($p[0]), :lly($p[1]), :urx($p[2]), :ury($p[3]))
+	#[ $p[1], $p[0], $p[3], $p[2] ]
     }
 
-    # $afm.stringwidth($string, $fontsize?, :$kern, :%glyphs)
-    #| stringwidth
-    method stringwidth($string, :$kern, :%glyphs) {
-        $!afm.stringwidth: $string, $!size, :$kern, :%glyphs
+    method lx { self.llx }
+    method ly { self.lly }
+    method ux { self.urx }
+    method uy { self.ury }
+
+    method cx {
+        0.5 * ($!urx - $!llx)
     }
-    method sw($string, :$kern, :%glyphs) { stringwidth: $string, :$kern, :%glyphs }
+    method ctrx { self.cx }
 
-    method IsFixedPitch {
-        $!afm.IsFixedPitch
+    method cy {
+        0.5 * ($!ury - $!lly)
+    }
+    method ctry { self.cy }
+
+    method w {
+        $!urx - $!llx
+    }
+    method width { self.w }
+
+    method h {
+        $!ury - $!lly
+    }
+    method height { self.h }
+
+    # other fracs
+    method fx($f where {0 <= $_ <= 1}) {
+        self.width * $f
+    }
+    method fracx($f) { self.fx: $f }
+
+    method fy($f where {0 <= $_ <= 1}) {
+        self.height * $f
+    }
+    method fracy($f) { self.fy: $f }
+
+    # fancier methods
+    method shrink($v where { 0 < $_ }) {
+        # new llx and lly cannot be < 0
+        # new width and height cannot be < 0
+        my ($llx, $lly, $urx, $ury) = $!llx, $!lly, $!urx, $!ury;
+        my $nw = self.w - 2*$v;
+        my $nh = self.h - 2*$v;
+        die "DocBox shrink: width must be > 0" unless $nw > 0;
+        die "DocBox shrink: height must be > 0" unless $nh > 0;
+
+        $llx += $v;
+        $lly += $v;
+        $urx -= $v;
+        $ury -= $v;
+        die "DocBox shrink: llx must be >= 0" unless $llx >= 0;
+        die "DocBox shrink: lly must be >= 0" unless $lly >= 0;
+
+        ($!llx, $!lly, $!urx, $!ury) = $llx, $lly, $urx, $ury;
+    }
+    method expand($v where { 0 < $_ }) {
+        # new llx and lly cannot be < 0
+        # new llx and lly cannot be < 0
+        # new width and height cannot be < 0
+        my ($llx, $lly, $urx, $ury) = $!llx, $!lly, $!urx, $!ury;
+        my $nw = self.w - 2*$v;
+        my $nh = self.h - 2*$v;
+        die "DocBox shrink: width must be > 0" unless $nw > 0;
+        die "DocBox shrink: height must be > 0" unless $nh > 0;
+
+        $llx -= $v;
+        $lly -= $v;
+        $urx += $v;
+        $ury += $v;
+
+        die "DocBox shrink: llx must be >= 0" unless $llx >= 0;
+        die "DocBox shrink: lly must be >= 0" unless $lly >= 0;
+
+        ($!llx, $!lly, $!urx, $!ury) = $llx, $lly, $urx, $ury;
     }
 
-    # other methods
-    method FontName {  # usually with no spaces
-        $!afm.FontName
+    method to-portrait {
+        return if not $!landscape;
+	#[ $p[1], $p[0], $p[3], $p[2] ]
+        # save current points
+        my ($llx, $lly, $urx, $ury) = $!llx, $!lly, $!urx, $!ury;
+        # transform
+        ($!llx, $!lly, $!urx, $!ury) = $lly, $llx, $ury, $urx;
+        $!landscape = False;
     }
-    method FullName {}
-    method FamilyName {}
-    method Weight {}
-    method ItalicAngle {}
-    method FontBBox {}
-    method Version {}
-    method Notice {}
-    method Comment {}
-    method EncodingScheme {}
-    method CapHeight {}
-    method XHeight {}
-    method Ascender {}
-    method Descender {}
-    method Wx {}
-    method BBox {}
-    =begin comment
-    method ? {}
-    method ? {}
-    method ? {}
-    method ? {}
-    =end comment
-}
-
-sub select-docfont(BaseFont :$basefont!,
-                   Real :$size!
-                   --> DocFont) is export {
-    my $df = DocFont.new: :$basefont, :name($basefont.name), :font($basefont.rawfont),
-                          :afm($basefont.rawafm), :$size;
-    $df
-}
-
-class FontFactory is export {
-    has $.pdf is required;
-
-    # hash of BaseFonts keyed by their alias name
-    has %.basefonts;
-    # hash of DocFonts keyed by an alias name which includes the font's size
-    has %.docfonts;
-
-    method get-font($name) {
-        # "name" is a key in a specific format
-        my $key;
-
-        # pieces required to get the docfont
-        my $alias;
-        my $size;
-
-        # pieces of the size
-        my $sizint;
-        my $sizfrac;
-        # examples of valid names:
-        #   t12, t2d3, cbo10, ho12d5
-        if $name ~~ /^ (<[A..Za..z-]>+) (\d+)  ['d' (\d+)]? $/ {
-            $alias   = ~$0;
-            $sizint  = ~$1;
-
-            $key  = $alias ~ $sizint;
-            $size = $sizint;
-
-            # optional decimal fraction
-            $sizfrac = ~$2 if $2.defined;
-            if $sizfrac.defined {
-                $key  ~= 'd' ~ $sizfrac;
-                $size ~= '.' ~ $sizfrac;
-            }
-            $size .= Real;
-        }
-        else {
-            note "FATAL: You entered the desired font name '$name'.";
-            die q:to/HERE/;
-            The desired font name must be in the format "<name><size>"
-            where "<name>" is a valid font name or alias and "<size>"
-            is either an integral number or a decimal number in
-            the form "\d+d\d+" (e.g., '12d5' which mean '12.5' PS points).
-            HERE
-        }
-        # if we have the docfont return it
-        if %!docfonts{$key}:exists {
-            return %!docfonts{$key};
-        }
-        elsif %!basefonts{$alias}:exists {
-            # do we have the basefont?
-            my $basefont = %!basefonts{$alias};
-            my $docfont = select-docfont :$basefont, :$size;
-            %!docfonts{$key} = $docfont;
-            return %!docfonts{$key};
-        }
-        else {
-            # we need the whole banana
-            my $basefont = find-basefont :pdf($!pdf), :name($alias);
-            %!basefonts{$alias} = $basefont;
-            my $docfont = select-docfont :$basefont, :$size;
-            %!docfonts{$key} = $docfont;
-            return %!docfonts{$key};
-        }
+    method to-landscape {
+        return if $!landscape;
+	#[ $p[1], $p[0], $p[3], $p[2] ]
+        # save current points
+        my ($llx, $lly, $urx, $ury) = $!llx, $!lly, $!urx, $!ury;
+        # transform
+        ($!llx, $!lly, $!urx, $!ury) = $lly, $llx, $ury, $urx;
+        $!landscape = True;
     }
 }
 
-# the big kahuna: it should have all major methods and attrs from lower levels at this level
+# The big kahuna: it should have all major methods and attrs from
+# lower levels at this level
 class Doc does PDF::PDF-role is export {
     # output file attrs
     has $.pdf-name = "Doc-output-default.pdf";
@@ -359,8 +205,8 @@ class Doc does PDF::PDF-role is export {
     has $.force    = False;
     has $.page-numbering = False;
 
-    has $.paper;
-    has $.media-box = 'Letter'; #= is required;
+    has $.media     = 'Letter'; # default
+    has $.media-box; # = [0, 0, 500, 500] = 'Letter'; # default
 
     has $.leading; #= linespacing
     has $.linespacing;
@@ -371,6 +217,7 @@ class Doc does PDF::PDF-role is export {
     has $.debug-bbox = 0;
 
     # the current page params
+    # from page.media-box
     # origin
     has $.x0 = 0;
     has $.y0 = 0;
@@ -414,8 +261,11 @@ class Doc does PDF::PDF-role is export {
             }
         }
         $!pdf = PDF::Lite.new;
-        $!pdf.media-box = 'Letter'; #$!paper;
-        $!page = $!pdf.add-page;
+
+        #$!pdf.media-box = $!media-box; # default: 'Letter'; #$!paper;
+        # DON'T START WITH A CURRENT PAGE
+        #$!page = $!pdf.add-page;
+
         $!ff  = FontFactory.new: :pdf($!pdf);
         $!font = $!ff.get-font: 't12'; # Times-Roman 12
         $!leading = $!font.size * $!leading-ratio;
@@ -442,6 +292,8 @@ class Doc does PDF::PDF-role is export {
     }
     method add-page() {
         $!page = $!pdf.add-page;
+        # DO NOT SET MEDIA BOX HERE YET
+        #$!page.media-box = 'A4'; []; #$!pdf.media-box;
         # set my current point
         $!cpx = $!x0;
         $!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
@@ -478,7 +330,6 @@ class Doc does PDF::PDF-role is export {
     method rotate($radians) {
             self.page.gfx.transform: :rotate($radians);
     }
-    #method translate($x, $y) {
     method translate($x, $y) {
         # Translation: 1 0 0 1 tx ty
         self.page.gfx.transform: :translate[$x,$y];
@@ -1402,10 +1253,16 @@ class Doc does PDF::PDF-role is export {
     # Note those roles are auto-generated by program
     # dev/generate-code.raku.
 
-    method show-media {
+    method show-media(:$names) {
         # see all the available media keys
         my %e = PageSizes.enums;
-        #say %e;
+
+        if $names {
+            # just return the names
+            return %e.keys.sort
+        }
+
+        # fancier, more info
         say "Media names and sizes (in PS points)";
         say "  Orientation: portrait";
         say "  Size => [width height]";
@@ -1443,7 +1300,7 @@ class Doc does PDF::PDF-role is export {
             my @n = $v.words;
             my $w = @n[2];
             my $l = @n[3];
-            my $val = sprintf '%*.*s %*.*s', 
+            my $val = sprintf '%*.*s %*.*s',
                           $n2, $n2, $w,
                           $n3, $n3, $l;
 
@@ -1451,11 +1308,52 @@ class Doc does PDF::PDF-role is export {
             my $li = @n[3] / 72.0;
             my $wis = sprintf '%5.2f', $wi;
             my $lis = sprintf '%5.2f', $li;
-            my $val2 = sprintf '%*.*s %*.*s', 
+            my $val2 = sprintf '%*.*s %*.*s',
                           $n2i, $n2i, $wis,
                           $n3i, $n3i, $lis;
 
             say "    $nam => [$val] [$val2]";
         }
     }
+} # end of class Doc
+
+
+sub make-page(Doc :$doc!,
+              :$media     = <Letter>, # default
+              :$landscape = False,
+              :$debug,
+             ) is export {
+    my $page = $doc.pdf.page;
+    # always save the CTM
+    $doc.save;
+
+    #set-media-box :$page, :$media;
+    note $page.media-box if $debug;
+
+    my $orient = "Portrait";
+    my ($llx, $lly, $urx, $ury) = $page.media-box;
+    note "media-box before translation: $llx, $lly, $urx, $ury" if $debug;
+    my $pw = $urx - $llx;
+    if $landscape {
+        # just rotate the page
+        ($llx, $lly, $urx, $ury) = to-landscape $page.media-box;
+        $orient = "Landscape";
+        $doc.translate: $pw, 0;
+        $doc.rotate(90 * deg2rad);
+        note "media-box after translation: $llx, $lly, $urx, $ury" if $debug;
+    }
+    $pw = $urx - $llx;
+
+    my $cx = 0.5 * ($urx-$llx);
+    my $cy = 0.5 * ($ury-$lly);
+
+    # outline the page
+    # method !rectangle(Real $llx, Real $lly, Real $urx, Real $ury,
+
+    $doc.rectangle: 72, 72, $urx-72, $ury-72;
+    # text at the center
+    $doc.print: $orient, :x($cx), :y($cy), :align<center>, :valign<center>;
+
+    # always restore the CTM
+    $doc.restore;
 }

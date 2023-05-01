@@ -22,3 +22,13 @@ MOON CRESCENT ANGLE
 Caclulate the Moon crescent angle using formulas in the book "Celestial Calculations"
 on p. 89 (converting equatorial coordinates to the horizon coordinate system).
 
+PDF::Lite handling
+==================
+
+demo picture import
+demo http links
+demo ttf use
+    make a ttf version of FontFactory::Type1
+use FontFactory::Type1
+get bin-good/*u working from dev directory with a shell script
+

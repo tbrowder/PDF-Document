@@ -2,8 +2,8 @@
 
 use Text::Utils :strip-comment, :wrap-paragraph;
 
-my $ifil1 = 'pdf-methods-of-interest.from-pod';
-my $ifil2 = 'afm-methods-of-interest.from-pod';
+my $ifil1 = '../pdf-methods-of-interest.from-pod';
+my $ifil2 = '../afm-methods-of-interest.from-pod';
 
 constant EMPTY = '';
 constant SPACE = ' ';
@@ -22,8 +22,7 @@ if !@*ARGS {
     print qq:to/HERE/;
     Usage: {$*PROGRAM.IO.basename} meth | test | role | doc | all [debug]
 
-    Parses files '$ifil1
-    and '$ifil2' to
+    Parses files '$ifil1' and '$ifil2' to
     extract methods and their aliases and builds
     various Raku code products that use them.
 
@@ -48,9 +47,8 @@ for @*ARGS {
 }
 
 my $of1 = "pdf-methods.auto-generated";
-my $of2 = "00-pdf-methods.t";
+my $of2 = "88-pdf-methods.t";
 my $of3 = "PDF-role.rakumod";
-
 my $of4 = "AFM-role.rakumod";
 
 # Some alias methods will not work due to syntax
@@ -73,7 +71,7 @@ my %no-test = set <
 >;
 
 # Some methods need special handling (context) in tests
-# Outside of a text block, these need to between BeginText/EndText pairs 
+# Outside of a text block, these need to be between BeginText/EndText pairs 
 my %need-BT-ET = set < TextMove TextMoveSet TextNextLine ShowText MoveShowText MoveSetShowText >;
 
 # These need to be between Save/Restore pairs
@@ -344,15 +342,19 @@ sub write-pdf-method-tests($ofil, @pmethods, :$debug) {
     #
     # THIS FILE IS AUTO-GENERATED - EDITS MAY BE LOST WITHOUT WARNING
     #
+    # See program 'gen-code.raku'
+    #
     #================================================================
     use Test;
     use File::Temp;
     use PDF::Document;
+    use FontFactory::Type1;
     plan 39;
     # global vars
     my ($of, $fh) = tempfile;
     my ($doc, $x, $y);
     $doc = Doc.new;
+    $doc.add-page;
     HERE
 
     for @pmethods -> $m {
