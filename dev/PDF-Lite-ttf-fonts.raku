@@ -2,9 +2,10 @@
 
 use PDF::Lite;
 use PDF::Content::Page :PageSizes, :&to-landscape;
+use PDF::Font::Loader :load-font, :find-font;
 
 # preview of title of output pdf
-my $ofile = "PDF-Lite-media-mixed-<doc number>.pdf";
+my $ofile = "PDF-Lite-ttf-fonts-media-mixed-<doc number>.pdf";
 
 my %m = %(PageSizes.enums);
 my @m = %m.keys.sort;
@@ -12,18 +13,18 @@ my @m = %m.keys.sort;
 my $debug = 0;
 if not @*ARGS.elems {
     print qq:to/HERE/;
-    Usage: {$*PROGRAM.basename} go 
+    Usage: {$*PROGRAM.basename} go
 
     Produces several two-page PDF docs illustrating different ways
     to produce pages of differing orientation and media size:
 
-      1. 1st page: Letter, portrait 
+      1. 1st page: Letter, portrait
          2nd page: Letter, landscape (with rotation)
-      2. 1st page: Letter, portrait 
+      2. 1st page: Letter, portrait
          2nd page: Letter, landscape (with media landscape change)
-      3. 1st page: Letter, portrait 
+      3. 1st page: Letter, portrait
          2nd page: A4,     portrait
-      4. 1st page: Letter, portrait 
+      4. 1st page: Letter, portrait
          2nd page: A4,     portrait
 
     HERE
@@ -49,7 +50,17 @@ for 1..4 -> $num {
     }
 
     my $pdf = PDF::Lite.new;
-    my $font = $pdf.core-font(:family<Times>, :weight<bold>);
+    # find-font named params:
+    my $family  = "DejaVuSerif"; # 'family' name
+    my $weight  = "regular"; # bold, thin, extralight, light, book, regular, medium,
+                             # semibold, bold, extrabold, black,
+                             # or a number in the range C<100> .. C<900>.
+    my $slant   = "normal";  # oblique, italic
+    my $stretch = "normal";  # normal, ultracondensed, extracondensed, condensed, or expanded
+    my $ffil    = find-font :$family, :$weight, :$slant, :$stretch;
+    note "DEBUG: find-font result: '{$ffil.IO.basename}'";
+    die "FATAL: Unable to find font file for '$family'" unless $ffil ~~ /$family/ and $ffil.IO.r;
+    my $font = load-font :file($ffil);
 
     # first page
     $pdf.media-box = %(PageSizes.enums){$media1};
@@ -64,7 +75,7 @@ for 1..4 -> $num {
 
     # finish the document
     # final title of output pdf
-    my $ofile = "PDF-Lite-media-mixed-{$num}.pdf";
+    my $ofile = "PDF-Lite-ttf-fonts-media-mixed-{$num}.pdf";
     $pdf.save-as: $ofile;
     say "See output file: $ofile";
 }
