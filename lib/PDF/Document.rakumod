@@ -4,9 +4,9 @@ use PDF::Lite;
 use PDF::Content;
 
 use Text::Utils :wrap-text;
+use FontFactory::Type1;
 use Font::AFM;
 
-use PDF::FontFactory;
 # local roles
 use PDF::PDF-role;
 
@@ -239,8 +239,8 @@ class Doc does PDF::PDF-role is export {
     # set by TWEAK
     #has $.pdf;  # in PDF-role
     #has $.page; # in PDF-role
-    has FontFactory $.ff;
-    has DocFont $.font;
+    has FontFactory::Type1 $.ff;
+    has FontFactory::Type1::DocFont $.font;
 
     submethod TWEAK {
         if $!pdf-name !~~ /:i '.pdf' $/ {
@@ -266,7 +266,7 @@ class Doc does PDF::PDF-role is export {
         # DON'T START WITH A CURRENT PAGE
         #$!page = $!pdf.add-page;
 
-        $!ff  = FontFactory.new: :pdf($!pdf);
+        $!ff  = FontFactory::Type1.new: :pdf($!pdf);
         $!font = $!ff.get-font: 't12'; # Times-Roman 12
         $!leading = $!font.size * $!leading-ratio;
         $!linespacing = $!leading;
@@ -376,7 +376,7 @@ class Doc does PDF::PDF-role is export {
                  :$x is copy, :$y is copy,
                  :$tr, :$tl, :$br, :$bl,
                  # this arg must resolve to :font/:font-size or undefined
-                 DocFont :$Font, # docfont
+                 FontFactory::Type1::DocFont :$Font, # docfont
                  # these args resolve to :align keys
                  :$rj, :$lj, :$cj,
                  # these args resolve to :valign keys

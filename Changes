@@ -1,13 +1,15 @@
 Revision history for PDF-Document
 
 {{$NEXT}}
+    - Eliminate FontFactory::Type1 code, use the published module
+        until FontFactory is released
     - Add class Point to hold an x,y coordinate
     - Add class DocBox to hold a rectangular set of points for
       describing Page media dimensions
     - Add tests for new classes
     - Improve existing tests
     - Improve documentation
-    - Correctly handle document and page media- and other boxes
+    - Correctly handle document and page media-and other boxes
     - Add new methods:
       + strikethrough
       + underline

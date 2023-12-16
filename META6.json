@@ -7,6 +7,8 @@
   "build-depends": [
   ],
   "depends": [
+    "Font::FreeType:ver<0.5.4>",
+    "FontFactory::Type1",
     "Proc::Easier",
     "Pod::To::Markdown",
     "PDF::Content:ver<0.4.11+>",
@@ -25,7 +27,6 @@
   "perl": "6.d",
   "provides": {
     "PDF::Document": "lib/PDF/Document.rakumod",
-    "PDF::FontFactory": "lib/PDF/FontFactory.rakumod",
     "PDF::PDF-role": "lib/PDF/PDF-role.rakumod"
   },
   "resources": [
