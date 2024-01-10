@@ -43,7 +43,7 @@ for 1..6 -> $page-num {
     my $text = @pagecontent[$page-num-1];
     $pdf.media-box = %(PageSizes.enums){$media};
     $page = $pdf.add-page;
-    make-page :$pdf, :$page, :$text, :$font, :$media, :$landscape, :$reverse;
+    make-page :$pdf, :$page, :$text, :$font, :$media, :$landscape, :$upside-down;
 }
 
 # finish the document
