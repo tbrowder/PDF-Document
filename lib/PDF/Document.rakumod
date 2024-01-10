@@ -4,7 +4,7 @@ use PDF::Lite;
 use PDF::Content;
 
 use Text::Utils :wrap-text;
-use FontFactory::Type1;
+use FontFactory;
 use Font::AFM;
 
 # local roles
@@ -239,8 +239,8 @@ class Doc does PDF::PDF-role is export {
     # set by TWEAK
     #has $.pdf;  # in PDF-role
     #has $.page; # in PDF-role
-    has FontFactory::Type1 $.ff;
-    has FontFactory::Type1::DocFont $.font;
+    has FontFactory $.ff;
+    has FontFactory::DocFont $.font;
 
     submethod TWEAK {
         if $!pdf-name !~~ /:i '.pdf' $/ {
