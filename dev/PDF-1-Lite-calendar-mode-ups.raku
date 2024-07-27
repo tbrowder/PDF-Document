@@ -94,7 +94,9 @@ sub make-page(
                 .transform: :translate($page.media-box[0], $page.media-box[3]);
                 # rotate: right (cw) 90 degrees
                 .transform: :rotate(-90 * pi/180); # right (cw) 90 degrees
-                # lengths should be the same
+                # Media edge lengths should be the same because the media-box array
+                # doesn't change with transformations unless the user
+                # specifically changes it.
                 $w = $page.media-box[3] - $page.media-box[1];
                 $h = $page.media-box[2] - $page.media-box[0];
             }
