@@ -844,7 +844,7 @@ class Doc does PDF::PDF-role is export {
         }
         else {
             # Draw the elipse starting at the top and working
-            # counterclockwise.
+            # clockwise.
             self.page.gfx.transform: :translate[$x, $y];
             self.MoveTo: 0*$a, 1*$b;
             # use four curves (x/y)
