@@ -3,9 +3,10 @@ use PDF::Content;
 use PDF::Lite;
 use Font::AFM;
 use PDF::Document;
-use FontFactory::Type1;
 
-plan 15;
+use FontFactory::Type1;
+use FontFactory::Type1::Subs;
+use FontFactory::Type1::FontList;
 
 my $title = 'text.pdf';
 my $pdf;
@@ -26,7 +27,7 @@ lives-ok {
    $pdf = PDF::Lite.new;
 }, "checking pdf instantiation";
 
-for %MyFonts.keys {
+for %Fonts.keys {
     # distinguish between PDF::Lite font objects and higher-level composite ones
     lives-ok {
         $rawfont = $pdf.core-font(:family($_));
@@ -83,7 +84,7 @@ lives-ok {
 
 # quickie font factory checks
 lives-ok {
-    $ffact = FontFactory.new: :$pdf;
+    $ffact = FontFactory::Type1.new: :$pdf;
 }, "getting a font factory";
 lives-ok {
     my $f = $ffact.get-font: 't12d1';
@@ -94,4 +95,6 @@ lives-ok {
 lives-ok {
     my $f = $ffact.get-font: 't12';
 }, "getting a font from the -font factory";
+
+done-testing;
 

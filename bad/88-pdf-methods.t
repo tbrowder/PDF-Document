@@ -6,14 +6,19 @@
 #
 #================================================================
 use Test;
+
 use File::Temp;
 use PDF::Document;
-use PDF::FontFactory;
+use PDF::Document::Role;
+
+use FontFactory::Type1;
+use FontFactory::Type1::Subs;
+use FontFactory::Type1::FontList;
 plan 39;
 # global vars
 my ($of, $fh) = tempfile;
 my ($doc, $x, $y);
-$doc = Doc.new;
+$doc = PDF::Document::Doc.new;
 $doc.add-page;
 
 # test 1

@@ -1,8 +1,6 @@
 use Test;
 use PDF::Document;
 
-plan 23;
-
 is 45*deg2rad, pi/4, "testing deg2rad";
 is 90*deg2rad, pi/2, "testing deg2rad";
 is 135*deg2rad, 3*pi/4, "testing deg2rad";
@@ -28,3 +26,5 @@ is 1/2.54*72, c2p, "testing c2p";
 is 1/2.54*72*10, d2p, "testing d2p";
 is 1/2.54*72*100, m2p, "testing m2p";
 is 1/2.54*72/10, mm2p, "testing mm2p";
+
+done-testing;

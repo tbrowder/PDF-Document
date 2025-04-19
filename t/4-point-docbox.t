@@ -1,7 +1,6 @@
 use Test;
-use PDF::Document;
 
-plan 39;
+use PDF::Document;
 
 my $p;  # instantiated Point
 
@@ -94,3 +93,5 @@ sub test-docbox(DocBox $b) {
     is $b.fx(.5), $b.cx;
     is $b.fy(.5), $b.cy;
 }
+
+done-testing;

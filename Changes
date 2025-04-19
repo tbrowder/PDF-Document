@@ -1,7 +1,8 @@
 Revision history for PDF-Document
 
 {{$NEXT}}
-    - Eliminate FontFactory::Type1 code, use the published module
+    - Eliminate FontFactory::Type1 code as much as possible and
+        use David Warrings modules directly.
         until FontFactory is released
     - Add class Point to hold an x,y coordinate
     - Add class DocBox to hold a rectangular set of points for
