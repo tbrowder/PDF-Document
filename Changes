@@ -1,5 +1,7 @@
 Revision history for PDF-Document
 {{$NEXT}}
+
+0.0.10  2025-04-20T07:02:36-05:00
     - Update the .github/workflows/linux.yml file in an
         attempt to fix the Linux tests
     - Remove prove6 from dependencies in attempt to
