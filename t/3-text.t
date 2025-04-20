@@ -5,7 +5,6 @@ use Font::AFM;
 use PDF::Document;
 
 use FontFactory::Type1;
-use FontFactory::Type1::Utils;
 use FontFactory::Type1::Subs;
 use FontFactory::Type1::FontList;
 
@@ -28,18 +27,15 @@ lives-ok {
    $pdf = PDF::Lite.new;
 }, "checking pdf instantiation";
 
-<<<<<<< HEAD:t/02-text.t
-for %MyFonts.keys {
-=======
 for %Fonts.keys {
     # distinguish between PDF::Lite font objects and higher-level composite ones
     lives-ok {
         $rawfont = $pdf.core-font(:family($_));
     }, "checking raw font access, name: $_";
+
     lives-ok {
         $rawafm  = Font::AFM.core-font($_);
     }, "checking raw Font afm access, name: $_";
->>>>>>> next-ver:t/3-text.t
 
     lives-ok {
        $basefont = find-basefont :name($_), :$pdf;
@@ -110,7 +106,3 @@ lives-ok {
 }, "getting a font from the -font factory";
 
 done-testing;
-<<<<<<< HEAD:t/02-text.t
-=======
-
->>>>>>> next-ver:t/3-text.t
