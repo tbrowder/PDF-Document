@@ -1,6 +1,8 @@
 Revision history for PDF-Document
     - Update the .github/workflows/linux.yml file in an
         attempt to fix the Linux tests
+    - Remove prove6 from dependencies in attempt to
+        keep Windows from failing
 
 {{$NEXT}}
 0.0.9  2023-05-01T18:17:22-05:00

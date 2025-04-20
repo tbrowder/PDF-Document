@@ -40,7 +40,6 @@
     "PDF doc text font PS"
   ],
   "test-depends": [
-    "App::Prove6"
   ],
   "version": "0.0.9"
 }
