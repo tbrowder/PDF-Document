@@ -199,6 +199,9 @@ my Array enum PageSizes is export <<
 # The big kahuna: it should have all major methods and attrs from
 # lower levels at this level
 class Doc does PDF::Document::Role is export {
+    use FontFactory::Type1;
+    use FontFactory::Type1::Subs;
+
     # output file attrs
     has $.pdf-name = "Doc-output-default.pdf";
     has $.is-saved = False;
@@ -269,7 +272,7 @@ class Doc does PDF::Document::Role is export {
         # DON'T START WITH A CURRENT PAGE
         #$!page = $!pdf.add-page;
 
-        $!ff  = FontFactory::Type1::Doc.new: :pdf($!pdf);
+        $!ff  = FontFactory::Type1.new: :pdf($!pdf);
         $!font = $!ff.get-font: 't12'; # Times-Roman 12
         $!leading = $!font.size * $!leading-ratio;
         $!linespacing = $!leading;
@@ -287,7 +290,8 @@ class Doc does PDF::Document::Role is export {
         $!y0 = $!bm;
         # set my current point
         $!cpx = $!x0;
-        $!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
+        #$!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
+        $!cpy = $!pheight - $!tm;# - $!font.first-line-height; #$!y0;
     }
 
     method set-font($alias) {
@@ -299,7 +303,8 @@ class Doc does PDF::Document::Role is export {
         #$!page.media-box = 'A4'; []; #$!pdf.media-box;
         # set my current point
         $!cpx = $!x0;
-        $!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
+        #$!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
+        $!cpy = $!pheight - $!tm; # - $!font.first-line-height; #$!y0;
     }
     method set-margins(:$left, :$right, :$top, :$bottom) {
         $!lm = $left if $left;
@@ -667,8 +672,8 @@ class Doc does PDF::Document::Role is export {
         #   format: Page n of N
         my $name  = $!font.name;
         my $size  = $!font.size * 0.8;
-        my $basefont = self.find-basefont :pdf($!pdf), :$name;
-        my $font = self.select-docfont :$basefont, :$size;
+        my $basefont = find-basefont :pdf($!pdf), :$name;
+        my $font = select-docfont :$basefont, :$size;
         my $x = $!x0 + $!width;
         my $y = $!y0 - (0.5 * i2p);
         my $npages = self.pdf.page-count;
