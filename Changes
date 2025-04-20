@@ -1,4 +1,6 @@
 Revision history for PDF-Document
+    - Update the .github/workflows/linux.yml file in an
+        attempt to fix the Linux tests
 
 {{$NEXT}}
     - Eliminate FontFactory::Type1 code as much as possible and
