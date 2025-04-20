@@ -1,14 +1,14 @@
 unit module PDF::Document;
 
+use MacOS::NativeLib "*";
 use PDF::Lite;
 use PDF::Content::Page :PageSizes, :&to-landscape;
 
 use Text::Utils :wrap-text;
 use Font::AFM;
 
-use PDF::FontFactory;
 # local roles
-use PDF::PDF-role;
+use PDF::Document::Role;
 
 my $debug  = 0;
 my $debug2 = 1;
@@ -198,7 +198,10 @@ class DocBox is export {
 
 # The big kahuna: it should have all major methods and attrs from
 # lower levels at this level
-class Doc does PDF::PDF-role is export {
+class Doc does PDF::Document::Role is export {
+    use FontFactory::Type1;
+    use FontFactory::Type1::Subs;
+
     # output file attrs
     has $.pdf-name = "Doc-output-default.pdf";
     has $.is-saved = False;
@@ -239,8 +242,10 @@ class Doc does PDF::PDF-role is export {
     # set by TWEAK
     #has $.pdf;  # in PDF-role
     #has $.page; # in PDF-role
-    has FontFactory $.ff;
-    has DocFont $.font;
+    #has FontFactory $.ff;
+    has $.ff;
+    #has FontFactory::DocFont $.font;
+    has $.font;
 
     submethod TWEAK {
         if $!pdf-name !~~ /:i '.pdf' $/ {
@@ -256,7 +261,8 @@ class Doc does PDF::PDF-role is export {
             }
             else {
                 note qq:to/HERE/;
-                WARNING: Desired output file '$!pdf-name' exists and will be over written.
+                WARNING: Desired output file '$!pdf-name' exists and will be 
+                         over written.
                 HERE
             }
         }
@@ -266,7 +272,7 @@ class Doc does PDF::PDF-role is export {
         # DON'T START WITH A CURRENT PAGE
         #$!page = $!pdf.add-page;
 
-        $!ff  = FontFactory.new: :pdf($!pdf);
+        $!ff  = FontFactory::Type1.new: :pdf($!pdf);
         $!font = $!ff.get-font: 't12'; # Times-Roman 12
         $!leading = $!font.size * $!leading-ratio;
         $!linespacing = $!leading;
@@ -284,7 +290,8 @@ class Doc does PDF::PDF-role is export {
         $!y0 = $!bm;
         # set my current point
         $!cpx = $!x0;
-        $!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
+        #$!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
+        $!cpy = $!pheight - $!tm;# - $!font.first-line-height; #$!y0;
     }
 
     method set-font($alias) {
@@ -296,7 +303,8 @@ class Doc does PDF::PDF-role is export {
         #$!page.media-box = 'A4'; []; #$!pdf.media-box;
         # set my current point
         $!cpx = $!x0;
-        $!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
+        #$!cpy = $!pheight - $!tm - $!font.first-line-height; #$!y0;
+        $!cpy = $!pheight - $!tm; # - $!font.first-line-height; #$!y0;
     }
     method set-margins(:$left, :$right, :$top, :$bottom) {
         $!lm = $left if $left;
@@ -376,7 +384,9 @@ class Doc does PDF::PDF-role is export {
                  :$x is copy, :$y is copy,
                  :$tr, :$tl, :$br, :$bl,
                  # this arg must resolve to :font/:font-size or undefined
-                 DocFont :$Font, # docfont
+                 #FontFactory::Type1::DocFont :$Font, # docfont
+                 :$Font, # docfont
+
                  # these args resolve to :align keys
                  :$rj, :$lj, :$cj,
                  # these args resolve to :valign keys
@@ -844,7 +854,7 @@ class Doc does PDF::PDF-role is export {
         }
         else {
             # Draw the elipse starting at the top and working
-            # counterclockwise.
+            # clockwise.
             self.page.gfx.transform: :translate[$x, $y];
             self.MoveTo: 0*$a, 1*$b;
             # use four curves (x/y)

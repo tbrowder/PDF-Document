@@ -2,11 +2,12 @@ use Test;
 use PDF::Content;
 use PDF::Lite;
 use Font::AFM;
-use PDF::Document;
 use FontFactory::Type1;
+use FontFactory::Type1::Subs;
 use FontFactory::Type1::Utils;
+use FontFactory::Type1::FontList;
 
-plan 119;
+use PDF::Document;
 
 my $pdf;
 my $rawfont;
@@ -25,7 +26,7 @@ lives-ok {
    $pdf = PDF::Lite.new;
 }, "checking pdf instantiation";
 
-for %MyFonts.keys {
+for %Fonts.keys {
     # other classes
     lives-ok {
        $basefont = find-basefont :name($_), :$pdf;
@@ -51,7 +52,7 @@ for %MyFonts.keys {
     }, "checking raw Font afm access, name: $_";
 }
 
-for %MyFontAliases.keys {
+for %FontAliases.keys {
     my $A = $_.uc;
     lives-ok {
         $basefont = find-basefont :name($A), :$pdf;
@@ -60,3 +61,5 @@ for %MyFontAliases.keys {
         $docfont = select-docfont :$basefont, :size(10);
     }, "checking select-font by alias, : $A, size: $size";
 }
+
+done-testing;

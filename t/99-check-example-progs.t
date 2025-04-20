@@ -1,4 +1,5 @@
 use Test;
+
 use PDF::Content;
 use PDF::Document;
 use PDF::Lite;
@@ -20,24 +21,26 @@ for @args -> $path {
     }, "testing example doc '$prog' with no args";
 }
 
-done-testing;
-
-=finish
+=begin comment
 lives-ok {
     $doc = Doc.new: :media-box('Letter');
 }, "checking new Doc object";
+=end comment
 
+=begin comment
 lives-ok {
     $args = "./dev/make-example-doc.raku";
     $cmd  = cmd $args, :die;
     say "results: exit '{$cmd.exit}' err '{$cmd.err}', out '{$cmd.out}'" if $debug;
 }, "testing the example doc with no args";
+=end comment
 
+=begin comment
 lives-ok {
     $args = "./dev/make-example-doc.raku g";
-    $cmd  = cmd $args, :die;
-    say "results: exit '{$cmd.exit}' err '{$cmd.err}', out '{$cmd.out}'" if $debug;
+    $cmd  = cmd $args, :die; say "results: exit '{$cmd.exit}' err '{$cmd.err}', out '{$cmd.out}'" if $debug;
 }, "testing the example doc with arg of 'g'";
+=end comment
 
 # The following tests fail when :die is used, but .err is nil!!
 # But only on Github, not on my local host!!
@@ -58,4 +61,6 @@ lives-ok {
     $cmd  = cmd $args; #, :die;
     say "results: exit '{$cmd.exit}' err '{$cmd.err}', out '{$cmd.out}'" if $debug;
 }, "testing the example doc with args";
+
+done-testing;
 

@@ -1,18 +1,20 @@
-# NOTE: Debian package 'pdfarranger' does easy page arrangement and removal
+#all: test0
+#all: test1
+#all: test2
+#all: test3
+#all: test4
+#all: test5
+#all: test8
+#all: test9
 
 #all: gbumc
 #all: test99
-all: test0 test1 test2 test3 test4 test88 test99
+#all: test0 test1 test2 test3 test4 test5 test6 test7 test8 test9 test99
 
-TITLE =  gbumc-directory-test.pdf
-LINK  =  https://gbumc-directory.org/congregation.html
-#	wkhtmltopdf --page-size Letter  page https://gbumc-directory.org/congregation.html $(TITLE)
+all: test1 test5 test99
 
-details:
-	raku -e 'shell "raku --doc=Markdown docs/DETAILS.rakudoc > DETAILS.md";';
-
-gbumc:
-	wkhtmltopdf --page-size Letter  page $(LINK) $(TITLE)
+test0:
+	(cd ..; raku -Ilib ./t/00*t)
 
 test0:
 	raku -I.. ../t/*0*t	
@@ -34,3 +36,32 @@ test88:
 
 test99:
 	(cd ..; raku -I. ./t/*99*t)
+test1:
+	(cd ..; raku -Ilib ./t/01*t)
+
+test2:
+	(cd ..; raku -Ilib ./t/02*t)
+
+test3:
+	(cd ..; raku -Ilib ./t/03*t)
+
+test4:
+	(cd ..; raku -Ilib ./t/04*t)
+
+test5:
+	(cd ..; raku -Ilib ./t/05*t)
+
+test6:
+	(cd ..; raku -Ilib ./t/06*t)
+
+test7:
+	(cd ..; raku -Ilib ./t/07*t)
+
+test8:
+	(cd ..; raku -Ilib ./t/88*t)
+
+test9:
+	(cd ..; raku -Ilib ./t/99*t)
+
+test99:
+	(cd ..; raku -Ilib ./t/*99*t)

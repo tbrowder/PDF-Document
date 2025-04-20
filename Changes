@@ -1,17 +1,24 @@
 Revision history for PDF-Document
+    - Update the .github/workflows/linux.yml file in an
+        attempt to fix the Linux tests
 
 {{$NEXT}}
-
 0.0.9  2023-05-01T18:17:22-05:00
     - Remove Fontfactory into its own module (FontFactory::Type1)
       - Use the newly published module
+    - Eliminate FontFactory::Type1 code as much as possible and
+        use David Warrings modules directly.
+        until FontFactory is released
     - Add class Point to hold an x,y coordinate
     - Add class DocBox to hold a rectangular set of points for
       describing Page media dimensions
     - Add tests for new classes
     - Improve existing tests
     - Improve documentation
-    - Correctly handle document and page media- and other boxes
+    - Correctly handle document and page media-and other boxes
+    - Add new methods:
+      + strikethrough
+      + underline
 
 0.0.8  2023-04-15T18:08:20-05:00
     - Added $page.media-box handling to show and set desired paper 

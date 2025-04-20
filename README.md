@@ -98,7 +98,7 @@ d.end-doc; # renders the pdf and saves the output
 DESCRIPTION
 ===========
 
-Module `PDF::Document` leverages the power of lower-level modules `PDF::Lite` and `Font::AFM` and encapsulates some of its classes, routines, and variables into higher-level contructs to ease PDF document creation.
+Module `PDF::Document` leverages the power of lower-level modules `PDF::Lite`, `FontFactory`, and `FontFactory::Type1` and encapsulates some of its classes, routines, and variables into higher-level contructs to ease PDF document creation.
 
 PDF document generation process
 -------------------------------
@@ -107,15 +107,18 @@ This module is designed around the document generation process used by those who
 
 The same sequence is also followed in the PDF document creation process:
 
-  * Define the `PDF` class instance (a heavy-weight instantiation, only one per document)
+  * Define the `PDF::Lite` class instance (a heavy-weight instantiation, only one per document)
 
         my $pdf = PDF::Lite;
 
-  * Select the fonts (with size) to be used with the `FontFactory`. (There are 72 PS points per inch.)
+  * Select the fonts (with size) to be used with either (1) the `FontFactory` or (2) the `FontFactory::Type1` or both. The advantage of (1) is the fonts are usually TrueType or OpenType with large numbers of Unicode glyphs. Any Type 1 fonts ('.t1') available may have more glyphs available than the fonts in (2). (There are 72 PS points per inch.)
 
-        my $ff    = FontFactory.new: :$pdf;
-        my $t12d1 = $ff.get-font: 't12d1'; # Times-Roman at 12.1 points
-        my $c10   = $ff.get-font: 'c10';   # Courier at 10 points
+        my $ff    = FontFactory.new;
+        my $fft   = FontFactory::Type1.new: # uses PDF::Lite to access standard fonts
+        my $t12d1 = $fft.get-font: 't12d1'  # Times-Roman at 12.1 points
+        my $c10   = $fft.get-font: 'c10';   # Courier at 10 points
+        my $ft1   = $ff.get-font: :name(), :size();
+        my $ft2   = $ff.get-font: :index(), :size();
 
   * Define each page
 

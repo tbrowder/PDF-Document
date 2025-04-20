@@ -7,9 +7,12 @@
   "build-depends": [
   ],
   "depends": [
+    "MacOS::NativeLib",
+    "Font::FreeType:ver<0.5.14>",
+    "FontFactory::Type1",
     "Proc::Easier",
     "Pod::To::Markdown",
-    "PDF::Content:ver<0.4.11+>",
+    "PDF::Content:ver<0.8.6+>",
     "PDF::Font::Loader",
     "File::Temp",
     "File::Find",
@@ -26,8 +29,7 @@
   "perl": "6.d",
   "provides": {
     "PDF::Document": "lib/PDF/Document.rakumod",
-    "PDF::FontFactory": "lib/PDF/FontFactory.rakumod",
-    "PDF::PDF-role": "lib/PDF/PDF-role.rakumod"
+    "PDF::Document::Role": "lib/PDF/Document/Role.rakumod"
   },
   "resources": [
     "fonts/MICREncoding.pfa",

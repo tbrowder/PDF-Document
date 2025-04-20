@@ -6,14 +6,18 @@
 #
 #================================================================
 use Test;
+
 use File::Temp;
 use PDF::Document;
+use PDF::Document::Role;
+
 use FontFactory::Type1;
-plan 39;
+use FontFactory::Type1::Subs;
+use FontFactory::Type1::FontList;
 # global vars
 my ($of, $fh) = tempfile;
 my ($doc, $x, $y);
-$doc = Doc.new;
+$doc = PDF::Document::Doc.new;
 $doc.add-page;
 
 # test 1
@@ -296,3 +300,5 @@ lives-ok {
     my $Height = 100;
     $doc.re($x, $y, $width, $Height);
 }, "testing method 'Rectangle', alias 're'";
+
+done-testing;
