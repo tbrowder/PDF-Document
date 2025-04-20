@@ -8,7 +8,7 @@
   ],
   "depends": [
     "MacOS::NativeLib",
-    "Font::FreeType:ver<0.5.4>",
+    "Font::FreeType:ver<0.5.14>",
     "FontFactory::Type1",
     "Proc::Easier",
     "Pod::To::Markdown",
