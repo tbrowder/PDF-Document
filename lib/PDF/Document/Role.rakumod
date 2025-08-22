@@ -5,11 +5,15 @@ use PDF::Lite;
 has $.pdf;
 has $.page;
 
+#| Set font and size
+method Tf($font, $font-size) {
+}
+
 #| Text line height
 method TextLeading {
     $!page.gfx.TextLeading;
 }
-method Tl {
+method TL { # corrected from 'Tl' per the pdf operator page
     $!page.gfx.TextLeading;
 }
 
